@@ -1,4 +1,4 @@
-import { unsupported } from "./helpers.js";
+import { components, cssom } from "./helpers.js";
 import type { ShorthandDefinitionMap } from "./types.js";
 
 export const TYPOGRAPHY_SHORTHANDS: ShorthandDefinitionMap = {
@@ -12,7 +12,7 @@ export const TYPOGRAPHY_SHORTHANDS: ShorthandDefinitionMap = {
     strategy: "text-decoration",
   },
 
-  font: unsupported([
+  font: cssom([
     "font-family",
     "font-size",
     "font-width",
@@ -21,13 +21,13 @@ export const TYPOGRAPHY_SHORTHANDS: ShorthandDefinitionMap = {
     "font-weight",
     "line-height",
   ]),
-  "font-synthesis": unsupported([
+  "font-synthesis": cssom([
     "font-synthesis-weight",
     "font-synthesis-style",
     "font-synthesis-small-caps",
     "font-synthesis-position",
   ]),
-  "font-variant": unsupported([
+  "font-variant": cssom([
     "font-variant-alternates",
     "font-variant-caps",
     "font-variant-east-asian",
@@ -36,8 +36,11 @@ export const TYPOGRAPHY_SHORTHANDS: ShorthandDefinitionMap = {
     "font-variant-numeric",
     "font-variant-position",
   ]),
-  "list-style": unsupported(["list-style-position", "list-style-image", "list-style-type"]),
-  "text-box": unsupported(["text-box-trim", "text-box-edge"]),
-  "text-emphasis": unsupported(["text-emphasis-style", "text-emphasis-color"]),
-  "text-wrap": unsupported(["text-wrap-mode", "text-wrap-style"]),
+  "list-style": cssom(["list-style-position", "list-style-image", "list-style-type"]),
+  "text-box": cssom(["text-box-trim", "text-box-edge"]),
+  "text-emphasis": cssom(["text-emphasis-style", "text-emphasis-color"]),
+  "text-wrap": components(
+    ["text-wrap-mode", "text-wrap-style"],
+    ["wrap", "auto"],
+  ),
 };
