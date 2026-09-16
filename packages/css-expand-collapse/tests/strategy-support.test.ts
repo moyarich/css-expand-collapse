@@ -8,14 +8,14 @@ import {
 } from "../src/index.js";
 
 describe("supported shorthand strategies", () => {
-  it("distinguishes pure and CSSOM-backed support", () => {
+  it("reports CSSTree-backed shorthands as runtime-neutral", () => {
     expect(supportsTransform("flex")).toBe(true);
     expect(supportsPureTransform("flex")).toBe(true);
     expect(getShorthandStrategy("flex")).toBe("flex");
 
     expect(supportsTransform("background")).toBe(true);
-    expect(supportsPureTransform("background")).toBe(false);
-    expect(getShorthandStrategy("background")).toBe("cssom");
+    expect(supportsPureTransform("background")).toBe(true);
+    expect(getShorthandStrategy("background")).toBe("csstree");
   });
 
   it("expands and collapses flex without a DOM", () => {
