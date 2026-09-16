@@ -5,13 +5,16 @@ import {
 } from "../src/index.js";
 
 describe("runtime compatibility", () => {
-  it("supports pure transforms without a DOM", () => {
+  it("supports all transformable shorthands without a DOM", () => {
     expect(hasCssomSupport()).toBe(false);
     expect(supportsRuntimeTransform("margin")).toBe(true);
-    expect(supportsRuntimeTransform("background")).toBe(false);
+    expect(supportsRuntimeTransform("background")).toBe(true);
+    expect(supportsRuntimeTransform("animation")).toBe(true);
+    expect(supportsRuntimeTransform("font")).toBe(true);
+    expect(supportsRuntimeTransform("grid")).toBe(true);
   });
 
-  it("accepts an injected CSSStyleDeclaration for DOM-less extension contexts", () => {
+  it("keeps the deprecated CSSOM capability helper source-compatible", () => {
     const style = {} as CSSStyleDeclaration;
 
     expect(hasCssomSupport({ style })).toBe(true);
