@@ -101,7 +101,7 @@ function removeRedundantDeclarations(children: any[], options?: CssomOptions): a
         // longhands, so an identical restatement can be dropped safely. Keep complex
         // CSSOM-backed shorthands themselves because they may reset additional state.
         const redundantPureShorthand =
-          definition.strategy !== "unsupported" && !changesEffectiveValue;
+          definition.strategy !== "cssom" && !changesEffectiveValue;
 
         if (!redundantPureShorthand) output.push(child);
 
@@ -166,7 +166,7 @@ function hasEarlierOverlappingShorthand(
 function canDropWhenFullyShadowed(property: string): boolean {
   const definition = SHORTHAND_DEFINITIONS[property];
   if (!definition) return false;
-  return definition.strategy !== "unsupported" && definition.strategy !== "border-all";
+  return definition.strategy !== "cssom" && definition.strategy !== "border-all";
 }
 
 function findFullyShadowedEarlierShorthands(
