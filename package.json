@@ -1,0 +1,52 @@
+{
+  "name": "@moyarich/css-expand-collapse",
+  "version": "0.1.0",
+  "description": "Expand CSS shorthands to longhands and collapse longhands back to safe shorthands.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "css-tree": "^3.2.1"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moyarich/css-expand-collapse.git"
+  },
+  "bugs": {
+    "url": "https://github.com/moyarich/css-expand-collapse/issues"
+  },
+  "homepage": "https://github.com/moyarich/css-expand-collapse#readme",
+  "keywords": [
+    "css",
+    "shorthand",
+    "longhand",
+    "css-tree",
+    "computed-style",
+    "transform"
+  ]
+}
