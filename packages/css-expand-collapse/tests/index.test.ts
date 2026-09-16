@@ -107,6 +107,11 @@ describe("real CSS", () => {
   it("removes computed-export longhands that only restate an existing shorthand", () => {
     const css = collapseCss(`
       .marker {
+        inset: auto;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
         margin: 0px;
         margin-top: 0px;
         margin-right: 0px;
@@ -136,6 +141,9 @@ describe("real CSS", () => {
       }
     `);
 
+    expect(css).toContain("inset:0px");
+    expect(css).not.toContain("inset:auto");
+    expect(css).not.toContain("top:0px");
     expect(css).toContain("margin:0px");
     expect(css).toContain("padding:0px 0px 8px");
     expect(css).toContain("border:4px solid rgb(31,111,174)");
