@@ -2,14 +2,14 @@ import { generate, List, parse, walk } from "css-tree";
 import {
   collapseToShorthand,
   expandShorthand,
-  type CssomOptions,
   type DeclarationMap,
+  type TransformOptions,
 } from "./core.js";
 import { SHORTHAND_DEFINITIONS } from "./registry.js";
 
 export type TransformMode = "expand" | "collapse";
 
-export interface TransformCssOptions extends CssomOptions {
+export interface TransformCssOptions extends TransformOptions {
   mode: TransformMode;
 }
 
@@ -32,7 +32,7 @@ function normalizeProperty(property: string): string {
   return property.trim().toLowerCase();
 }
 
-function expandBlock(children: any[], options?: CssomOptions): any[] {
+function expandBlock(children: any[], options?: TransformOptions): any[] {
   const output: any[] = [];
   for (const child of children) {
     if (child.type !== "Declaration") {
@@ -71,7 +71,7 @@ function declarationWouldApply(
  * combine a complete set of those overrides and remove an earlier shorthand when the
  * cascade proves that shorthand is fully overridden.
  */
-function removeRedundantDeclarations(children: any[], options?: CssomOptions): any[] {
+function removeRedundantDeclarations(children: any[], options?: TransformOptions): any[] {
   const output: any[] = [];
   const effective = new Map<string, EffectiveDeclaration>();
 
@@ -97,13 +97,14 @@ function removeRedundantDeclarations(children: any[], options?: CssomOptions): a
           return !current || current.value !== longhandValue || current.important !== important;
         });
 
-        // Pure shorthands have no hidden reset semantics beyond their registered
-        // longhands, so an identical restatement can be dropped safely. Keep complex
-        // CSSOM-backed shorthands themselves because they may reset additional state.
-        const redundantPureShorthand =
-          definition.strategy !== "cssom" && !changesEffectiveValue;
+        // Generic strategies have a fully enumerated constituent set, so an exact
+        // restatement can be removed safely. Keep property-specific CSSTree shorthands
+        // conservatively because some CSS shorthands reset state beyond their primary
+        // serializable longhands.
+        const redundantGenericShorthand =
+          definition.strategy !== "csstree" && !changesEffectiveValue;
 
-        if (!redundantPureShorthand) output.push(child);
+        if (!redundantGenericShorthand) output.push(child);
 
         for (const [longhand, longhandValue] of entries) {
           const current = effective.get(longhand);
@@ -166,7 +167,7 @@ function hasEarlierOverlappingShorthand(
 function canDropWhenFullyShadowed(property: string): boolean {
   const definition = SHORTHAND_DEFINITIONS[property];
   if (!definition) return false;
-  return definition.strategy !== "cssom" && definition.strategy !== "border-all";
+  return definition.strategy !== "csstree" && definition.strategy !== "border-all";
 }
 
 function findFullyShadowedEarlierShorthands(
@@ -212,7 +213,7 @@ function tryCollapseAt(
   children: any[],
   index: number,
   consumed: Set<number>,
-  options?: CssomOptions,
+  options?: TransformOptions,
 ): { node: any; indices: number[]; shadowedIndices: number[] } | null {
   const first = children[index];
   if (!first || first.type !== "Declaration" || consumed.has(index)) return null;
@@ -283,7 +284,7 @@ function tryCollapseAt(
   return null;
 }
 
-function collapseBlock(children: any[], options?: CssomOptions): any[] {
+function collapseBlock(children: any[], options?: TransformOptions): any[] {
   const normalized = removeRedundantDeclarations(children, options);
   const consumed = new Set<number>();
   const replacements = new Map<number, any>();
@@ -337,18 +338,18 @@ export function transformCss(css: string, options: TransformCssOptions): string 
   return generate(ast);
 }
 
-export function expandCss(css: string, options?: CssomOptions): string {
+export function expandCss(css: string, options?: TransformOptions): string {
   return transformCss(css, { ...options, mode: "expand" });
 }
 
-export function collapseCss(css: string, options?: CssomOptions): string {
+export function collapseCss(css: string, options?: TransformOptions): string {
   return transformCss(css, { ...options, mode: "collapse" });
 }
 
 function transformDeclarationBlock(
   declarations: string,
   mode: TransformMode,
-  options?: CssomOptions,
+  options?: TransformOptions,
 ): string {
   const selector = ".__css_expand_collapse__";
   const output = transformCss(`${selector}{${declarations}}`, { ...options, mode });
@@ -357,10 +358,10 @@ function transformDeclarationBlock(
   return open === -1 || close === -1 ? output : output.slice(open + 1, close);
 }
 
-export function expandDeclarations(declarations: string, options?: CssomOptions): string {
+export function expandDeclarations(declarations: string, options?: TransformOptions): string {
   return transformDeclarationBlock(declarations, "expand", options);
 }
 
-export function collapseDeclarations(declarations: string, options?: CssomOptions): string {
+export function collapseDeclarations(declarations: string, options?: TransformOptions): string {
   return transformDeclarationBlock(declarations, "collapse", options);
 }
