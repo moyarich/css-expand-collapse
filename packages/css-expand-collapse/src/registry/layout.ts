@@ -1,4 +1,4 @@
-import { unsupported } from "./helpers.js";
+import { components, cssom, slashPair } from "./helpers.js";
 import type { ShorthandDefinitionMap } from "./types.js";
 
 export const LAYOUT_SHORTHANDS: ShorthandDefinitionMap = {
@@ -11,14 +11,26 @@ export const LAYOUT_SHORTHANDS: ShorthandDefinitionMap = {
     strategy: "flex-flow",
   },
 
-  columns: unsupported(["column-width", "column-count"]),
-  "contain-intrinsic-size": unsupported([
-    "contain-intrinsic-width",
-    "contain-intrinsic-height",
-  ]),
-  container: unsupported(["container-name", "container-type"]),
-  flex: unsupported(["flex-grow", "flex-shrink", "flex-basis"]),
-  grid: unsupported([
+  columns: components(
+    ["column-width", "column-count"],
+    ["auto", "auto"],
+  ),
+  "contain-intrinsic-size": {
+    longhands: ["contain-intrinsic-width", "contain-intrinsic-height"],
+    strategy: "pair",
+    initialValues: ["none", "none"],
+  },
+  container: slashPair(
+    ["container-name", "container-type"],
+    ["none", "normal"],
+  ),
+  flex: {
+    longhands: ["flex-grow", "flex-shrink", "flex-basis"],
+    strategy: "flex",
+    initialValues: ["0", "1", "auto"],
+  },
+
+  grid: cssom([
     "grid-auto-columns",
     "grid-auto-flow",
     "grid-auto-rows",
@@ -26,22 +38,28 @@ export const LAYOUT_SHORTHANDS: ShorthandDefinitionMap = {
     "grid-template-columns",
     "grid-template-rows",
   ]),
-  "grid-area": unsupported([
+  "grid-area": cssom([
     "grid-row-start",
     "grid-column-start",
     "grid-row-end",
     "grid-column-end",
   ]),
-  "grid-column": unsupported(["grid-column-start", "grid-column-end"]),
-  "grid-row": unsupported(["grid-row-start", "grid-row-end"]),
-  "grid-template": unsupported([
+  "grid-column": slashPair(
+    ["grid-column-start", "grid-column-end"],
+    ["auto", "auto"],
+  ),
+  "grid-row": slashPair(
+    ["grid-row-start", "grid-row-end"],
+    ["auto", "auto"],
+  ),
+  "grid-template": cssom([
     "grid-template-rows",
     "grid-template-columns",
     "grid-template-areas",
   ]),
-  "position-try": unsupported(["position-try-order", "position-try-fallbacks"]),
-  "scroll-timeline": unsupported(["scroll-timeline-name", "scroll-timeline-axis"]),
-  "view-timeline": unsupported([
+  "position-try": cssom(["position-try-order", "position-try-fallbacks"]),
+  "scroll-timeline": cssom(["scroll-timeline-name", "scroll-timeline-axis"]),
+  "view-timeline": cssom([
     "view-timeline-name",
     "view-timeline-axis",
     "view-timeline-inset",
