@@ -13,7 +13,10 @@ import {
 export type { DeclarationMap } from "./registry.js";
 
 export interface CssomOptions {
-  /** Optional mutable CSSStyleDeclaration used for browser CSSOM fallback. */
+  /**
+   * @deprecated Transform logic no longer depends on CSSOM. This field is kept
+   * temporarily for source compatibility and is ignored.
+   */
   style?: CSSStyleDeclaration | null;
   /**
    * Opt in to filling missing longhands with registered CSS initial values while
@@ -60,7 +63,7 @@ export function supportsTransform(property: string): boolean {
   return Boolean(SHORTHAND_DEFINITIONS[normalizeProperty(property)]);
 }
 
-/** True when expansion/collapse can run without browser CSSOM. */
+/** True when expansion/collapse does not require browser CSSOM. */
 export function supportsPureTransform(property: string): boolean {
   const definition = SHORTHAND_DEFINITIONS[normalizeProperty(property)];
   return Boolean(definition && definition.strategy !== "cssom");
@@ -180,44 +183,10 @@ function matchProperty(property: string, value: string): boolean {
   }
 }
 
-function mutableStyle(options?: CssomOptions): CSSStyleDeclaration | null {
-  if (options?.style) {
-    options.style.cssText = "";
-    return options.style;
-  }
-  if (typeof document !== "undefined") {
-    return document.createElement("div").style;
-  }
-  return null;
-}
-
-function expandWithCssom(
-  property: string,
-  value: string,
-  definition: ShorthandDefinition,
-  options?: CssomOptions,
-): DeclarationMap | null {
-  if (!definition.longhands.length) return null;
-  const style = mutableStyle(options);
-  if (!style) return null;
-
-  style.setProperty(property, value);
-  if (!style.getPropertyValue(property) && !definition.longhands.some((p) => style.getPropertyValue(p))) {
-    return null;
-  }
-
-  const result: DeclarationMap = {};
-  for (const longhand of definition.longhands) {
-    const longhandValue = style.getPropertyValue(longhand).trim();
-    if (longhandValue) result[longhand] = longhandValue;
-  }
-  return Object.keys(result).length === definition.longhands.length ? result : null;
-}
-
 export function expandShorthand(
   property: string,
   value: string,
-  options?: CssomOptions,
+  _options?: CssomOptions,
 ): DeclarationMap | null {
   const shorthand = normalizeProperty(property);
   const definition = SHORTHAND_DEFINITIONS[shorthand];
@@ -236,7 +205,6 @@ export function expandShorthand(
     matchProperty,
     splitWhitespace: splitTopLevelWhitespace,
     splitSlash: splitTopLevelSlash,
-    cssom: (candidate) => expandWithCssom(shorthand, candidate, definition, options),
   };
 
   return definition.expand(normalizedValue, context);
@@ -276,7 +244,6 @@ function collapseSlashPair(
 }
 
 function collapsePure(
-  shorthand: string,
   definition: ShorthandDefinition,
   declarations: DeclarationMap,
 ): string | null {
@@ -300,13 +267,11 @@ function collapsePure(
     case "flex":
       return collapseFlex(concrete);
     case "flex-flow":
-      return concrete.join(" ");
     case "components":
+    case "text-decoration":
       return concrete.join(" ");
     case "slash-pair":
       return collapseSlashPair(definition, concrete);
-    case "text-decoration":
-      return concrete.join(" ");
     case "border-all": {
       const sides = ["top", "right", "bottom", "left"].map((side) => [
         declarations[`border-${side}-width`],
@@ -317,25 +282,10 @@ function collapsePure(
       const first = sides[0]!.join(" ");
       return sides.every((side) => side.join(" ") === first) ? first : null;
     }
+    case "csstree":
     case "cssom":
       return null;
   }
-}
-
-function collapseWithCssom(
-  shorthand: string,
-  definition: ShorthandDefinition,
-  declarations: DeclarationMap,
-  options?: CssomOptions,
-): string | null {
-  const style = mutableStyle(options);
-  if (!style) return null;
-  for (const longhand of definition.longhands) {
-    const value = declarations[longhand];
-    if (!value) return null;
-    style.setProperty(longhand, value);
-  }
-  return style.getPropertyValue(shorthand).trim() || null;
 }
 
 function fillMissingInitialLonghands(
@@ -373,8 +323,8 @@ export function collapseToShorthand(
   if (!consumed.length) return null;
 
   const completed = fillMissingInitialLonghands(definition, normalized, options);
-  const value = collapsePure(property, definition, completed)
-    ?? collapseWithCssom(property, definition, completed, options);
+  const value = definition.collapse?.(completed, { matchProperty })
+    ?? collapsePure(definition, completed);
   if (!value) return null;
 
   return {
