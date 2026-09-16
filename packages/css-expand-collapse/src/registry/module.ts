@@ -31,7 +31,9 @@ export type ShorthandStrategy =
   | "flex-flow"
   | "components"
   | "slash-pair"
-  | "csstree";
+  | "csstree"
+  /** @deprecated Temporary marker while legacy modules are migrated. */
+  | "cssom";
 
 /**
  * Common contract implemented by every shorthand property module.
