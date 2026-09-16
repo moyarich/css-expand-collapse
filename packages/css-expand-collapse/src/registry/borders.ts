@@ -1,8 +1,8 @@
 import {
+  cssom,
   logicalBorderSide,
   quad,
   sideBorder,
-  unsupported,
 } from "./helpers.js";
 import type { ShorthandDefinitionMap } from "./types.js";
 
@@ -58,15 +58,21 @@ export const BORDER_SHORTHANDS: ShorthandDefinitionMap = {
     ],
     strategy: "border-all",
   },
-  "border-block": unsupported([
-    "border-block-start-width", "border-block-start-style", "border-block-start-color",
-    "border-block-end-width", "border-block-end-style", "border-block-end-color",
-  ]),
-  "border-inline": unsupported([
-    "border-inline-start-width", "border-inline-start-style", "border-inline-start-color",
-    "border-inline-end-width", "border-inline-end-style", "border-inline-end-color",
-  ]),
-  "border-image": unsupported([
+  "border-block": {
+    longhands: [
+      "border-block-start-width", "border-block-start-style", "border-block-start-color",
+      "border-block-end-width", "border-block-end-style", "border-block-end-color",
+    ],
+    strategy: "logical-border-axis",
+  },
+  "border-inline": {
+    longhands: [
+      "border-inline-start-width", "border-inline-start-style", "border-inline-start-color",
+      "border-inline-end-width", "border-inline-end-style", "border-inline-end-color",
+    ],
+    strategy: "logical-border-axis",
+  },
+  "border-image": cssom([
     "border-image-source",
     "border-image-slice",
     "border-image-width",
