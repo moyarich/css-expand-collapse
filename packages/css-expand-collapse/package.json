@@ -17,9 +17,11 @@
   },
   "files": ["dist", "README.md", "LICENSE"],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "generate:registry": "node scripts/generate-registry.mjs",
+    "check:registry": "node scripts/generate-registry.mjs --check",
+    "build": "npm run check:registry && tsup src/index.ts --format esm,cjs --dts --clean",
+    "typecheck": "npm run check:registry && tsc --noEmit",
+    "test": "npm run check:registry && vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
