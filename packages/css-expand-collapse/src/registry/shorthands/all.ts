@@ -1,3 +1,7 @@
-import type { ShorthandDefinition } from "../types.js";
+import type { ShorthandModule } from "../module.js";
 
-export default null satisfies ShorthandDefinition | null;
+export default {
+  longhands: [],
+  strategy: null,
+  expand: () => null,
+} satisfies ShorthandModule;
