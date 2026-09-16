@@ -10,6 +10,8 @@ export type ShorthandStrategy =
 export interface ShorthandDefinition {
   longhands: readonly string[];
   strategy: ShorthandStrategy;
+  /** Initial values used only when callers explicitly allow filling missing longhands. */
+  initialValues?: readonly string[];
 }
 
 /** Shorthands listed by MDN's CSS shorthand-properties guide. */
@@ -119,7 +121,11 @@ const unsupported = (longhands: readonly string[]): ShorthandDefinition => ({
 export const SHORTHAND_DEFINITIONS: Readonly<Record<string, ShorthandDefinition>> = {
   margin: { longhands: quad("margin"), strategy: "quad" },
   padding: { longhands: quad("padding"), strategy: "quad" },
-  inset: { longhands: ["top", "right", "bottom", "left"], strategy: "quad" },
+  inset: {
+    longhands: ["top", "right", "bottom", "left"],
+    strategy: "quad",
+    initialValues: ["auto", "auto", "auto", "auto"],
+  },
   "border-width": { longhands: quad("border").map((p) => `${p}-width`), strategy: "quad" },
   "border-style": { longhands: quad("border").map((p) => `${p}-style`), strategy: "quad" },
   "border-color": { longhands: quad("border").map((p) => `${p}-color`), strategy: "quad" },
@@ -139,8 +145,16 @@ export const SHORTHAND_DEFINITIONS: Readonly<Record<string, ShorthandDefinition>
   "margin-inline": { longhands: logicalPair("margin", "inline"), strategy: "pair" },
   "padding-block": { longhands: logicalPair("padding", "block"), strategy: "pair" },
   "padding-inline": { longhands: logicalPair("padding", "inline"), strategy: "pair" },
-  "inset-block": { longhands: ["inset-block-start", "inset-block-end"], strategy: "pair" },
-  "inset-inline": { longhands: ["inset-inline-start", "inset-inline-end"], strategy: "pair" },
+  "inset-block": {
+    longhands: ["inset-block-start", "inset-block-end"],
+    strategy: "pair",
+    initialValues: ["auto", "auto"],
+  },
+  "inset-inline": {
+    longhands: ["inset-inline-start", "inset-inline-end"],
+    strategy: "pair",
+    initialValues: ["auto", "auto"],
+  },
   "scroll-margin-block": { longhands: logicalPair("scroll-margin", "block"), strategy: "pair" },
   "scroll-margin-inline": { longhands: logicalPair("scroll-margin", "inline"), strategy: "pair" },
   "scroll-padding-block": { longhands: logicalPair("scroll-padding", "block"), strategy: "pair" },
