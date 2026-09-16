@@ -1,16 +1,36 @@
-import type {
-  DeclarationMap,
-  ShorthandExpandContext,
-  ShorthandExpander,
-  ShorthandStrategy,
-} from "./types.js";
+export type DeclarationMap = Record<string, string>;
+
+export interface ShorthandExpandContext {
+  matchProperty(property: string, value: string): boolean;
+  splitWhitespace(value: string): string[];
+  splitSlash(value: string): string[];
+  cssom(value: string): DeclarationMap | null;
+}
+
+export type ShorthandExpander = (
+  value: string,
+  context: ShorthandExpandContext,
+) => DeclarationMap | null;
+
+export type ShorthandStrategy =
+  | "quad"
+  | "pair"
+  | "triple"
+  | "border-all"
+  | "logical-border-axis"
+  | "text-decoration"
+  | "flex"
+  | "flex-flow"
+  | "components"
+  | "slash-pair"
+  | "cssom";
 
 /**
  * Common contract implemented by every shorthand property module.
  *
- * The property name comes from the module filename, so it is intentionally not
- * duplicated here. A null strategy marks a recognized shorthand that cannot be
- * transformed as a finite longhand set (for example `all`).
+ * The CSS property name comes from the module filename, so it is intentionally
+ * not duplicated here. A null strategy marks a recognized shorthand that does
+ * not expose a finite transform in this package (for example `all`).
  */
 export interface ShorthandModule {
   readonly longhands: readonly string[];
@@ -27,10 +47,3 @@ export type ShorthandModuleMap = Readonly<Record<string, ShorthandModule>>;
 export type TransformableShorthandModuleMap = Readonly<
   Record<string, TransformableShorthandModule>
 >;
-
-export type {
-  DeclarationMap,
-  ShorthandExpandContext,
-  ShorthandExpander,
-  ShorthandStrategy,
-};
