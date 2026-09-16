@@ -3,11 +3,151 @@ import type {
   ShorthandExpander,
 } from "./types.js";
 
+/**
+ * Kept as an internal compatibility alias while shorthand modules migrate away
+ * from the old browser CSSOM fallback. Expansion is now pure JavaScript.
+ */
 export function withCssomFallback(expand: ShorthandExpander): ShorthandExpander {
-  return (value, context) => expand(value, context) ?? context.cssom(value);
+  return expand;
 }
 
-export const expandCssom: ShorthandExpander = (value, context) => context.cssom(value);
+/** @deprecated Implement expansion in the shorthand module with CSSTree matching. */
+export const expandCssom: ShorthandExpander = () => null;
+
+export function splitTopLevel(value: string, separator: string): string[] {
+  const parts: string[] = [];
+  let current = "";
+  let quote: "'" | '"' | null = null;
+  let escaped = false;
+  let parenDepth = 0;
+  let bracketDepth = 0;
+
+  const push = () => {
+    parts.push(current.trim());
+    current = "";
+  };
+
+  for (const char of value.trim()) {
+    if (escaped) {
+      current += char;
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      current += char;
+      escaped = true;
+      continue;
+    }
+    if (quote) {
+      current += char;
+      if (char === quote) quote = null;
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      current += char;
+      continue;
+    }
+    if (char === "(") parenDepth += 1;
+    if (char === ")") parenDepth = Math.max(0, parenDepth - 1);
+    if (char === "[") bracketDepth += 1;
+    if (char === "]") bracketDepth = Math.max(0, bracketDepth - 1);
+
+    if (char === separator && parenDepth === 0 && bracketDepth === 0) {
+      push();
+    } else {
+      current += char;
+    }
+  }
+
+  push();
+  return parts;
+}
+
+export const splitTopLevelComma = (value: string): string[] => splitTopLevel(value, ",");
+
+export function expandOrderedPair(
+  longhands: readonly [string, string],
+  initialValues: readonly [string, string],
+): ShorthandExpander {
+  return (value, context) => {
+    const tokens = context.splitWhitespace(value);
+    if (!tokens.length) return null;
+
+    for (let split = 1; split < tokens.length; split += 1) {
+      const first = tokens.slice(0, split).join(" ");
+      const second = tokens.slice(split).join(" ");
+      if (
+        context.matchProperty(longhands[0], first) &&
+        context.matchProperty(longhands[1], second)
+      ) {
+        return { [longhands[0]]: first, [longhands[1]]: second };
+      }
+    }
+
+    if (context.matchProperty(longhands[0], value)) {
+      return { [longhands[0]]: value, [longhands[1]]: initialValues[1] };
+    }
+
+    return null;
+  };
+}
+
+export interface CsstreeComponentOptions {
+  initialValues: readonly string[];
+  /** Matching order used to resolve grammatically ambiguous tokens. */
+  priority?: readonly string[];
+  /** Parse comma-separated layers and join each longhand with the same layer count. */
+  layered?: boolean;
+}
+
+export function expandCsstreeComponents(
+  longhands: readonly string[],
+  options: CsstreeComponentOptions,
+): ShorthandExpander {
+  const priority = options.priority ?? longhands;
+
+  return (value, context) => {
+    if (options.initialValues.length !== longhands.length) return null;
+    const layers = options.layered ? splitTopLevelComma(value) : [value];
+    if (!layers.length || layers.some((layer) => !layer)) return null;
+
+    const expandedLayers: DeclarationMap[] = [];
+
+    for (const layer of layers) {
+      const tokens = context.splitWhitespace(layer);
+      if (!tokens.length) return null;
+
+      const result = Object.fromEntries(
+        longhands.map((longhand, index) => [longhand, options.initialValues[index]!]),
+      ) as DeclarationMap;
+      const assigned = new Set<string>();
+
+      for (const token of tokens) {
+        const candidates = priority.filter(
+          (property) =>
+            longhands.includes(property) &&
+            !assigned.has(property) &&
+            context.matchProperty(property, token),
+        );
+        if (!candidates.length) return null;
+
+        const property = candidates[0]!;
+        result[property] = token;
+        assigned.add(property);
+      }
+
+      expandedLayers.push(result);
+    }
+
+    return Object.fromEntries(
+      longhands.map((longhand) => [
+        longhand,
+        expandedLayers.map((layer) => layer[longhand]!).join(", "),
+      ]),
+    );
+  };
+}
 
 export function expandQuad(longhands: readonly string[]): ShorthandExpander {
   return (value, context) => {
