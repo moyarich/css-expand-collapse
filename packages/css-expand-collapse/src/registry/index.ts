@@ -15,6 +15,8 @@ export type {
 } from "./module.js";
 export type {
   DeclarationMap,
+  ShorthandCollapseContext,
+  ShorthandCollapser,
   ShorthandDefinition,
   ShorthandDefinitionMap,
   ShorthandExpandContext,
