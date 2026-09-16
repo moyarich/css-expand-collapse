@@ -2,7 +2,7 @@
 
 Expand CSS shorthands into longhands and safely collapse compatible longhands back into shorthands.
 
-The package works with individual CSS properties, declaration maps, declaration fragments, full stylesheets, browser computed styles, and Chrome extension contexts. It uses [CSSTree](https://github.com/csstree/csstree) for parsing, generation, and CSS grammar matching.
+The package works with individual CSS properties, declaration maps, declaration fragments, full stylesheets, browser computed styles, Node.js, and Chrome extension contexts. It uses [CSSTree](https://github.com/csstree/csstree) for parsing, generation, and CSS grammar matching; shorthand transforms do not require browser CSSOM.
 
 ## Install
 
@@ -61,30 +61,26 @@ const {
 } = require("@moyarich/css-expand-collapse");
 ```
 
-Pure-JavaScript shorthand implementations work directly in Node. Shorthands whose strategy is `cssom` require browser CSSOM for fallback parsing.
-
-You can inspect support before transforming:
+All registered transformable shorthands use runtime-neutral JavaScript + CSSTree. Complex properties such as `background`, `mask`, `animation`, `transition`, `font`, and `grid` no longer require `document` or a `CSSStyleDeclaration`.
 
 ```js
 import {
-  supportsTransform,
   supportsPureTransform,
   getShorthandStrategy,
 } from "@moyarich/css-expand-collapse";
 
-supportsTransform("background");
-// true
-
-supportsPureTransform("margin");
+supportsPureTransform("background");
 // true
 
 getShorthandStrategy("background");
-// "cssom"
+// "csstree"
 ```
 
 ## Chrome extensions / Manifest V3
 
-The package can be bundled into Chrome extension content scripts, DevTools pages, side panels, popups, and other DOM-capable extension pages. It exposes a browser ESM entry so bundlers such as Vite can consume it normally:
+The package can be bundled into content scripts, DevTools pages, side panels, popups, and Manifest V3 background service workers. Transform APIs do not depend on the DOM.
+
+For an element inspector, computed styles can be collected in a DOM-capable extension context and compacted directly:
 
 ```ts
 import {
@@ -100,30 +96,26 @@ const compact = collapseLonghands(declarations, {
 });
 ```
 
-This matches the computed-style export workflow used by inspector extensions such as `element-inspector`: collect the selected element's `CSSStyleDeclaration`, convert it to declarations, then compact compatible longhands before serializing the CSS.
+Raw declaration text such as an inline style can be expanded directly:
 
-Manifest V3 background service workers do not have `document`, so CSSOM-only shorthand strategies are unavailable there unless a mutable `CSSStyleDeclaration` is explicitly supplied. Use the runtime helpers when code may run in either a DOM page or a service worker:
+```ts
+import { expandDeclarations } from "@moyarich/css-expand-collapse";
+
+expandDeclarations("text-decoration: underline;");
+```
+
+A service worker can use the transform APIs on CSS strings or declaration objects without `document`:
 
 ```ts
 import {
-  hasCssomSupport,
+  expandShorthand,
   supportsRuntimeTransform,
 } from "@moyarich/css-expand-collapse";
 
-hasCssomSupport();
-// true in content scripts / DevTools pages, false in a service worker
-
-supportsRuntimeTransform("margin");
-// true everywhere because margin has a pure-JS strategy
-
 supportsRuntimeTransform("background");
-// true in DOM-capable extension pages, false in a service worker
-```
+// true
 
-If a DOM-less context already has access to a mutable style declaration, it can be supplied explicitly:
-
-```ts
-supportsRuntimeTransform("background", { style: scratchStyle });
+expandShorthand("transition", "opacity 200ms ease");
 ```
 
 ## Transform CSS
@@ -210,7 +202,7 @@ collapseDeclarations(`
 
 ## Computed styles
 
-In the browser, the package can work directly with the read-only shape returned by `getComputedStyle()`:
+In a browser, the package can work directly with the read-only shape returned by `getComputedStyle()`:
 
 ```js
 import {
@@ -226,8 +218,6 @@ collapseComputedStyle(computed, "margin");
 styleToDeclarations(computed);
 ```
 
-This is useful for inspectors, visual CSS editors, and exported computed CSS.
-
 ## Property helpers
 
 ```js
@@ -238,18 +228,17 @@ import {
   getShorthands,
 } from "@moyarich/css-expand-collapse";
 
-isShorthand("margin");
-// true
-
-isLonghand("margin-top");
-// true
-
+isShorthand("margin"); // true
+isLonghand("margin-top"); // true
 getLonghands("margin");
 // ["margin-top", "margin-right", "margin-bottom", "margin-left"]
-
 getShorthands("margin-top");
 // includes "margin"
 ```
+
+## Notes
+
+System-font keywords such as `font: menu` are user-agent dependent and cannot be deterministically decomposed in a runtime-neutral way. Explicit `font` shorthand values are supported.
 
 ## API
 
@@ -260,8 +249,7 @@ getLonghands(shorthand)
 getShorthands(longhand)
 supportsTransform(property)
 supportsPureTransform(property)
-supportsRuntimeTransform(property, options?)
-hasCssomSupport(options?)
+supportsRuntimeTransform(property)
 getShorthandStrategy(property)
 
 expandShorthand(property, value, options?)
@@ -283,8 +271,6 @@ collapseComputedStyles(style, shorthands?, options?)
 ```
 
 ## Playground
-
-Try the package in the live playground:
 
 https://moyarich.github.io/css-expand-collapse/
 
