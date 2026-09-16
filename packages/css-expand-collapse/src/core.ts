@@ -12,6 +12,13 @@ export type DeclarationMap = Record<string, string>;
 export interface CssomOptions {
   /** Optional mutable CSSStyleDeclaration used for browser CSSOM fallback. */
   style?: CSSStyleDeclaration | null;
+  /**
+   * Opt in to filling missing longhands with registered CSS initial values while
+   * collapsing. This is useful for computed/export CSS, but can change cascade
+   * behavior for raw stylesheets because the resulting shorthand explicitly sets
+   * properties that were previously omitted.
+   */
+  fillMissingLonghands?: false | "initial";
 }
 
 export interface CollapseResult {
@@ -352,6 +359,25 @@ function collapseWithCssom(
   return style.getPropertyValue(shorthand).trim() || null;
 }
 
+function fillMissingInitialLonghands(
+  definition: ShorthandDefinition,
+  declarations: DeclarationMap,
+  options?: CssomOptions,
+): DeclarationMap {
+  const completed = { ...declarations };
+  if (options?.fillMissingLonghands !== "initial" || !definition.initialValues) {
+    return completed;
+  }
+
+  definition.longhands.forEach((longhand, index) => {
+    if (completed[longhand]) return;
+    const initialValue = definition.initialValues?.[index];
+    if (initialValue) completed[longhand] = initialValue;
+  });
+
+  return completed;
+}
+
 export function collapseToShorthand(
   shorthandProperty: string,
   declarations: DeclarationMap,
@@ -364,16 +390,20 @@ export function collapseToShorthand(
   const normalized = Object.fromEntries(
     Object.entries(declarations).map(([key, value]) => [normalizeProperty(key), value.trim()]),
   );
-  const value = collapsePure(property, definition, normalized)
-    ?? collapseWithCssom(property, definition, normalized, options);
+  const consumed = definition.longhands.filter((longhand) => Object.hasOwn(normalized, longhand));
+  if (!consumed.length) return null;
+
+  const completed = fillMissingInitialLonghands(definition, normalized, options);
+  const value = collapsePure(property, definition, completed)
+    ?? collapseWithCssom(property, definition, completed, options);
   if (!value) return null;
 
   return {
     property,
     value,
-    consumed: [...definition.longhands],
+    consumed,
     declarations: Object.fromEntries(
-      definition.longhands.map((longhand) => [longhand, normalized[longhand]!]),
+      definition.longhands.map((longhand) => [longhand, completed[longhand]!]),
     ),
   };
 }
