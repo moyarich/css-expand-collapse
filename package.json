@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "npm run dev --workspace @moyarich/css-expand-collapse-playground",
     "dev:playground": "npm run dev --workspace @moyarich/css-expand-collapse-playground",
+    "generate:registry": "npm run generate:registry --workspace @moyarich/css-expand-collapse",
     "build": "npm run build:lib && npm run build:playground",
     "build:lib": "npm run build --workspace @moyarich/css-expand-collapse",
     "build:playground": "npm run build --workspace @moyarich/css-expand-collapse-playground",
