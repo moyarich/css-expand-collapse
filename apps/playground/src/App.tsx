@@ -48,14 +48,25 @@ const MODE_META: Record<Mode, {
 
 const DEFAULT_EXAMPLE = getShorthandExample("text-decoration")!;
 
-function transform(source: string, mode: Mode, inputKind: InputKind): string {
+function transform(
+  source: string,
+  mode: Mode,
+  inputKind: InputKind,
+  fillMissingLonghands: boolean,
+): string {
+  const collapseOptions = fillMissingLonghands
+    ? { fillMissingLonghands: "initial" as const }
+    : undefined;
+
   if (inputKind === "declarations") {
     return mode === "expand"
       ? expandDeclarations(source)
-      : collapseDeclarations(source);
+      : collapseDeclarations(source, collapseOptions);
   }
 
-  return mode === "expand" ? expandCss(source) : collapseCss(source);
+  return mode === "expand"
+    ? expandCss(source)
+    : collapseCss(source, collapseOptions);
 }
 
 function formatCss(css: string, inputKind: InputKind): string {
@@ -168,13 +179,14 @@ export function App() {
   const [mode, setMode] = useState<Mode>("expand");
   const [inputKind, setInputKind] = useState<InputKind>("stylesheet");
   const [source, setSource] = useState(DEFAULT_EXAMPLE.source);
+  const [fillMissingLonghands, setFillMissingLonghands] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const meta = MODE_META[mode];
 
   const result = useMemo(() => {
     try {
-      const css = transform(source, mode, inputKind);
+      const css = transform(source, mode, inputKind, fillMissingLonghands);
       return { css: formatCss(css, inputKind), error: "" };
     } catch (error) {
       return {
@@ -182,12 +194,13 @@ export function App() {
         error: error instanceof Error ? error.message : String(error),
       };
     }
-  }, [source, mode, inputKind]);
+  }, [source, mode, inputKind, fillMissingLonghands]);
 
   const loadExample = (selection: string) => {
     if (selection === COMPUTED_EXPORT_EXAMPLE_ID) {
       setInputKind("stylesheet");
       setMode("collapse");
+      setFillMissingLonghands(true);
       setSource(COMPUTED_EXPORT_EXAMPLE);
       setCopied(false);
       return;
@@ -197,6 +210,7 @@ export function App() {
     if (!example) return;
     setInputKind("stylesheet");
     setMode("expand");
+    setFillMissingLonghands(false);
     setSource(example.source);
     setCopied(false);
   };
@@ -341,7 +355,22 @@ export function App() {
           <strong>{meta.direction}</strong>
           <p>{meta.description}</p>
         </div>
-        <span className="live-badge">Live</span>
+        <div className="summary-actions">
+          {mode === "collapse" && (
+            <label className="initial-fill-toggle">
+              <input
+                type="checkbox"
+                checked={fillMissingLonghands}
+                onChange={(event) => setFillMissingLonghands(event.target.checked)}
+              />
+              <span>
+                <strong>Fill missing longhands</strong>
+                <small>Use CSS initial values for computed/export CSS.</small>
+              </span>
+            </label>
+          )}
+          <span className="live-badge">Live</span>
+        </div>
       </section>
 
       <section className="workspace">
