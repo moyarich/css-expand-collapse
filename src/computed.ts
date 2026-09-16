@@ -1,0 +1,69 @@
+import {
+  collapseToShorthand,
+  getLonghands,
+  type CollapseResult,
+  type CssomOptions,
+  type DeclarationMap,
+} from "./core.js";
+import { SHORTHAND_PROPERTIES } from "./registry.js";
+
+export interface ReadonlyStyleDeclaration {
+  readonly length: number;
+  item(index: number): string;
+  getPropertyValue(property: string): string;
+}
+
+export function styleToDeclarations(
+  style: ReadonlyStyleDeclaration,
+  properties?: Iterable<string>,
+): DeclarationMap {
+  const output: DeclarationMap = {};
+
+  if (properties) {
+    for (const property of properties) {
+      const value = style.getPropertyValue(property).trim();
+      if (value) output[property.toLowerCase()] = value;
+    }
+    return output;
+  }
+
+  for (let index = 0; index < style.length; index += 1) {
+    const property = style.item(index);
+    if (!property) continue;
+    const value = style.getPropertyValue(property).trim();
+    if (value) output[property.toLowerCase()] = value;
+  }
+  return output;
+}
+
+export function getComputedLonghands(
+  style: ReadonlyStyleDeclaration,
+  shorthand: string,
+): DeclarationMap {
+  return styleToDeclarations(style, getLonghands(shorthand));
+}
+
+export function collapseComputedStyle(
+  style: ReadonlyStyleDeclaration,
+  shorthand: string,
+  options?: CssomOptions,
+): CollapseResult | null {
+  const longhands = getLonghands(shorthand);
+  const declarations = longhands.length
+    ? styleToDeclarations(style, longhands)
+    : styleToDeclarations(style);
+  return collapseToShorthand(shorthand, declarations, options);
+}
+
+export function collapseComputedStyles(
+  style: ReadonlyStyleDeclaration,
+  shorthands: Iterable<string> = SHORTHAND_PROPERTIES,
+  options?: CssomOptions,
+): CollapseResult[] {
+  const results: CollapseResult[] = [];
+  for (const shorthand of shorthands) {
+    const result = collapseComputedStyle(style, shorthand, options);
+    if (result) results.push(result);
+  }
+  return results;
+}
