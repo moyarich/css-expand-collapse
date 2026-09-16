@@ -6,10 +6,18 @@ import {
   expandCss,
   expandDeclarations,
 } from "@moyarich/css-expand-collapse";
+import {
+  EXAMPLE_GROUPS,
+  SHORTHAND_EXAMPLES,
+  getShorthandExample,
+  type ExampleProperty,
+} from "./examples";
 
 type Mode = "expand" | "collapse";
 type InputKind = "stylesheet" | "declarations";
-type ExampleKey = "shorthand" | "longhand";
+
+const MDN_SHORTHAND_URL =
+  "https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Shorthand_properties#shorthand_properties";
 
 const MODE_META: Record<Mode, {
   label: string;
@@ -34,36 +42,7 @@ const MODE_META: Record<Mode, {
   },
 };
 
-const EXAMPLES: Record<ExampleKey, {
-  label: string;
-  mode: Mode;
-  source: string;
-}> = {
-  shorthand: {
-    label: "Shorthand example",
-    mode: "expand",
-    source: `.card {
-  margin: 12px 24px;
-  padding: 8px 16px 20px;
-  border: 2px solid rebeccapurple;
-  text-decoration: wavy underline purple 25%;
-}`,
-  },
-  longhand: {
-    label: "Longhand example",
-    mode: "collapse",
-    source: `.card {
-  margin-top: 12px;
-  margin-right: 24px;
-  margin-bottom: 12px;
-  margin-left: 24px;
-  padding-top: 8px;
-  padding-right: 16px;
-  padding-bottom: 20px;
-  padding-left: 16px;
-}`,
-  },
-};
+const DEFAULT_EXAMPLE = getShorthandExample("text-decoration")!;
 
 function transform(source: string, mode: Mode, inputKind: InputKind): string {
   if (inputKind === "declarations") {
@@ -184,7 +163,7 @@ function formatCss(css: string, inputKind: InputKind): string {
 export function App() {
   const [mode, setMode] = useState<Mode>("expand");
   const [inputKind, setInputKind] = useState<InputKind>("stylesheet");
-  const [source, setSource] = useState(EXAMPLES.shorthand.source);
+  const [source, setSource] = useState(DEFAULT_EXAMPLE.source);
   const [copied, setCopied] = useState(false);
 
   const meta = MODE_META[mode];
@@ -201,10 +180,11 @@ export function App() {
     }
   }, [source, mode, inputKind]);
 
-  const loadExample = (kind: ExampleKey) => {
-    const example = EXAMPLES[kind];
+  const loadExample = (property: ExampleProperty) => {
+    const example = getShorthandExample(property);
+    if (!example) return;
     setInputKind("stylesheet");
-    setMode(example.mode);
+    setMode("expand");
     setSource(example.source);
     setCopied(false);
   };
@@ -300,21 +280,41 @@ export function App() {
             </button>
           </div>
 
-          <label className="example-field">
-            <span>Sample</span>
-            <select
-              defaultValue=""
-              onChange={(event) => {
-                if (!event.target.value) return;
-                loadExample(event.target.value as ExampleKey);
-                event.target.value = "";
-              }}
+          <div className="example-picker">
+            <label className="example-field">
+              <span>MDN example</span>
+              <select
+                defaultValue=""
+                onChange={(event) => {
+                  if (!event.target.value) return;
+                  loadExample(event.target.value as ExampleProperty);
+                  event.target.value = "";
+                }}
+              >
+                <option value="" disabled>Choose a shorthand property…</option>
+                {EXAMPLE_GROUPS.map((group) => (
+                  <optgroup key={group} label={group}>
+                    {SHORTHAND_EXAMPLES
+                      .filter((example) => example.group === group)
+                      .map((example) => (
+                        <option key={example.property} value={example.property}>
+                          {example.property}
+                        </option>
+                      ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+            <a
+              className="mdn-link"
+              href={MDN_SHORTHAND_URL}
+              target="_blank"
+              rel="noreferrer"
+              title="MDN shorthand properties"
             >
-              <option value="" disabled>Load an example…</option>
-              <option value="shorthand">Shorthand → longhand</option>
-              <option value="longhand">Longhand → shorthand</option>
-            </select>
-          </label>
+              MDN list ↗
+            </a>
+          </div>
         </div>
       </section>
 
@@ -447,8 +447,8 @@ export function App() {
       </section>
 
       <footer className="footer-note">
-        Powered by <code>@moyarich/css-expand-collapse</code>. The playground uses the
-        same package source that is built and published to npm.
+        Powered by <code>@moyarich/css-expand-collapse</code>. Examples follow the
+        shorthand catalog in MDN’s CSS cascading guide.
       </footer>
     </main>
   );
