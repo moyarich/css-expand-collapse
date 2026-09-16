@@ -12,11 +12,7 @@ export interface ShorthandDefinition {
   strategy: ShorthandStrategy;
 }
 
-/**
- * Shorthands listed by MDN's CSS shorthand-properties guide.
- * Recognition is intentionally broader than the pure-JS transformation table:
- * browser CSSOM fallback can expand/collapse additional browser-supported shorthands.
- */
+/** Shorthands listed by MDN's CSS shorthand-properties guide. */
 export const SHORTHAND_PROPERTIES = [
   "all",
   "animation",
@@ -109,6 +105,17 @@ const sideBorder = (side: string): readonly string[] => [
   `border-${side}-color`,
 ];
 
+const logicalBorderSide = (side: string): readonly string[] => [
+  `border-${side}-width`,
+  `border-${side}-style`,
+  `border-${side}-color`,
+];
+
+const unsupported = (longhands: readonly string[]): ShorthandDefinition => ({
+  longhands,
+  strategy: "unsupported",
+});
+
 export const SHORTHAND_DEFINITIONS: Readonly<Record<string, ShorthandDefinition>> = {
   margin: { longhands: quad("margin"), strategy: "quad" },
   padding: { longhands: quad("padding"), strategy: "quad" },
@@ -152,6 +159,22 @@ export const SHORTHAND_DEFINITIONS: Readonly<Record<string, ShorthandDefinition>
   "border-right": { longhands: sideBorder("right"), strategy: "triple" },
   "border-bottom": { longhands: sideBorder("bottom"), strategy: "triple" },
   "border-left": { longhands: sideBorder("left"), strategy: "triple" },
+  "border-block-start": {
+    longhands: logicalBorderSide("block-start"),
+    strategy: "triple",
+  },
+  "border-block-end": {
+    longhands: logicalBorderSide("block-end"),
+    strategy: "triple",
+  },
+  "border-inline-start": {
+    longhands: logicalBorderSide("inline-start"),
+    strategy: "triple",
+  },
+  "border-inline-end": {
+    longhands: logicalBorderSide("inline-end"),
+    strategy: "triple",
+  },
   outline: {
     longhands: ["outline-width", "outline-style", "outline-color"],
     strategy: "triple",
@@ -159,10 +182,6 @@ export const SHORTHAND_DEFINITIONS: Readonly<Record<string, ShorthandDefinition>
   "column-rule": {
     longhands: ["column-rule-width", "column-rule-style", "column-rule-color"],
     strategy: "triple",
-  },
-  "-webkit-text-stroke": {
-    longhands: ["-webkit-text-stroke-width", "-webkit-text-stroke-color"],
-    strategy: "pair",
   },
 
   border: {
@@ -188,67 +207,154 @@ export const SHORTHAND_DEFINITIONS: Readonly<Record<string, ShorthandDefinition>
     strategy: "flex-flow",
   },
 
-  // Metadata for common complex shorthands. These are transformed through CSSOM
-  // when available; keeping their constituents here makes getLonghands() useful.
-  animation: {
-    longhands: [
-      "animation-name", "animation-duration", "animation-timing-function",
-      "animation-delay", "animation-iteration-count", "animation-direction",
-      "animation-fill-mode", "animation-play-state",
-    ],
-    strategy: "unsupported",
-  },
-  "animation-range": {
-    longhands: ["animation-range-start", "animation-range-end"],
-    strategy: "unsupported",
-  },
-  background: {
-    longhands: [
-      "background-image", "background-position", "background-size",
-      "background-repeat", "background-origin", "background-clip",
-      "background-attachment", "background-color",
-    ],
-    strategy: "unsupported",
-  },
-  flex: {
-    longhands: ["flex-grow", "flex-shrink", "flex-basis"],
-    strategy: "unsupported",
-  },
-  "list-style": {
-    longhands: ["list-style-position", "list-style-image", "list-style-type"],
-    strategy: "unsupported",
-  },
-  transition: {
-    longhands: [
-      "transition-property", "transition-duration", "transition-timing-function",
-      "transition-delay", "transition-behavior",
-    ],
-    strategy: "unsupported",
-  },
-  "text-wrap": {
-    longhands: ["text-wrap-mode", "text-wrap-style"],
-    strategy: "unsupported",
-  },
-  "text-emphasis": {
-    longhands: ["text-emphasis-style", "text-emphasis-color"],
-    strategy: "unsupported",
-  },
-  columns: {
-    longhands: ["column-width", "column-count"],
-    strategy: "unsupported",
-  },
-  container: {
-    longhands: ["container-name", "container-type"],
-    strategy: "unsupported",
-  },
-  "scroll-timeline": {
-    longhands: ["scroll-timeline-name", "scroll-timeline-axis"],
-    strategy: "unsupported",
-  },
-  "view-timeline": {
-    longhands: ["view-timeline-name", "view-timeline-axis", "view-timeline-inset"],
-    strategy: "unsupported",
-  },
+  animation: unsupported([
+    "animation-name",
+    "animation-duration",
+    "animation-timing-function",
+    "animation-delay",
+    "animation-iteration-count",
+    "animation-direction",
+    "animation-fill-mode",
+    "animation-play-state",
+    "animation-timeline",
+  ]),
+  "animation-range": unsupported(["animation-range-start", "animation-range-end"]),
+  background: unsupported([
+    "background-image",
+    "background-position",
+    "background-size",
+    "background-repeat",
+    "background-origin",
+    "background-clip",
+    "background-attachment",
+    "background-color",
+  ]),
+  "border-block": unsupported([
+    "border-block-start-width", "border-block-start-style", "border-block-start-color",
+    "border-block-end-width", "border-block-end-style", "border-block-end-color",
+  ]),
+  "border-inline": unsupported([
+    "border-inline-start-width", "border-inline-start-style", "border-inline-start-color",
+    "border-inline-end-width", "border-inline-end-style", "border-inline-end-color",
+  ]),
+  "border-image": unsupported([
+    "border-image-source",
+    "border-image-slice",
+    "border-image-width",
+    "border-image-outset",
+    "border-image-repeat",
+  ]),
+  columns: unsupported(["column-width", "column-count"]),
+  "contain-intrinsic-size": unsupported([
+    "contain-intrinsic-width",
+    "contain-intrinsic-height",
+  ]),
+  container: unsupported(["container-name", "container-type"]),
+  flex: unsupported(["flex-grow", "flex-shrink", "flex-basis"]),
+  font: unsupported([
+    "font-family",
+    "font-size",
+    "font-width",
+    "font-style",
+    "font-variant",
+    "font-weight",
+    "line-height",
+  ]),
+  "font-synthesis": unsupported([
+    "font-synthesis-weight",
+    "font-synthesis-style",
+    "font-synthesis-small-caps",
+    "font-synthesis-position",
+  ]),
+  "font-variant": unsupported([
+    "font-variant-alternates",
+    "font-variant-caps",
+    "font-variant-east-asian",
+    "font-variant-emoji",
+    "font-variant-ligatures",
+    "font-variant-numeric",
+    "font-variant-position",
+  ]),
+  grid: unsupported([
+    "grid-auto-columns",
+    "grid-auto-flow",
+    "grid-auto-rows",
+    "grid-template-areas",
+    "grid-template-columns",
+    "grid-template-rows",
+  ]),
+  "grid-area": unsupported([
+    "grid-row-start",
+    "grid-column-start",
+    "grid-row-end",
+    "grid-column-end",
+  ]),
+  "grid-column": unsupported(["grid-column-start", "grid-column-end"]),
+  "grid-row": unsupported(["grid-row-start", "grid-row-end"]),
+  "grid-template": unsupported([
+    "grid-template-rows",
+    "grid-template-columns",
+    "grid-template-areas",
+  ]),
+  "list-style": unsupported(["list-style-position", "list-style-image", "list-style-type"]),
+  mask: unsupported([
+    "mask-clip",
+    "mask-composite",
+    "mask-image",
+    "mask-mode",
+    "mask-origin",
+    "mask-position",
+    "mask-repeat",
+    "mask-size",
+  ]),
+  "mask-border": unsupported([
+    "mask-border-mode",
+    "mask-border-outset",
+    "mask-border-repeat",
+    "mask-border-slice",
+    "mask-border-source",
+    "mask-border-width",
+  ]),
+  offset: unsupported([
+    "offset-anchor",
+    "offset-distance",
+    "offset-path",
+    "offset-position",
+    "offset-rotate",
+  ]),
+  "position-try": unsupported(["position-try-order", "position-try-fallbacks"]),
+  "scroll-timeline": unsupported(["scroll-timeline-name", "scroll-timeline-axis"]),
+  "text-box": unsupported(["text-box-trim", "text-box-edge"]),
+  "text-emphasis": unsupported(["text-emphasis-style", "text-emphasis-color"]),
+  "text-wrap": unsupported(["text-wrap-mode", "text-wrap-style"]),
+  transition: unsupported([
+    "transition-property",
+    "transition-duration",
+    "transition-timing-function",
+    "transition-delay",
+    "transition-behavior",
+  ]),
+  "view-timeline": unsupported([
+    "view-timeline-name",
+    "view-timeline-axis",
+    "view-timeline-inset",
+  ]),
+  "-webkit-text-stroke": unsupported([
+    "-webkit-text-stroke-width",
+    "-webkit-text-stroke-color",
+  ]),
+  "-webkit-border-before": unsupported([
+    "-webkit-border-before-width",
+    "-webkit-border-before-style",
+    "-webkit-border-before-color",
+  ]),
+  "-webkit-mask-box-image": unsupported([
+    "-webkit-mask-box-image-source",
+    "-webkit-mask-box-image-slice",
+    "-webkit-mask-box-image-width",
+    "-webkit-mask-box-image-outset",
+    "-webkit-mask-box-image-repeat",
+  ]),
 };
 
 export const SHORTHAND_SET = new Set<string>(SHORTHAND_PROPERTIES);
