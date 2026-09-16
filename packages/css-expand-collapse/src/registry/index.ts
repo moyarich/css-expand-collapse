@@ -11,12 +11,17 @@ export { defineShorthand } from "./define.js";
 
 function buildDefinitions(): ShorthandDefinitionMap {
   const definitions: Record<string, ShorthandDefinition> = {};
+  const seen = new Set<string>();
 
   for (const { property, definition } of SHORTHANDS) {
-    if (definitions[property]) {
+    if (seen.has(property)) {
       throw new Error(`Duplicate shorthand registration: ${property}`);
     }
-    definitions[property] = definition;
+    seen.add(property);
+
+    if (definition) {
+      definitions[property] = definition;
+    }
   }
 
   return Object.freeze(definitions);
@@ -34,6 +39,8 @@ export const LONGHAND_TO_SHORTHANDS = (() => {
   const map = new Map<string, string[]>();
 
   for (const { property: shorthand, definition } of SHORTHANDS) {
+    if (!definition) continue;
+
     for (const longhand of definition.longhands) {
       const values = map.get(longhand) ?? [];
       values.push(shorthand);
