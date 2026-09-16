@@ -7,6 +7,10 @@ import {
   expandDeclarations,
 } from "@moyarich/css-expand-collapse";
 import {
+  COMPUTED_EXPORT_EXAMPLE,
+  COMPUTED_EXPORT_EXAMPLE_ID,
+} from "./computedExportExample";
+import {
   EXAMPLE_GROUPS,
   SHORTHAND_EXAMPLES,
   getShorthandExample,
@@ -180,8 +184,16 @@ export function App() {
     }
   }, [source, mode, inputKind]);
 
-  const loadExample = (property: ExampleProperty) => {
-    const example = getShorthandExample(property);
+  const loadExample = (selection: string) => {
+    if (selection === COMPUTED_EXPORT_EXAMPLE_ID) {
+      setInputKind("stylesheet");
+      setMode("collapse");
+      setSource(COMPUTED_EXPORT_EXAMPLE);
+      setCopied(false);
+      return;
+    }
+
+    const example = getShorthandExample(selection as ExampleProperty);
     if (!example) return;
     setInputKind("stylesheet");
     setMode("expand");
@@ -282,18 +294,23 @@ export function App() {
 
           <div className="example-picker">
             <label className="example-field">
-              <span>MDN example</span>
+              <span>Example</span>
               <select
                 defaultValue=""
                 onChange={(event) => {
                   if (!event.target.value) return;
-                  loadExample(event.target.value as ExampleProperty);
+                  loadExample(event.target.value);
                   event.target.value = "";
                 }}
               >
-                <option value="" disabled>Choose a shorthand property…</option>
+                <option value="" disabled>Choose an example…</option>
+                <optgroup label="Real-world CSS">
+                  <option value={COMPUTED_EXPORT_EXAMPLE_ID}>
+                    Computed/export CSS → compact shorthands
+                  </option>
+                </optgroup>
                 {EXAMPLE_GROUPS.map((group) => (
-                  <optgroup key={group} label={group}>
+                  <optgroup key={group} label={`MDN · ${group}`}>
                     {SHORTHAND_EXAMPLES
                       .filter((example) => example.group === group)
                       .map((example) => (
