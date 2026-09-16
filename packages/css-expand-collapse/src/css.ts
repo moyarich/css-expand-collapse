@@ -64,13 +64,14 @@ function declarationWouldApply(
 
 /**
  * Computed-style/export CSS commonly contains a shorthand followed by every one of
- * its resolved longhands. Those longhands are semantically redundant but used to
- * prevent the collapse pass from producing useful output.
+ * its resolved longhands. Remove only declarations that exactly restate the effective
+ * value established earlier in the same block.
  *
- * Track the effective value of declarations within a block and discard declarations
- * that do not change it. Unsupported/complex shorthands are never removed themselves,
- * but when CSSOM can expand them their following longhands can still be recognized as
- * redundant.
+ * If a following longhand differs from the shorthand, it is an authored/cascade
+ * override and must be preserved. For example, `inset:auto` followed by
+ * `top/right/bottom/left:0` is not simplified to `inset:0` by the default collapse
+ * path, because that would replace the original author declaration with a different
+ * shorthand value.
  */
 function removeRedundantDeclarations(children: any[], options?: CssomOptions): any[] {
   const output: any[] = [];
@@ -145,11 +146,26 @@ function overlapsCandidate(property: string, expected: Set<string>): boolean {
   return Boolean(definition?.longhands.some((longhand) => expected.has(longhand)));
 }
 
+function hasEarlierOverlappingShorthand(
+  children: any[],
+  beforeIndex: number,
+  expected: Set<string>,
+): boolean {
+  for (let cursor = 0; cursor < beforeIndex; cursor += 1) {
+    const node = children[cursor];
+    if (node.type !== "Declaration") continue;
+    const property = normalizeProperty(node.property);
+    if (overlapsCandidate(property, expected)) return true;
+  }
+  return false;
+}
+
 /**
  * Find a collapsible shorthand starting at `index`. Longhands do not need to be
- * contiguous; unrelated declarations and comments may appear between them. Any
- * overlapping shorthand or duplicate constituent stops the candidate so cascade
- * semantics are not silently reordered.
+ * contiguous; unrelated declarations and comments may appear between them.
+ *
+ * Any overlapping shorthand before or during the candidate blocks the collapse.
+ * This intentionally favors preserving author/cascade intent over minimizing bytes.
  */
 function tryCollapseAt(
   children: any[],
@@ -166,6 +182,11 @@ function tryCollapseAt(
     if (!definition.longhands.includes(firstProperty)) continue;
 
     const expected = new Set(definition.longhands);
+
+    // If an earlier shorthand still exists, the later longhands are meaningful
+    // overrides. Do not replace that cascade relationship with a new shorthand.
+    if (hasEarlierOverlappingShorthand(children, index, expected)) continue;
+
     const matches = new Map<string, { node: any; index: number }>();
     const important = Boolean(first.important);
     let blocked = false;
@@ -212,32 +233,6 @@ function tryCollapseAt(
   return null;
 }
 
-/** Remove earlier declarations fully shadowed by a later declaration of the same property. */
-function removeShadowedSameProperty(children: any[]): any[] {
-  const keep = children.map(() => true);
-  const later = new Map<string, { important: boolean }>();
-
-  for (let index = children.length - 1; index >= 0; index -= 1) {
-    const node = children[index];
-    if (node.type !== "Declaration") continue;
-
-    const property = normalizeProperty(node.property);
-    const important = Boolean(node.important);
-    const laterDeclaration = later.get(property);
-
-    if (laterDeclaration && (laterDeclaration.important || !important)) {
-      keep[index] = false;
-      continue;
-    }
-
-    if (!laterDeclaration || important) {
-      later.set(property, { important });
-    }
-  }
-
-  return children.filter((_, index) => keep[index]);
-}
-
 function collapseBlock(children: any[], options?: CssomOptions): any[] {
   const normalized = removeRedundantDeclarations(children, options);
   const output: any[] = [];
@@ -256,7 +251,7 @@ function collapseBlock(children: any[], options?: CssomOptions): any[] {
     for (const matchedIndex of collapsed.indices) consumed.add(matchedIndex);
   }
 
-  return removeShadowedSameProperty(output);
+  return output;
 }
 
 function replaceChildren(block: any, children: any[]): void {
