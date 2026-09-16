@@ -4,7 +4,6 @@ export interface ShorthandExpandContext {
   matchProperty(property: string, value: string): boolean;
   splitWhitespace(value: string): string[];
   splitSlash(value: string): string[];
-  splitComma(value: string): string[];
   /** @deprecated Temporary migration hook. New shorthand modules must not depend on CSSOM. */
   cssom(value: string): DeclarationMap | null;
 }
