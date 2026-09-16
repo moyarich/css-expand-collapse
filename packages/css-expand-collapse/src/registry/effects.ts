@@ -1,8 +1,8 @@
-import { unsupported } from "./helpers.js";
+import { cssom } from "./helpers.js";
 import type { ShorthandDefinitionMap } from "./types.js";
 
 export const EFFECT_SHORTHANDS: ShorthandDefinitionMap = {
-  animation: unsupported([
+  animation: cssom([
     "animation-name",
     "animation-duration",
     "animation-timing-function",
@@ -13,8 +13,8 @@ export const EFFECT_SHORTHANDS: ShorthandDefinitionMap = {
     "animation-play-state",
     "animation-timeline",
   ]),
-  "animation-range": unsupported(["animation-range-start", "animation-range-end"]),
-  background: unsupported([
+  "animation-range": cssom(["animation-range-start", "animation-range-end"]),
+  background: cssom([
     "background-image",
     "background-position",
     "background-size",
@@ -24,7 +24,7 @@ export const EFFECT_SHORTHANDS: ShorthandDefinitionMap = {
     "background-attachment",
     "background-color",
   ]),
-  mask: unsupported([
+  mask: cssom([
     "mask-clip",
     "mask-composite",
     "mask-image",
@@ -34,7 +34,7 @@ export const EFFECT_SHORTHANDS: ShorthandDefinitionMap = {
     "mask-repeat",
     "mask-size",
   ]),
-  "mask-border": unsupported([
+  "mask-border": cssom([
     "mask-border-mode",
     "mask-border-outset",
     "mask-border-repeat",
@@ -42,14 +42,14 @@ export const EFFECT_SHORTHANDS: ShorthandDefinitionMap = {
     "mask-border-source",
     "mask-border-width",
   ]),
-  offset: unsupported([
+  offset: cssom([
     "offset-anchor",
     "offset-distance",
     "offset-path",
     "offset-position",
     "offset-rotate",
   ]),
-  transition: unsupported([
+  transition: cssom([
     "transition-property",
     "transition-duration",
     "transition-timing-function",
