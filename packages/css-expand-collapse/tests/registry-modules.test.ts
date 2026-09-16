@@ -6,7 +6,7 @@ import {
   isShorthand,
   supportsTransform,
 } from "../src/index.js";
-import { SHORTHAND_DEFINITIONS } from "../src/registry.js";
+import { SHORTHAND_MODULES } from "../src/registry.js";
 
 describe("per-shorthand registry", () => {
   it("derives a unique property list from shorthand module filenames", () => {
@@ -16,13 +16,20 @@ describe("per-shorthand registry", () => {
     expect(SHORTHAND_PROPERTIES).toContain("all");
   });
 
-  it("requires every transformable shorthand module to own expansion", () => {
-    for (const definition of Object.values(SHORTHAND_DEFINITIONS)) {
-      expect(typeof definition.expand).toBe("function");
+  it("requires every shorthand file to satisfy the common module contract", () => {
+    for (const module of Object.values(SHORTHAND_MODULES)) {
+      expect(Array.isArray(module.longhands)).toBe(true);
+      expect(module.strategy === null || typeof module.strategy === "string").toBe(true);
+      expect(typeof module.expand).toBe("function");
     }
   });
 
-  it("keeps all as metadata-only because it has no finite longhand set", () => {
+  it("keeps all as a module while marking it non-transformable", () => {
+    expect(SHORTHAND_MODULES.all).toMatchObject({
+      longhands: [],
+      strategy: null,
+    });
+    expect(typeof SHORTHAND_MODULES.all.expand).toBe("function");
     expect(isShorthand("all")).toBe(true);
     expect(supportsTransform("all")).toBe(false);
     expect(getShorthandStrategy("all")).toBeNull();
