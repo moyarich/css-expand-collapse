@@ -245,7 +245,6 @@ https://moyarich.github.io/css-expand-collapse/
 ## More documentation
 
 - [Package API and examples](./packages/css-expand-collapse/README.md)
-- [Developer guide](./README-dev.md)
 
 ## License
 
