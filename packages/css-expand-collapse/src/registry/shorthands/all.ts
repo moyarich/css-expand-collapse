@@ -1,6 +1,5 @@
 import { defineShorthand } from "../define.js";
-import { cssom } from "../helpers.js";
 
-const shorthand = defineShorthand("all", cssom([]));
+const shorthand = defineShorthand("all", null);
 
 export default shorthand;
