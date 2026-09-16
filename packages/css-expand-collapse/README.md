@@ -1,6 +1,6 @@
 # css-expand-collapse
 
-Bidirectional CSS shorthand/longhand utilities for property values, declaration objects, full stylesheets, and browser computed styles.
+Bidirectional CSS shorthand/longhand utilities for property values, declaration objects, full stylesheets, browser computed styles, and extension runtimes.
 
 Built on [CSSTree](https://github.com/csstree/csstree) for CSS parsing, generation, and grammar matching.
 
@@ -18,6 +18,7 @@ npm install @moyarich/css-expand-collapse
 - Accept real CSS, not only property/value objects.
 - Work directly with the `CSSStyleDeclaration` returned by `getComputedStyle()`.
 - Preserve CSS cascade semantics when transforming stylesheets.
+- Work in Node, browser pages, and Chrome extension contexts.
 - Use browser CSSOM as an optional fallback for complex browser-supported shorthands.
 
 ## Property API
@@ -267,6 +268,53 @@ styleToDeclarations(computed);
 
 This is useful for inspectors and visual CSS editors where browser-computed longhand values need to be grouped back into editable shorthand controls.
 
+## Chrome extensions / Manifest V3
+
+The package has a browser ESM entry and can be bundled by Vite into Chrome extension content scripts, DevTools pages, popups, side panels, or other DOM-capable extension pages.
+
+For an inspector such as `element-inspector`, a computed-style export can be compacted directly:
+
+```ts
+import {
+  collapseLonghands,
+  styleToDeclarations,
+} from "@moyarich/css-expand-collapse";
+
+const computedStyle = window.getComputedStyle(element);
+const declarations = styleToDeclarations(computedStyle);
+
+const compact = collapseLonghands(declarations, {
+  fillMissingLonghands: "initial",
+});
+```
+
+Manifest V3 background service workers do not expose `document`, so CSSOM-only shorthand strategies are not available there by default. Pure strategies continue to work.
+
+Use the runtime helpers when shared code can execute in both extension pages and service workers:
+
+```ts
+import {
+  hasCssomSupport,
+  supportsRuntimeTransform,
+} from "@moyarich/css-expand-collapse";
+
+hasCssomSupport();
+
+supportsRuntimeTransform("margin");
+// true in service workers and DOM contexts
+
+supportsRuntimeTransform("background");
+// true when CSSOM is available, otherwise false
+```
+
+A DOM-less environment can also provide an existing mutable `CSSStyleDeclaration`:
+
+```ts
+supportsRuntimeTransform("background", {
+  style: scratchStyle,
+});
+```
+
 ## Browser CSSOM fallback
 
 Some CSS shorthands have complex grammars (`background`, `animation`, `transition`, and others). In a browser, the library can use a mutable `CSSStyleDeclaration` as a standards-aware fallback.
@@ -304,6 +352,8 @@ getLonghands(shorthand)
 getShorthands(longhand)
 supportsTransform(property)
 supportsPureTransform(property)
+supportsRuntimeTransform(property, options?)
+hasCssomSupport(options?)
 getShorthandStrategy(property)
 
 expandShorthand(property, value, options?)
