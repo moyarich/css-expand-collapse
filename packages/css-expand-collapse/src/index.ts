@@ -41,3 +41,10 @@ export {
 } from "./computed.js";
 
 export type { ReadonlyStyleDeclaration } from "./computed.js";
+
+export {
+  hasCssomSupport,
+  supportsRuntimeTransform,
+} from "./runtime.js";
+
+export type { RuntimeCssomOptions } from "./runtime.js";
