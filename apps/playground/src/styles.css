@@ -17,7 +17,8 @@ body {
 }
 
 button,
-select {
+select,
+input {
   font: inherit;
 }
 
@@ -294,6 +295,44 @@ h2 {
   line-height: 1.45;
 }
 
+.summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.initial-fill-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.initial-fill-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.initial-fill-toggle span {
+  display: grid;
+  gap: 1px;
+}
+
+.initial-fill-toggle strong {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.initial-fill-toggle small {
+  color: #748197;
+  font-size: 0.7rem;
+}
+
 .live-badge {
   flex: 0 0 auto;
   border-radius: 999px;
@@ -504,8 +543,18 @@ h2 {
     align-self: flex-start;
   }
 
-  .conversion-summary {
+  .conversion-summary,
+  .summary-actions {
     align-items: flex-start;
+  }
+
+  .conversion-summary {
+    flex-direction: column;
+  }
+
+  .summary-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .workspace {
