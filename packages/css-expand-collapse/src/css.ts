@@ -144,6 +144,20 @@ function overlapsCandidate(property: string, expected: Set<string>): boolean {
   return Boolean(definition?.longhands.some((longhand) => expected.has(longhand)));
 }
 
+function hasEarlierOverlappingShorthand(
+  children: any[],
+  beforeIndex: number,
+  expected: Set<string>,
+): boolean {
+  for (let cursor = 0; cursor < beforeIndex; cursor += 1) {
+    const node = children[cursor];
+    if (node.type !== "Declaration") continue;
+    const property = normalizeProperty(node.property);
+    if (overlapsCandidate(property, expected)) return true;
+  }
+  return false;
+}
+
 /**
  * Some shorthands have reset side effects beyond the longhands recorded in the
  * registry. They can still participate in normal collapsing, but they must not be
@@ -188,11 +202,11 @@ function findFullyShadowedEarlierShorthands(
  * Find a collapsible shorthand starting at `index`. Longhands do not need to be
  * contiguous; unrelated declarations and comments may appear between them.
  *
- * An overlapping shorthand that appears after the first candidate longhand blocks the
- * collapse because it changes the cascade between constituents. Earlier shorthands do
- * not automatically block the collapse: if all of their constituents are later
- * overridden at equal or higher importance, source order makes them dead declarations
- * and they may be removed safely.
+ * By default every constituent longhand must be present. When
+ * `fillMissingLonghands: "initial"` is enabled and a shorthand registers initial
+ * values, a partial set may collapse by filling omitted constituents with those
+ * initial values. That opt-in is intended for computed/export CSS; it can change the
+ * cascade meaning of raw stylesheets by explicitly setting previously omitted values.
  */
 function tryCollapseAt(
   children: any[],
@@ -211,6 +225,9 @@ function tryCollapseAt(
     const expected = new Set(definition.longhands);
     const matches = new Map<string, { node: any; index: number }>();
     const important = Boolean(first.important);
+    const canFillMissing =
+      options?.fillMissingLonghands === "initial" &&
+      definition.initialValues?.length === definition.longhands.length;
     let blocked = false;
 
     for (let cursor = index; cursor < children.length; cursor += 1) {
@@ -236,7 +253,15 @@ function tryCollapseAt(
       }
     }
 
-    if (blocked || matches.size !== expected.size) continue;
+    if (blocked) continue;
+
+    const complete = matches.size === expected.size;
+    if (!complete && !canFillMissing) continue;
+
+    // If a prior shorthand contributes one of the missing values, blindly using the
+    // CSS initial value could change semantics. Partial initial-fill collapse is only
+    // allowed when there is no earlier overlapping shorthand in this block.
+    if (!complete && hasEarlierOverlappingShorthand(children, index, expected)) continue;
 
     const declarations: DeclarationMap = {};
     for (const [property, match] of matches) {
@@ -249,12 +274,9 @@ function tryCollapseAt(
     return {
       node: makeDeclaration(collapsed.property, collapsed.value, important),
       indices: [...matches.values()].map((match) => match.index),
-      shadowedIndices: findFullyShadowedEarlierShorthands(
-        children,
-        index,
-        expected,
-        important,
-      ),
+      shadowedIndices: complete
+        ? findFullyShadowedEarlierShorthands(children, index, expected, important)
+        : [],
     };
   }
 
