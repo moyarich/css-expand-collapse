@@ -1,3 +1,8 @@
-import { components } from "../helpers.js";
+import { expandComponents, withCssomFallback } from "../expanders.js";
+import type { ShorthandDefinition } from "../types.js";
 
-export default components(["text-wrap-mode", "text-wrap-style"], ["wrap", "auto"]);
+const longhands = ["text-wrap-mode", "text-wrap-style"] as const;
+const initialValues = ["wrap", "auto"] as const;
+const expand = withCssomFallback(expandComponents(longhands, initialValues));
+
+export default { longhands, strategy: "components", initialValues, expand } satisfies ShorthandDefinition;

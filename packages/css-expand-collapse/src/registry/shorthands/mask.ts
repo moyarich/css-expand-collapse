@@ -1,6 +1,7 @@
-import { cssom } from "../helpers.js";
+import { expandCssom } from "../expanders.js";
+import type { ShorthandDefinition } from "../types.js";
 
-export default cssom([
+const longhands = [
   "mask-clip",
   "mask-composite",
   "mask-image",
@@ -9,4 +10,7 @@ export default cssom([
   "mask-position",
   "mask-repeat",
   "mask-size",
-]);
+] as const;
+const expand = expandCssom;
+
+export default { longhands, strategy: "cssom", expand } satisfies ShorthandDefinition;

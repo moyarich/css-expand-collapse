@@ -1,6 +1,7 @@
-import { cssom } from "../helpers.js";
+import { expandCssom } from "../expanders.js";
+import type { ShorthandDefinition } from "../types.js";
 
-export default cssom([
+const longhands = [
   "animation-name",
   "animation-duration",
   "animation-timing-function",
@@ -10,4 +11,7 @@ export default cssom([
   "animation-fill-mode",
   "animation-play-state",
   "animation-timeline",
-]);
+] as const;
+const expand = expandCssom;
+
+export default { longhands, strategy: "cssom", expand } satisfies ShorthandDefinition;

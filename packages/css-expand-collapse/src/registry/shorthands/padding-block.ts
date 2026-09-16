@@ -1,4 +1,8 @@
+import { expandPair, withCssomFallback } from "../expanders.js";
 import { logicalPair } from "../helpers.js";
 import type { ShorthandDefinition } from "../types.js";
 
-export default { longhands: logicalPair("padding", "block"), strategy: "pair" } satisfies ShorthandDefinition;
+const longhands = logicalPair("padding", "block");
+const expand = withCssomFallback(expandPair(longhands));
+
+export default { longhands, strategy: "pair", expand } satisfies ShorthandDefinition;

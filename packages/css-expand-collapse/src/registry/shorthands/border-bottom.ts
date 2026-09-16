@@ -1,4 +1,8 @@
+import { expandTriple, withCssomFallback } from "../expanders.js";
 import { sideBorder } from "../helpers.js";
 import type { ShorthandDefinition } from "../types.js";
 
-export default { longhands: sideBorder("bottom"), strategy: "triple" } satisfies ShorthandDefinition;
+const longhands = sideBorder("bottom");
+const expand = withCssomFallback(expandTriple(longhands));
+
+export default { longhands, strategy: "triple", expand } satisfies ShorthandDefinition;

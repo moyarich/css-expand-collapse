@@ -1,7 +1,8 @@
+import { expandPair, withCssomFallback } from "../expanders.js";
 import type { ShorthandDefinition } from "../types.js";
 
-export default {
-  longhands: ["contain-intrinsic-width", "contain-intrinsic-height"],
-  strategy: "pair",
-  initialValues: ["none", "none"],
-} satisfies ShorthandDefinition;
+const longhands = ["contain-intrinsic-width", "contain-intrinsic-height"] as const;
+const initialValues = ["none", "none"] as const;
+const expand = withCssomFallback(expandPair(longhands));
+
+export default { longhands, strategy: "pair", initialValues, expand } satisfies ShorthandDefinition;

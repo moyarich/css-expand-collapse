@@ -1,3 +1,7 @@
-import { cssom } from "../helpers.js";
+import { expandCssom } from "../expanders.js";
+import type { ShorthandDefinition } from "../types.js";
 
-export default cssom(["text-emphasis-style", "text-emphasis-color"]);
+const longhands = ["text-emphasis-style", "text-emphasis-color"] as const;
+const expand = expandCssom;
+
+export default { longhands, strategy: "cssom", expand } satisfies ShorthandDefinition;

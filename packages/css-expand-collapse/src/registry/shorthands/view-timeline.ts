@@ -1,7 +1,7 @@
-import { cssom } from "../helpers.js";
+import { expandCssom } from "../expanders.js";
+import type { ShorthandDefinition } from "../types.js";
 
-export default cssom([
-  "view-timeline-name",
-  "view-timeline-axis",
-  "view-timeline-inset",
-]);
+const longhands = ["view-timeline-name", "view-timeline-axis", "view-timeline-inset"] as const;
+const expand = expandCssom;
+
+export default { longhands, strategy: "cssom", expand } satisfies ShorthandDefinition;

@@ -1,7 +1,7 @@
-import { cssom } from "../helpers.js";
+import { expandCssom } from "../expanders.js";
+import type { ShorthandDefinition } from "../types.js";
 
-export default cssom([
-  "grid-template-rows",
-  "grid-template-columns",
-  "grid-template-areas",
-]);
+const longhands = ["grid-template-rows", "grid-template-columns", "grid-template-areas"] as const;
+const expand = expandCssom;
+
+export default { longhands, strategy: "cssom", expand } satisfies ShorthandDefinition;

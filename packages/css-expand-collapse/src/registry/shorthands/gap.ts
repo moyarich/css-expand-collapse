@@ -1,6 +1,7 @@
+import { expandPair, withCssomFallback } from "../expanders.js";
 import type { ShorthandDefinition } from "../types.js";
 
-export default {
-  longhands: ["row-gap", "column-gap"],
-  strategy: "pair",
-} satisfies ShorthandDefinition;
+const longhands = ["row-gap", "column-gap"] as const;
+const expand = withCssomFallback(expandPair(longhands));
+
+export default { longhands, strategy: "pair", expand } satisfies ShorthandDefinition;

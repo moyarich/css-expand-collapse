@@ -2,8 +2,11 @@ import { SHORTHANDS } from "./shorthands/index.js";
 import type { ShorthandDefinition, ShorthandDefinitionMap } from "./types.js";
 
 export type {
+  DeclarationMap,
   ShorthandDefinition,
   ShorthandDefinitionMap,
+  ShorthandExpandContext,
+  ShorthandExpander,
   ShorthandStrategy,
 } from "./types.js";
 

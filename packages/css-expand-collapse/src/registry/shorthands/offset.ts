@@ -1,9 +1,13 @@
-import { cssom } from "../helpers.js";
+import { expandCssom } from "../expanders.js";
+import type { ShorthandDefinition } from "../types.js";
 
-export default cssom([
+const longhands = [
   "offset-anchor",
   "offset-distance",
   "offset-path",
   "offset-position",
   "offset-rotate",
-]);
+] as const;
+const expand = expandCssom;
+
+export default { longhands, strategy: "cssom", expand } satisfies ShorthandDefinition;

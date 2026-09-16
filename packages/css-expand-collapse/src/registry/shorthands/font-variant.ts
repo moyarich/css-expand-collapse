@@ -1,6 +1,7 @@
-import { cssom } from "../helpers.js";
+import { expandCssom } from "../expanders.js";
+import type { ShorthandDefinition } from "../types.js";
 
-export default cssom([
+const longhands = [
   "font-variant-alternates",
   "font-variant-caps",
   "font-variant-east-asian",
@@ -8,4 +9,7 @@ export default cssom([
   "font-variant-ligatures",
   "font-variant-numeric",
   "font-variant-position",
-]);
+] as const;
+const expand = expandCssom;
+
+export default { longhands, strategy: "cssom", expand } satisfies ShorthandDefinition;
