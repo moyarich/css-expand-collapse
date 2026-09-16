@@ -64,14 +64,12 @@ function declarationWouldApply(
 
 /**
  * Computed-style/export CSS commonly contains a shorthand followed by every one of
- * its resolved longhands. Remove only declarations that exactly restate the effective
+ * its resolved longhands. Remove declarations that exactly restate the effective
  * value established earlier in the same block.
  *
- * If a following longhand differs from the shorthand, it is an authored/cascade
- * override and must be preserved. For example, `inset:auto` followed by
- * `top/right/bottom/left:0` is not simplified to `inset:0` by the default collapse
- * path, because that would replace the original author declaration with a different
- * shorthand value.
+ * Different later longhand values are preserved here. A later collapse pass can then
+ * combine a complete set of those overrides and remove an earlier shorthand when the
+ * cascade proves that shorthand is fully overridden.
  */
 function removeRedundantDeclarations(children: any[], options?: CssomOptions): any[] {
   const output: any[] = [];
@@ -146,33 +144,62 @@ function overlapsCandidate(property: string, expected: Set<string>): boolean {
   return Boolean(definition?.longhands.some((longhand) => expected.has(longhand)));
 }
 
-function hasEarlierOverlappingShorthand(
+/**
+ * Some shorthands have reset side effects beyond the longhands recorded in the
+ * registry. They can still participate in normal collapsing, but they must not be
+ * deleted merely because a later candidate covers the registered longhands.
+ */
+function canDropWhenFullyShadowed(property: string): boolean {
+  const definition = SHORTHAND_DEFINITIONS[property];
+  if (!definition) return false;
+  return definition.strategy !== "unsupported" && definition.strategy !== "border-all";
+}
+
+function findFullyShadowedEarlierShorthands(
   children: any[],
   beforeIndex: number,
   expected: Set<string>,
-): boolean {
+  replacementImportant: boolean,
+): number[] {
+  const shadowed: number[] = [];
+
   for (let cursor = 0; cursor < beforeIndex; cursor += 1) {
     const node = children[cursor];
     if (node.type !== "Declaration") continue;
+
     const property = normalizeProperty(node.property);
-    if (overlapsCandidate(property, expected)) return true;
+    const definition = SHORTHAND_DEFINITIONS[property];
+    if (!definition || !canDropWhenFullyShadowed(property)) continue;
+
+    // The later shorthand must replace every constituent affected by the earlier one.
+    if (!definition.longhands.every((longhand) => expected.has(longhand))) continue;
+
+    const earlierImportant = Boolean(node.important);
+    // Later normal declarations cannot override an earlier !important shorthand.
+    if (earlierImportant && !replacementImportant) continue;
+
+    shadowed.push(cursor);
   }
-  return false;
+
+  return shadowed;
 }
 
 /**
  * Find a collapsible shorthand starting at `index`. Longhands do not need to be
  * contiguous; unrelated declarations and comments may appear between them.
  *
- * Any overlapping shorthand before or during the candidate blocks the collapse.
- * This intentionally favors preserving author/cascade intent over minimizing bytes.
+ * An overlapping shorthand that appears after the first candidate longhand blocks the
+ * collapse because it changes the cascade between constituents. Earlier shorthands do
+ * not automatically block the collapse: if all of their constituents are later
+ * overridden at equal or higher importance, source order makes them dead declarations
+ * and they may be removed safely.
  */
 function tryCollapseAt(
   children: any[],
   index: number,
   consumed: Set<number>,
   options?: CssomOptions,
-): { node: any; indices: number[] } | null {
+): { node: any; indices: number[]; shadowedIndices: number[] } | null {
   const first = children[index];
   if (!first || first.type !== "Declaration" || consumed.has(index)) return null;
 
@@ -182,11 +209,6 @@ function tryCollapseAt(
     if (!definition.longhands.includes(firstProperty)) continue;
 
     const expected = new Set(definition.longhands);
-
-    // If an earlier shorthand still exists, the later longhands are meaningful
-    // overrides. Do not replace that cascade relationship with a new shorthand.
-    if (hasEarlierOverlappingShorthand(children, index, expected)) continue;
-
     const matches = new Map<string, { node: any; index: number }>();
     const important = Boolean(first.important);
     let blocked = false;
@@ -227,6 +249,12 @@ function tryCollapseAt(
     return {
       node: makeDeclaration(collapsed.property, collapsed.value, important),
       indices: [...matches.values()].map((match) => match.index),
+      shadowedIndices: findFullyShadowedEarlierShorthands(
+        children,
+        index,
+        expected,
+        important,
+      ),
     };
   }
 
@@ -235,20 +263,30 @@ function tryCollapseAt(
 
 function collapseBlock(children: any[], options?: CssomOptions): any[] {
   const normalized = removeRedundantDeclarations(children, options);
-  const output: any[] = [];
   const consumed = new Set<number>();
+  const replacements = new Map<number, any>();
 
+  // Plan first, emit second. A later complete longhand set may prove that an earlier
+  // shorthand is fully shadowed, so we need to know all removals before outputting it.
   for (let index = 0; index < normalized.length; index += 1) {
     if (consumed.has(index)) continue;
 
     const collapsed = tryCollapseAt(normalized, index, consumed, options);
-    if (!collapsed) {
-      output.push(normalized[index]);
+    if (!collapsed) continue;
+
+    replacements.set(index, collapsed.node);
+    for (const matchedIndex of collapsed.indices) consumed.add(matchedIndex);
+    for (const shadowedIndex of collapsed.shadowedIndices) consumed.add(shadowedIndex);
+  }
+
+  const output: any[] = [];
+  for (let index = 0; index < normalized.length; index += 1) {
+    const replacement = replacements.get(index);
+    if (replacement) {
+      output.push(replacement);
       continue;
     }
-
-    output.push(collapsed.node);
-    for (const matchedIndex of collapsed.indices) consumed.add(matchedIndex);
+    if (!consumed.has(index)) output.push(normalized[index]);
   }
 
   return output;
