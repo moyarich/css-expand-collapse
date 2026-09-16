@@ -2,8 +2,8 @@ import {
   collapseToShorthand,
   getLonghands,
   type CollapseResult,
-  type CssomOptions,
   type DeclarationMap,
+  type TransformOptions,
 } from "./core.js";
 import { SHORTHAND_PROPERTIES } from "./registry.js";
 
@@ -46,7 +46,7 @@ export function getComputedLonghands(
 export function collapseComputedStyle(
   style: ReadonlyStyleDeclaration,
   shorthand: string,
-  options?: CssomOptions,
+  options?: TransformOptions,
 ): CollapseResult | null {
   const longhands = getLonghands(shorthand);
   const declarations = longhands.length
@@ -58,7 +58,7 @@ export function collapseComputedStyle(
 export function collapseComputedStyles(
   style: ReadonlyStyleDeclaration,
   shorthands: Iterable<string> = SHORTHAND_PROPERTIES,
-  options?: CssomOptions,
+  options?: TransformOptions,
 ): CollapseResult[] {
   const results: CollapseResult[] = [];
   for (const shorthand of shorthands) {
