@@ -1,37 +1,39 @@
-import { BORDER_SHORTHANDS } from "./borders.js";
-import { BOX_SHORTHANDS } from "./box.js";
-import { EFFECT_SHORTHANDS } from "./effects.js";
-import { LAYOUT_SHORTHANDS } from "./layout.js";
-import { SHORTHAND_PROPERTIES } from "./properties.js";
-import { TYPOGRAPHY_SHORTHANDS } from "./typography.js";
+import { SHORTHANDS } from "./shorthands/index.js";
 import type { ShorthandDefinition, ShorthandDefinitionMap } from "./types.js";
-import { VENDOR_SHORTHANDS } from "./vendor.js";
 
 export type {
   ShorthandDefinition,
   ShorthandDefinitionMap,
   ShorthandStrategy,
 } from "./types.js";
-export { SHORTHAND_PROPERTIES } from "./properties.js";
+export type { ShorthandRegistration } from "./define.js";
+export { defineShorthand } from "./define.js";
 
-export const SHORTHAND_DEFINITIONS: ShorthandDefinitionMap = {
-  ...BOX_SHORTHANDS,
-  ...BORDER_SHORTHANDS,
-  ...LAYOUT_SHORTHANDS,
-  ...TYPOGRAPHY_SHORTHANDS,
-  ...EFFECT_SHORTHANDS,
-  ...VENDOR_SHORTHANDS,
-};
+function buildDefinitions(): ShorthandDefinitionMap {
+  const definitions: Record<string, ShorthandDefinition> = {};
+
+  for (const { property, definition } of SHORTHANDS) {
+    if (definitions[property]) {
+      throw new Error(`Duplicate shorthand registration: ${property}`);
+    }
+    definitions[property] = definition;
+  }
+
+  return Object.freeze(definitions);
+}
+
+export const SHORTHAND_PROPERTIES = Object.freeze(
+  SHORTHANDS.map(({ property }) => property),
+);
+
+export const SHORTHAND_DEFINITIONS = buildDefinitions();
 
 export const SHORTHAND_SET = new Set<string>(SHORTHAND_PROPERTIES);
 
 export const LONGHAND_TO_SHORTHANDS = (() => {
   const map = new Map<string, string[]>();
 
-  for (const [shorthand, definition] of Object.entries(SHORTHAND_DEFINITIONS) as [
-    string,
-    ShorthandDefinition,
-  ][]) {
+  for (const { property: shorthand, definition } of SHORTHANDS) {
     for (const longhand of definition.longhands) {
       const values = map.get(longhand) ?? [];
       values.push(shorthand);
