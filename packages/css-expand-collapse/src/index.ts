@@ -6,10 +6,12 @@ export {
   findCollapsibleShorthands,
   getLonghands,
   getShorthands,
+  getShorthandStrategy,
   isLonghand,
   isShorthand,
   splitTopLevelWhitespace,
   supportsPureTransform,
+  supportsTransform,
 } from "./core.js";
 
 export type {
