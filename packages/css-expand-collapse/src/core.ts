@@ -99,7 +99,11 @@ export function splitTopLevelWhitespace(value: string): string[] {
 
 function matchProperty(property: string, value: string): boolean {
   try {
-    return Boolean(lexer.matchProperty(property, value).matched);
+    const result = lexer.matchProperty(property, value) as unknown as {
+      matched?: unknown;
+      error?: unknown;
+    };
+    return Boolean(result.matched) && !result.error;
   } catch {
     return false;
   }
