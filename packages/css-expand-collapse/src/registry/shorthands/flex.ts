@@ -1,5 +1,7 @@
-import { defineShorthand } from "../define.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("flex", { longhands: ["flex-grow", "flex-shrink", "flex-basis"], strategy: "flex", initialValues: ["0", "1", "auto"] });
-
-export default shorthand;
+export default {
+  longhands: ["flex-grow", "flex-shrink", "flex-basis"],
+  strategy: "flex",
+  initialValues: ["0", "1", "auto"],
+} satisfies ShorthandDefinition;

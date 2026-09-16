@@ -1,5 +1,3 @@
-import { defineShorthand } from "../define.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("column-rule", { longhands: ["column-rule-width", "column-rule-style", "column-rule-color"], strategy: "triple" });
-
-export default shorthand;
+export default { longhands: ["column-rule-width", "column-rule-style", "column-rule-color"], strategy: "triple" } satisfies ShorthandDefinition;

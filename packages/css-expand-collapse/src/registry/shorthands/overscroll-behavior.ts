@@ -1,5 +1,6 @@
-import { defineShorthand } from "../define.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("overscroll-behavior", { longhands: ["overscroll-behavior-x", "overscroll-behavior-y"], strategy: "pair" });
-
-export default shorthand;
+export default {
+  longhands: ["overscroll-behavior-x", "overscroll-behavior-y"],
+  strategy: "pair",
+} satisfies ShorthandDefinition;

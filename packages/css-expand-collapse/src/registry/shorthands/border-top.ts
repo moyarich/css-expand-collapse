@@ -1,6 +1,4 @@
-import { defineShorthand } from "../define.js";
 import { sideBorder } from "../helpers.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("border-top", { longhands: sideBorder("top"), strategy: "triple" });
-
-export default shorthand;
+export default { longhands: sideBorder("top"), strategy: "triple" } satisfies ShorthandDefinition;

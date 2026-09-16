@@ -1,5 +1,3 @@
-import { defineShorthand } from "../define.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("all", null);
-
-export default shorthand;
+export default null satisfies ShorthandDefinition | null;

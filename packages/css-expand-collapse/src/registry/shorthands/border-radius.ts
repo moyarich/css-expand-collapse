@@ -1,5 +1,11 @@
-import { defineShorthand } from "../define.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("border-radius", { longhands: ["border-top-left-radius", "border-top-right-radius", "border-bottom-right-radius", "border-bottom-left-radius"], strategy: "quad" });
-
-export default shorthand;
+export default {
+  longhands: [
+    "border-top-left-radius",
+    "border-top-right-radius",
+    "border-bottom-right-radius",
+    "border-bottom-left-radius",
+  ],
+  strategy: "quad",
+} satisfies ShorthandDefinition;

@@ -1,6 +1,4 @@
-import { defineShorthand } from "../define.js";
 import { logicalPair } from "../helpers.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("scroll-padding-block", { longhands: logicalPair("scroll-padding", "block"), strategy: "pair" });
-
-export default shorthand;
+export default { longhands: logicalPair("scroll-padding", "block"), strategy: "pair" } satisfies ShorthandDefinition;

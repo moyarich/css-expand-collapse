@@ -1,6 +1,4 @@
-import { defineShorthand } from "../define.js";
 import { quad } from "../helpers.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("border-width", { longhands: quad("border").map((p) => `${p}-width`), strategy: "quad" });
-
-export default shorthand;
+export default { longhands: quad("border").map((property) => `${property}-width`), strategy: "quad" } satisfies ShorthandDefinition;

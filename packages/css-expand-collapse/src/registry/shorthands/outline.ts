@@ -1,5 +1,3 @@
-import { defineShorthand } from "../define.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("outline", { longhands: ["outline-width", "outline-style", "outline-color"], strategy: "triple" });
-
-export default shorthand;
+export default { longhands: ["outline-width", "outline-style", "outline-color"], strategy: "triple" } satisfies ShorthandDefinition;

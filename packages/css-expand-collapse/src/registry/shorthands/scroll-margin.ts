@@ -1,6 +1,4 @@
-import { defineShorthand } from "../define.js";
 import { quad } from "../helpers.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("scroll-margin", { longhands: quad("scroll-margin"), strategy: "quad" });
-
-export default shorthand;
+export default { longhands: quad("scroll-margin"), strategy: "quad" } satisfies ShorthandDefinition;

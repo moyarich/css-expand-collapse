@@ -1,5 +1,3 @@
-import { defineShorthand } from "../define.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("flex-flow", { longhands: ["flex-direction", "flex-wrap"], strategy: "flex-flow" });
-
-export default shorthand;
+export default { longhands: ["flex-direction", "flex-wrap"], strategy: "flex-flow" } satisfies ShorthandDefinition;

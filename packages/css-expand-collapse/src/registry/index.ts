@@ -6,39 +6,31 @@ export type {
   ShorthandDefinitionMap,
   ShorthandStrategy,
 } from "./types.js";
-export type { ShorthandRegistration } from "./define.js";
-export { defineShorthand } from "./define.js";
+
+const shorthandEntries = Object.entries(SHORTHANDS) as [
+  string,
+  ShorthandDefinition | null,
+][];
 
 function buildDefinitions(): ShorthandDefinitionMap {
   const definitions: Record<string, ShorthandDefinition> = {};
-  const seen = new Set<string>();
 
-  for (const { property, definition } of SHORTHANDS) {
-    if (seen.has(property)) {
-      throw new Error(`Duplicate shorthand registration: ${property}`);
-    }
-    seen.add(property);
-
-    if (definition) {
-      definitions[property] = definition;
-    }
+  for (const [property, definition] of shorthandEntries) {
+    if (!definition) continue;
+    definitions[property] = definition;
   }
 
   return Object.freeze(definitions);
 }
 
-export const SHORTHAND_PROPERTIES = Object.freeze(
-  SHORTHANDS.map(({ property }) => property),
-);
-
+export const SHORTHAND_PROPERTIES = Object.freeze(Object.keys(SHORTHANDS));
 export const SHORTHAND_DEFINITIONS = buildDefinitions();
-
 export const SHORTHAND_SET = new Set<string>(SHORTHAND_PROPERTIES);
 
 export const LONGHAND_TO_SHORTHANDS = (() => {
   const map = new Map<string, string[]>();
 
-  for (const { property: shorthand, definition } of SHORTHANDS) {
+  for (const [shorthand, definition] of shorthandEntries) {
     if (!definition) continue;
 
     for (const longhand of definition.longhands) {

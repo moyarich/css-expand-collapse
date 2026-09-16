@@ -1,5 +1,9 @@
-import { defineShorthand } from "../define.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("border-inline", { longhands: ["border-inline-start-width", "border-inline-start-style", "border-inline-start-color", "border-inline-end-width", "border-inline-end-style", "border-inline-end-color"], strategy: "logical-border-axis" });
-
-export default shorthand;
+export default {
+  longhands: [
+    "border-inline-start-width", "border-inline-start-style", "border-inline-start-color",
+    "border-inline-end-width", "border-inline-end-style", "border-inline-end-color",
+  ],
+  strategy: "logical-border-axis",
+} satisfies ShorthandDefinition;

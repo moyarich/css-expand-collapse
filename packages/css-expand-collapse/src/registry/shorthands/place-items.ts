@@ -1,5 +1,6 @@
-import { defineShorthand } from "../define.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("place-items", { longhands: ["align-items", "justify-items"], strategy: "pair" });
-
-export default shorthand;
+export default {
+  longhands: ["align-items", "justify-items"],
+  strategy: "pair",
+} satisfies ShorthandDefinition;

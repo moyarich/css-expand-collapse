@@ -1,5 +1,6 @@
-import { defineShorthand } from "../define.js";
+import type { ShorthandDefinition } from "../types.js";
 
-const shorthand = defineShorthand("gap", { longhands: ["row-gap", "column-gap"], strategy: "pair" });
-
-export default shorthand;
+export default {
+  longhands: ["row-gap", "column-gap"],
+  strategy: "pair",
+} satisfies ShorthandDefinition;
