@@ -1,8 +1,66 @@
 # Developer Guide
 
-This repository is structured so new CSS shorthand support can be added without modifying a central registry implementation.
+This document contains repository setup, workspace commands, architecture notes, and the workflow for extending CSS shorthand support. User-facing installation and API examples belong in [`README.md`](./README.md) and [`packages/css-expand-collapse/README.md`](./packages/css-expand-collapse/README.md).
+
+## Repository structure
+
+```text
+css-expand-collapse/
+├── apps/
+│   └── playground/                  # React + Vite playground
+├── packages/
+│   └── css-expand-collapse/         # publishable npm package
+├── README.md                        # user-facing package overview
+├── README-dev.md                    # repository/developer documentation
+└── package.json                     # workspace scripts
+```
+
+The two workspaces are:
+
+- `packages/css-expand-collapse` — publishable `@moyarich/css-expand-collapse` package.
+- `apps/playground` — React + Vite playground for exercising the package against real CSS.
+
+The playground consumes the package source directly during development, so the library does not need to be built before starting the playground.
+
+## Repository setup
+
+```bash
+npm install
+npm run dev
+```
+
+`npm run dev` starts the playground workspace.
+
+## Workspace commands
+
+```bash
+npm run dev              # Start the playground
+npm run generate:registry # Regenerate shorthand registry barrel
+npm test                 # Run library tests
+npm run typecheck        # Typecheck all workspaces
+npm run build            # Build library + playground
+npm run build:lib        # Build only the npm package
+npm run build:playground # Build only the playground
+npm run pack:lib         # Preview npm package contents
+```
+
+The package also exposes `check:registry`; package `test`, `typecheck`, and `build` run that freshness check automatically.
+
+## Playground deployment
+
+The playground lives in `apps/playground` and is deployed to GitHub Pages by GitHub Actions.
+
+Production URL:
+
+```text
+https://moyarich.github.io/css-expand-collapse/
+```
+
+The Vite production base path is `/css-expand-collapse/` when the GitHub Pages build is running.
 
 ## Shorthand module architecture
+
+The package is structured so new CSS shorthand support can be added without modifying a central registry implementation.
 
 Each CSS shorthand lives in its own file under:
 
@@ -13,9 +71,9 @@ packages/css-expand-collapse/src/registry/shorthands/
 The **filename is the CSS property name**. For example:
 
 ```text
-margin.ts          -> margin
-text-decoration.ts -> text-decoration
--webkit-text-stroke.ts -> -webkit-text-stroke
+margin.ts               -> margin
+text-decoration.ts      -> text-decoration
+-webkit-text-stroke.ts  -> -webkit-text-stroke
 ```
 
 Every shorthand module must satisfy the same `ShorthandModule` interface:
@@ -172,18 +230,15 @@ npm run build
 
 The registry freshness check is already included in package `test`, `typecheck`, and `build`, so CI catches a shorthand file that was added or removed without regenerating the barrel.
 
-## Useful development commands
+## Validation before publishing
+
+Before publishing a package version, run:
 
 ```bash
-npm install
-npm run dev
-npm run generate:registry
 npm test
 npm run typecheck
-npm run build
 npm run build:lib
-npm run build:playground
 npm run pack:lib
 ```
 
-The playground consumes the package source directly during development, so the library does not need to be built before running the playground.
+`npm run pack:lib` performs an npm dry run so the packaged files can be inspected before publishing.
