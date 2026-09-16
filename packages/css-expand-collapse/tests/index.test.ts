@@ -104,10 +104,30 @@ describe("real CSS", () => {
     expect(css).not.toContain("margin-top");
   });
 
-  it("removes only computed-export longhands that exactly restate an existing shorthand", () => {
+  it("honors source order when later longhands fully override an earlier shorthand", () => {
     const css = collapseCss(`
       .marker {
         position: relative;
+        inset: auto;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+      }
+    `);
+
+    expect(css).toContain("position:relative");
+    expect(css).toContain("inset:0px");
+    expect(css).not.toContain("inset:auto");
+    expect(css).not.toContain("top:0px");
+    expect(css).not.toContain("right:0px");
+    expect(css).not.toContain("bottom:0px");
+    expect(css).not.toContain("left:0px");
+  });
+
+  it("collapses computed-export CSS while preserving the final cascade result", () => {
+    const css = collapseCss(`
+      .marker {
         inset: auto;
         top: 0px;
         right: 0px;
@@ -142,18 +162,11 @@ describe("real CSS", () => {
       }
     `);
 
-    // Conflicting overrides must remain authored: inset:auto is not equivalent to inset:0.
-    expect(css).toContain("inset:auto");
-    expect(css).toContain("top:0px");
-    expect(css).toContain("right:0px");
-    expect(css).toContain("bottom:0px");
-    expect(css).toContain("left:0px");
-    expect(css).not.toContain("inset:0px");
-
-    // Exact restatements are safe to remove.
+    expect(css).toContain("inset:0px");
     expect(css).toContain("margin:0px");
     expect(css).toContain("padding:0px 0px 8px");
     expect(css).toContain("border:4px solid rgb(31,111,174)");
+    expect(css).not.toContain("inset:auto");
     expect(css).not.toContain("margin-top");
     expect(css).not.toContain("padding-bottom");
     expect(css).not.toContain("border-width");
@@ -184,7 +197,7 @@ describe("real CSS", () => {
     expect(css).not.toContain("flex-wrap");
   });
 
-  it("does not synthesize a shorthand across an earlier conflicting shorthand", () => {
+  it("collapses a fully overridden margin shorthand", () => {
     const css = collapseCss(`
       .example {
         margin: auto;
@@ -195,12 +208,53 @@ describe("real CSS", () => {
       }
     `);
 
-    expect(css).toContain("margin:auto");
-    expect(css).toContain("margin-top:0px");
-    expect(css).toContain("margin-right:0px");
-    expect(css).toContain("margin-bottom:0px");
-    expect(css).toContain("margin-left:0px");
-    expect(css).not.toContain("margin:0px");
+    expect(css).toContain("margin:0px");
+    expect(css).not.toContain("margin:auto");
+    expect(css).not.toContain("margin-top");
+  });
+
+  it("does not remove a shorthand when only part of it is overridden", () => {
+    const css = collapseCss(`
+      .example {
+        inset: auto;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+      }
+    `);
+
+    expect(css).toContain("inset:auto");
+    expect(css).toContain("top:0px");
+    expect(css).toContain("right:0px");
+    expect(css).toContain("bottom:0px");
+  });
+
+  it("honors !important when deciding whether later longhands override a shorthand", () => {
+    const blocked = collapseCss(`
+      .example {
+        inset: auto !important;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+        left: 0px;
+      }
+    `);
+
+    expect(blocked).toContain("inset:auto!important");
+    expect(blocked).not.toContain("inset:0px");
+
+    const overriding = collapseCss(`
+      .example {
+        inset: auto;
+        top: 0px !important;
+        right: 0px !important;
+        bottom: 0px !important;
+        left: 0px !important;
+      }
+    `);
+
+    expect(overriding).toContain("inset:0px!important");
+    expect(overriding).not.toContain("inset:auto");
   });
 
   it("preserves same-property fallback declarations", () => {
