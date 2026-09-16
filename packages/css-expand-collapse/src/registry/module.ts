@@ -4,14 +4,21 @@ export interface ShorthandExpandContext {
   matchProperty(property: string, value: string): boolean;
   splitWhitespace(value: string): string[];
   splitSlash(value: string): string[];
-  /** @deprecated Temporary migration hook. New shorthand modules must not depend on CSSOM. */
-  cssom(value: string): DeclarationMap | null;
+}
+
+export interface ShorthandCollapseContext {
+  matchProperty(property: string, value: string): boolean;
 }
 
 export type ShorthandExpander = (
   value: string,
   context: ShorthandExpandContext,
 ) => DeclarationMap | null;
+
+export type ShorthandCollapser = (
+  declarations: DeclarationMap,
+  context: ShorthandCollapseContext,
+) => string | null;
 
 export type ShorthandStrategy =
   | "quad"
@@ -24,8 +31,7 @@ export type ShorthandStrategy =
   | "flex-flow"
   | "components"
   | "slash-pair"
-  | "csstree"
-  | "cssom";
+  | "csstree";
 
 /**
  * Common contract implemented by every shorthand property module.
@@ -39,6 +45,8 @@ export interface ShorthandModule {
   readonly strategy: ShorthandStrategy | null;
   readonly initialValues?: readonly string[];
   readonly expand: ShorthandExpander;
+  /** Optional property-specific collapse for grammars that cannot use a generic strategy. */
+  readonly collapse?: ShorthandCollapser;
 }
 
 export type TransformableShorthandModule = ShorthandModule & {
