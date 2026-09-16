@@ -118,6 +118,58 @@ collapseLonghands({
 // { color: "red", margin: "10px 20px" }
 ```
 
+### Partial longhands with initial values
+
+Raw stylesheet collapse is conservative by default. Missing longhands are not invented because doing so could override values supplied by another matching rule.
+
+For computed/export CSS, you can explicitly allow registered initial values to fill missing constituents:
+
+```ts
+collapseToShorthand(
+  "inset",
+  {
+    top: "0",
+    right: "0",
+    bottom: "0",
+  },
+  { fillMissingLonghands: "initial" },
+);
+```
+
+Returns:
+
+```ts
+{
+  property: "inset",
+  value: "0 0 0 auto",
+  consumed: ["top", "right", "bottom"],
+  declarations: {
+    top: "0",
+    right: "0",
+    bottom: "0",
+    left: "auto"
+  }
+}
+```
+
+The same option works with `collapseCss()`, `collapseDeclarations()`, and `collapseLonghands()`:
+
+```ts
+collapseCss(`
+  .example {
+    top: 0;
+    right: 0;
+    bottom: 0;
+  }
+`, {
+  fillMissingLonghands: "initial",
+});
+
+// .example{inset:0 0 0 auto}
+```
+
+Use this option only when treating omitted longhands as their initial values is correct for your input. It is intentionally opt-in for raw CSS.
+
 ## Real CSS
 
 ### Expand a stylesheet
@@ -162,7 +214,7 @@ Produces:
 
 The generated formatting is controlled by CSSTree, so whitespace may be normalized.
 
-The collapse pass is intentionally conservative. Longhands are collapsed only when they are contiguous and have the same `!important` priority. This prevents a transformation from changing cascade behavior.
+The collapse pass is cascade-aware. Compatible longhands may be separated by unrelated declarations, but overlapping shorthands, duplicate constituents, source order, and `!important` are considered before a replacement is emitted.
 
 ### Declaration fragments
 
