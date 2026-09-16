@@ -1,3 +1,4 @@
+import Editor from "@monaco-editor/react";
 import { useMemo, useState } from "react";
 import {
   collapseCss,
@@ -335,16 +336,43 @@ export function App() {
               <p>{inputKind === "stylesheet" ? "Full CSS stylesheet" : "Declaration block only"}</p>
             </div>
           </div>
-          <textarea
-            className="code-editor"
-            aria-label={`${meta.inputLabel} input`}
-            spellCheck={false}
-            value={source}
-            onChange={(event) => {
-              setSource(event.target.value);
-              setCopied(false);
-            }}
-          />
+
+          <div className="editor-surface">
+            <Editor
+              path="input.css"
+              language="css"
+              theme="vs-dark"
+              value={source}
+              onChange={(value) => {
+                setSource(value ?? "");
+                setCopied(false);
+              }}
+              loading={<div className="editor-loading">Loading CSS editor…</div>}
+              options={{
+                ariaLabel: `${meta.inputLabel} input`,
+                automaticLayout: true,
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineHeight: 22,
+                lineNumbersMinChars: 3,
+                tabSize: 2,
+                insertSpaces: true,
+                detectIndentation: false,
+                wordWrap: "on",
+                scrollBeyondLastLine: false,
+                smoothScrolling: true,
+                folding: true,
+                glyphMargin: false,
+                stickyScroll: { enabled: false },
+                overviewRulerLanes: 0,
+                hideCursorInOverviewRuler: true,
+                renderLineHighlight: "line",
+                padding: { top: 16, bottom: 16 },
+                formatOnPaste: true,
+                formatOnType: true,
+              }}
+            />
+          </div>
         </article>
 
         <div className="conversion-arrow" aria-hidden="true">→</div>
@@ -382,7 +410,36 @@ export function App() {
               <pre>{result.error}</pre>
             </div>
           ) : result.css ? (
-            <pre className="code-output">{result.css}</pre>
+            <div className="editor-surface">
+              <Editor
+                path="output.css"
+                language="css"
+                theme="vs-dark"
+                value={result.css}
+                loading={<div className="editor-loading">Loading CSS editor…</div>}
+                options={{
+                  ariaLabel: `${meta.outputLabel} output`,
+                  automaticLayout: true,
+                  readOnly: true,
+                  domReadOnly: true,
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  lineHeight: 22,
+                  lineNumbersMinChars: 3,
+                  tabSize: 2,
+                  wordWrap: "on",
+                  scrollBeyondLastLine: false,
+                  smoothScrolling: true,
+                  folding: true,
+                  glyphMargin: false,
+                  stickyScroll: { enabled: false },
+                  overviewRulerLanes: 0,
+                  hideCursorInOverviewRuler: true,
+                  renderLineHighlight: "none",
+                  padding: { top: 16, bottom: 16 },
+                }}
+              />
+            </div>
           ) : (
             <div className="empty-state">Start typing CSS to see the transformed result.</div>
           )}
