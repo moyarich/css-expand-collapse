@@ -12,12 +12,7 @@ import {
 
 export type { DeclarationMap } from "./registry.js";
 
-export interface CssomOptions {
-  /**
-   * @deprecated Transform logic no longer depends on CSSOM. This field is kept
-   * temporarily for source compatibility and is ignored.
-   */
-  style?: CSSStyleDeclaration | null;
+export interface TransformOptions {
   /**
    * Opt in to filling missing longhands with registered CSS initial values while
    * collapsing. This is useful for computed/export CSS, but can change cascade
@@ -25,6 +20,12 @@ export interface CssomOptions {
    * properties that were previously omitted.
    */
   fillMissingLonghands?: false | "initial";
+}
+
+/** @deprecated Use `TransformOptions`. */
+export interface CssomOptions extends TransformOptions {
+  /** @deprecated Transform logic no longer depends on CSSOM and this field is ignored. */
+  style?: CSSStyleDeclaration | null;
 }
 
 export interface CollapseResult {
@@ -63,10 +64,9 @@ export function supportsTransform(property: string): boolean {
   return Boolean(SHORTHAND_DEFINITIONS[normalizeProperty(property)]);
 }
 
-/** True when expansion/collapse does not require browser CSSOM. */
+/** True when the shorthand can be transformed without a browser DOM/CSSOM. */
 export function supportsPureTransform(property: string): boolean {
-  const definition = SHORTHAND_DEFINITIONS[normalizeProperty(property)];
-  return Boolean(definition && definition.strategy !== "cssom");
+  return supportsTransform(property);
 }
 
 /** Split a CSS value on top-level whitespace without breaking strings or functions. */
@@ -283,7 +283,6 @@ function collapsePure(
       return sides.every((side) => side.join(" ") === first) ? first : null;
     }
     case "csstree":
-    case "cssom":
       return null;
   }
 }
@@ -291,7 +290,7 @@ function collapsePure(
 function fillMissingInitialLonghands(
   definition: ShorthandDefinition,
   declarations: DeclarationMap,
-  options?: CssomOptions,
+  options?: TransformOptions,
 ): DeclarationMap {
   const completed = { ...declarations };
   if (options?.fillMissingLonghands !== "initial" || !definition.initialValues) {
@@ -310,7 +309,7 @@ function fillMissingInitialLonghands(
 export function collapseToShorthand(
   shorthandProperty: string,
   declarations: DeclarationMap,
-  options?: CssomOptions,
+  options?: TransformOptions,
 ): CollapseResult | null {
   const property = normalizeProperty(shorthandProperty);
   const definition = SHORTHAND_DEFINITIONS[property];
@@ -339,7 +338,7 @@ export function collapseToShorthand(
 
 export function findCollapsibleShorthands(
   declarations: DeclarationMap,
-  options?: CssomOptions,
+  options?: TransformOptions,
 ): CollapseResult[] {
   return Object.entries(SHORTHAND_DEFINITIONS)
     .sort(([, a], [, b]) => b.longhands.length - a.longhands.length)
@@ -349,7 +348,7 @@ export function findCollapsibleShorthands(
 
 export function collapseLonghands(
   declarations: DeclarationMap,
-  options?: CssomOptions,
+  options?: TransformOptions,
 ): DeclarationMap {
   const output: DeclarationMap = Object.fromEntries(
     Object.entries(declarations).map(([property, value]) => [normalizeProperty(property), value]),
