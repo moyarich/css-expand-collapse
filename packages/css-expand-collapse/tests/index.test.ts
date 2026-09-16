@@ -104,9 +104,10 @@ describe("real CSS", () => {
     expect(css).not.toContain("margin-top");
   });
 
-  it("removes computed-export longhands that only restate an existing shorthand", () => {
+  it("removes only computed-export longhands that exactly restate an existing shorthand", () => {
     const css = collapseCss(`
       .marker {
+        position: relative;
         inset: auto;
         top: 0px;
         right: 0px;
@@ -141,9 +142,15 @@ describe("real CSS", () => {
       }
     `);
 
-    expect(css).toContain("inset:0px");
-    expect(css).not.toContain("inset:auto");
-    expect(css).not.toContain("top:0px");
+    // Conflicting overrides must remain authored: inset:auto is not equivalent to inset:0.
+    expect(css).toContain("inset:auto");
+    expect(css).toContain("top:0px");
+    expect(css).toContain("right:0px");
+    expect(css).toContain("bottom:0px");
+    expect(css).toContain("left:0px");
+    expect(css).not.toContain("inset:0px");
+
+    // Exact restatements are safe to remove.
     expect(css).toContain("margin:0px");
     expect(css).toContain("padding:0px 0px 8px");
     expect(css).toContain("border:4px solid rgb(31,111,174)");
@@ -175,6 +182,37 @@ describe("real CSS", () => {
     expect(css).not.toContain("justify-items");
     expect(css).not.toContain("flex-direction");
     expect(css).not.toContain("flex-wrap");
+  });
+
+  it("does not synthesize a shorthand across an earlier conflicting shorthand", () => {
+    const css = collapseCss(`
+      .example {
+        margin: auto;
+        margin-top: 0px;
+        margin-right: 0px;
+        margin-bottom: 0px;
+        margin-left: 0px;
+      }
+    `);
+
+    expect(css).toContain("margin:auto");
+    expect(css).toContain("margin-top:0px");
+    expect(css).toContain("margin-right:0px");
+    expect(css).toContain("margin-bottom:0px");
+    expect(css).toContain("margin-left:0px");
+    expect(css).not.toContain("margin:0px");
+  });
+
+  it("preserves same-property fallback declarations", () => {
+    const css = collapseCss(`
+      .example {
+        display: -webkit-box;
+        display: flex;
+      }
+    `);
+
+    expect(css).toContain("display:-webkit-box");
+    expect(css).toContain("display:flex");
   });
 });
 
