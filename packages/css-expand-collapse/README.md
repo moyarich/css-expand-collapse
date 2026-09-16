@@ -328,10 +328,6 @@ collapseComputedStyles(style, shorthands?, options?)
 
 https://moyarich.github.io/css-expand-collapse/
 
-## Contributing and development
-
-Repository setup, workspace commands, registry architecture, and instructions for adding new shorthand modules live in the [developer guide](../../README-dev.md).
-
 ## License
 
 MIT
