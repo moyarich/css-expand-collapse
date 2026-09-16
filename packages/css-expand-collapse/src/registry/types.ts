@@ -3,14 +3,18 @@ export type ShorthandStrategy =
   | "pair"
   | "triple"
   | "border-all"
+  | "logical-border-axis"
   | "text-decoration"
+  | "flex"
   | "flex-flow"
-  | "unsupported";
+  | "components"
+  | "slash-pair"
+  | "cssom";
 
 export interface ShorthandDefinition {
   longhands: readonly string[];
   strategy: ShorthandStrategy;
-  /** Initial values used only when callers explicitly allow filling missing longhands. */
+  /** Initial values used for shorthand expansion and optional missing-longhand filling. */
   initialValues?: readonly string[];
 }
 
