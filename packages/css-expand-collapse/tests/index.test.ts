@@ -76,6 +76,34 @@ describe("collapse", () => {
       margin: "10px 20px",
     });
   });
+
+  it("keeps partial inset longhands uncollapsed by default", () => {
+    expect(collapseToShorthand("inset", {
+      top: "0",
+      right: "0",
+      bottom: "0",
+    })).toBeNull();
+  });
+
+  it("can fill a missing inset side with its initial value when opted in", () => {
+    expect(collapseToShorthand("inset", {
+      top: "0",
+      right: "0",
+      bottom: "0",
+    }, {
+      fillMissingLonghands: "initial",
+    })).toEqual({
+      property: "inset",
+      value: "0 0 0 auto",
+      consumed: ["top", "right", "bottom"],
+      declarations: {
+        top: "0",
+        right: "0",
+        bottom: "0",
+        left: "auto",
+      },
+    });
+  });
 });
 
 describe("real CSS", () => {
@@ -227,6 +255,41 @@ describe("real CSS", () => {
     expect(css).toContain("top:0px");
     expect(css).toContain("right:0px");
     expect(css).toContain("bottom:0px");
+  });
+
+  it("can collapse partial inset longhands by explicitly assuming missing sides are initial", () => {
+    const css = collapseCss(`
+      .example {
+        top: 0;
+        right: 0;
+        bottom: 0;
+      }
+    `, {
+      fillMissingLonghands: "initial",
+    });
+
+    expect(css).toContain("inset:0 0 0 auto");
+    expect(css).not.toContain("top:0");
+    expect(css).not.toContain("right:0");
+    expect(css).not.toContain("bottom:0");
+  });
+
+  it("does not fill missing partial values across an earlier shorthand", () => {
+    const css = collapseCss(`
+      .example {
+        inset: 1px 2px 3px 4px;
+        top: 0;
+        right: 0;
+        bottom: 0;
+      }
+    `, {
+      fillMissingLonghands: "initial",
+    });
+
+    expect(css).toContain("inset:1px 2px 3px 4px");
+    expect(css).toContain("top:0");
+    expect(css).toContain("right:0");
+    expect(css).toContain("bottom:0");
   });
 
   it("honors !important when deciding whether later longhands override a shorthand", () => {
