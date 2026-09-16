@@ -212,6 +212,32 @@ function tryCollapseAt(
   return null;
 }
 
+/** Remove earlier declarations fully shadowed by a later declaration of the same property. */
+function removeShadowedSameProperty(children: any[]): any[] {
+  const keep = children.map(() => true);
+  const later = new Map<string, { important: boolean }>();
+
+  for (let index = children.length - 1; index >= 0; index -= 1) {
+    const node = children[index];
+    if (node.type !== "Declaration") continue;
+
+    const property = normalizeProperty(node.property);
+    const important = Boolean(node.important);
+    const laterDeclaration = later.get(property);
+
+    if (laterDeclaration && (laterDeclaration.important || !important)) {
+      keep[index] = false;
+      continue;
+    }
+
+    if (!laterDeclaration || important) {
+      later.set(property, { important });
+    }
+  }
+
+  return children.filter((_, index) => keep[index]);
+}
+
 function collapseBlock(children: any[], options?: CssomOptions): any[] {
   const normalized = removeRedundantDeclarations(children, options);
   const output: any[] = [];
@@ -230,7 +256,7 @@ function collapseBlock(children: any[], options?: CssomOptions): any[] {
     for (const matchedIndex of collapsed.indices) consumed.add(matchedIndex);
   }
 
-  return output;
+  return removeShadowedSameProperty(output);
 }
 
 function replaceChildren(block: any, children: any[]): void {
