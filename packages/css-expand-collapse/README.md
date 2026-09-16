@@ -302,7 +302,9 @@ isShorthand(property)
 isLonghand(property)
 getLonghands(shorthand)
 getShorthands(longhand)
+supportsTransform(property)
 supportsPureTransform(property)
+getShorthandStrategy(property)
 
 expandShorthand(property, value, options?)
 collapseToShorthand(shorthand, declarations, options?)
@@ -322,14 +324,13 @@ collapseComputedStyle(style, shorthand, options?)
 collapseComputedStyles(style, shorthands?, options?)
 ```
 
-## Development
+## Playground
 
-```bash
-npm install
-npm test
-npm run typecheck
-npm run build
-```
+https://moyarich.github.io/css-expand-collapse/
+
+## Contributing and development
+
+Repository setup, workspace commands, registry architecture, and instructions for adding new shorthand modules live in the [developer guide](../../README-dev.md).
 
 ## License
 
