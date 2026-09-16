@@ -1,39 +1,252 @@
-# css-expand-collapse
+# @moyarich/css-expand-collapse
 
-A monorepo for expanding CSS shorthands into longhands and safely collapsing longhands back into shorthands.
+Expand CSS shorthands into longhands and safely collapse compatible longhands back into shorthands.
+
+The package works with individual CSS properties, declaration maps, declaration fragments, full stylesheets, and browser computed styles. It uses [CSSTree](https://github.com/csstree/csstree) for parsing, generation, and CSS grammar matching.
+
+## Install
+
+```bash
+npm install @moyarich/css-expand-collapse
+```
+
+## Quick start
+
+```js
+import {
+  expandShorthand,
+  collapseToShorthand,
+} from "@moyarich/css-expand-collapse";
+
+expandShorthand("margin", "10px 20px");
+// {
+//   "margin-top": "10px",
+//   "margin-right": "20px",
+//   "margin-bottom": "10px",
+//   "margin-left": "20px"
+// }
+
+collapseToShorthand("inset", {
+  top: "0",
+  right: "0",
+  bottom: "0",
+  left: "auto",
+});
+// {
+//   property: "inset",
+//   value: "0 0 0 auto",
+//   ...
+// }
+```
+
+## Node.js
+
+ES modules:
+
+```js
+import {
+  expandShorthand,
+  collapseCss,
+} from "@moyarich/css-expand-collapse";
+
+console.log(expandShorthand("padding", "8px 16px"));
+```
+
+CommonJS is also supported:
+
+```js
+const {
+  expandShorthand,
+  collapseCss,
+} = require("@moyarich/css-expand-collapse");
+```
+
+Pure-JavaScript shorthand implementations work directly in Node. Shorthands whose strategy is `cssom` require browser CSSOM for fallback parsing.
+
+You can inspect support before transforming:
+
+```js
+import {
+  supportsTransform,
+  supportsPureTransform,
+  getShorthandStrategy,
+} from "@moyarich/css-expand-collapse";
+
+supportsTransform("background");
+// true
+
+supportsPureTransform("margin");
+// true
+
+getShorthandStrategy("background");
+// "cssom"
+```
+
+## Transform CSS
+
+Expand a stylesheet:
+
+```js
+import { expandCss } from "@moyarich/css-expand-collapse";
+
+const css = expandCss(`
+.card {
+  margin: 10px 20px;
+  padding: 8px 16px;
+}
+`);
+```
+
+Collapse compatible longhands:
+
+```js
+import { collapseCss } from "@moyarich/css-expand-collapse";
+
+const css = collapseCss(`
+.card {
+  margin-top: 10px;
+  margin-right: 20px;
+  margin-bottom: 10px;
+  margin-left: 20px;
+}
+`);
+```
+
+Result:
+
+```css
+.card {
+  margin: 10px 20px;
+}
+```
+
+Collapse is cascade-aware within declaration blocks. Source order, overlapping shorthands, duplicate constituents, and `!important` are considered before a replacement is emitted.
+
+## Partial longhands
+
+Raw stylesheet collapse is conservative by default. Missing longhands are not invented because that could override values supplied by another matching rule.
+
+For computed/export CSS, missing constituents can explicitly use registered initial values:
+
+```js
+import { collapseCss } from "@moyarich/css-expand-collapse";
+
+collapseCss(`
+.box {
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+`, {
+  fillMissingLonghands: "initial",
+});
+
+// .box{inset:0 0 0 auto}
+```
+
+Use `fillMissingLonghands: "initial"` only when omitted longhands should be treated as their CSS initial values.
+
+## Declaration fragments
+
+```js
+import {
+  expandDeclarations,
+  collapseDeclarations,
+} from "@moyarich/css-expand-collapse";
+
+expandDeclarations(`margin: 10px 20px; padding: 1rem;`);
+
+collapseDeclarations(`
+  margin-top: 10px;
+  margin-right: 20px;
+  margin-bottom: 10px;
+  margin-left: 20px;
+`);
+```
+
+## Computed styles
+
+In the browser, the package can work directly with the read-only shape returned by `getComputedStyle()`:
+
+```js
+import {
+  collapseComputedStyle,
+  getComputedLonghands,
+  styleToDeclarations,
+} from "@moyarich/css-expand-collapse";
+
+const computed = getComputedStyle(element);
+
+getComputedLonghands(computed, "margin");
+collapseComputedStyle(computed, "margin");
+styleToDeclarations(computed);
+```
+
+This is useful for inspectors, visual CSS editors, and exported computed CSS.
+
+## Property helpers
+
+```js
+import {
+  isShorthand,
+  isLonghand,
+  getLonghands,
+  getShorthands,
+} from "@moyarich/css-expand-collapse";
+
+isShorthand("margin");
+// true
+
+isLonghand("margin-top");
+// true
+
+getLonghands("margin");
+// ["margin-top", "margin-right", "margin-bottom", "margin-left"]
+
+getShorthands("margin-top");
+// includes "margin"
+```
+
+## API
+
+```text
+isShorthand(property)
+isLonghand(property)
+getLonghands(shorthand)
+getShorthands(longhand)
+supportsTransform(property)
+supportsPureTransform(property)
+getShorthandStrategy(property)
+
+expandShorthand(property, value, options?)
+collapseToShorthand(shorthand, declarations, options?)
+findCollapsibleShorthands(declarations, options?)
+collapseLonghands(declarations, options?)
+
+expandCss(css, options?)
+collapseCss(css, options?)
+transformCss(css, { mode, ...options })
+
+expandDeclarations(css, options?)
+collapseDeclarations(css, options?)
+
+styleToDeclarations(style, properties?)
+getComputedLonghands(style, shorthand)
+collapseComputedStyle(style, shorthand, options?)
+collapseComputedStyles(style, shorthands?, options?)
+```
 
 ## Playground
 
-Live playground: https://moyarich.github.io/css-expand-collapse/
+Try the package in the live playground:
 
-The playground is deployed from `apps/playground` with GitHub Actions and uses the production base path `/css-expand-collapse/` for GitHub Pages.
+https://moyarich.github.io/css-expand-collapse/
 
-## Workspaces
+## More documentation
 
-- [`packages/css-expand-collapse`](./packages/css-expand-collapse) — publishable `@moyarich/css-expand-collapse` package.
-- [`apps/playground`](./apps/playground) — React + Vite playground for trying expand/collapse transforms against real CSS.
+- [Package API and examples](./packages/css-expand-collapse/README.md)
+- [Developer guide](./README-dev.md)
 
-## Development
+## License
 
-```bash
-npm install
-npm run dev
-```
-
-The playground opens the library source directly during development, so you do not need to build the package first.
-
-## Commands
-
-```bash
-npm run dev              # Start the playground
-npm test                 # Run library tests
-npm run typecheck        # Typecheck all workspaces
-npm run build            # Build library + playground
-npm run build:lib        # Build only the npm package
-npm run build:playground # Build only the playground
-npm run pack:lib         # Preview the npm package contents
-```
-
-## Package usage
-
-See [`packages/css-expand-collapse/README.md`](./packages/css-expand-collapse/README.md) for the complete API and examples, including raw CSS, declaration blocks, shorthand/longhand helpers, and `getComputedStyle()` integration.
+MIT
