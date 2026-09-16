@@ -2,7 +2,7 @@
 
 Expand CSS shorthands into longhands and safely collapse compatible longhands back into shorthands.
 
-The package works with individual CSS properties, declaration maps, declaration fragments, full stylesheets, and browser computed styles. It uses [CSSTree](https://github.com/csstree/csstree) for parsing, generation, and CSS grammar matching.
+The package works with individual CSS properties, declaration maps, declaration fragments, full stylesheets, browser computed styles, and Chrome extension contexts. It uses [CSSTree](https://github.com/csstree/csstree) for parsing, generation, and CSS grammar matching.
 
 ## Install
 
@@ -80,6 +80,50 @@ supportsPureTransform("margin");
 
 getShorthandStrategy("background");
 // "cssom"
+```
+
+## Chrome extensions / Manifest V3
+
+The package can be bundled into Chrome extension content scripts, DevTools pages, side panels, popups, and other DOM-capable extension pages. It exposes a browser ESM entry so bundlers such as Vite can consume it normally:
+
+```ts
+import {
+  collapseLonghands,
+  styleToDeclarations,
+} from "@moyarich/css-expand-collapse";
+
+const computedStyle = window.getComputedStyle(element);
+const declarations = styleToDeclarations(computedStyle);
+
+const compact = collapseLonghands(declarations, {
+  fillMissingLonghands: "initial",
+});
+```
+
+This matches the computed-style export workflow used by inspector extensions such as `element-inspector`: collect the selected element's `CSSStyleDeclaration`, convert it to declarations, then compact compatible longhands before serializing the CSS.
+
+Manifest V3 background service workers do not have `document`, so CSSOM-only shorthand strategies are unavailable there unless a mutable `CSSStyleDeclaration` is explicitly supplied. Use the runtime helpers when code may run in either a DOM page or a service worker:
+
+```ts
+import {
+  hasCssomSupport,
+  supportsRuntimeTransform,
+} from "@moyarich/css-expand-collapse";
+
+hasCssomSupport();
+// true in content scripts / DevTools pages, false in a service worker
+
+supportsRuntimeTransform("margin");
+// true everywhere because margin has a pure-JS strategy
+
+supportsRuntimeTransform("background");
+// true in DOM-capable extension pages, false in a service worker
+```
+
+If a DOM-less context already has access to a mutable style declaration, it can be supplied explicitly:
+
+```ts
+supportsRuntimeTransform("background", { style: scratchStyle });
 ```
 
 ## Transform CSS
@@ -216,6 +260,8 @@ getLonghands(shorthand)
 getShorthands(longhand)
 supportsTransform(property)
 supportsPureTransform(property)
+supportsRuntimeTransform(property, options?)
+hasCssomSupport(options?)
 getShorthandStrategy(property)
 
 expandShorthand(property, value, options?)
