@@ -1,8 +1,8 @@
 # css-expand-collapse
 
-Bidirectional CSS shorthand/longhand utilities for property values, declaration objects, full stylesheets, browser computed styles, and extension runtimes.
+Bidirectional CSS shorthand/longhand utilities for property values, declaration objects, full stylesheets, browser computed styles, Node.js, and extension runtimes.
 
-Built on [CSSTree](https://github.com/csstree/csstree) for CSS parsing, generation, and grammar matching.
+Built on [CSSTree](https://github.com/csstree/csstree) for CSS parsing, generation, and grammar matching. Shorthand transforms are runtime-neutral and do not require browser CSSOM.
 
 ## Install
 
@@ -16,10 +16,10 @@ npm install @moyarich/css-expand-collapse
 - Expand shorthand declarations into longhands.
 - Collapse compatible longhands back into a shorthand.
 - Accept real CSS, not only property/value objects.
-- Work directly with the `CSSStyleDeclaration` returned by `getComputedStyle()`.
+- Work directly with the `CSSStyleDeclaration` returned by `getComputedStyle()` when one is available.
 - Preserve CSS cascade semantics when transforming stylesheets.
-- Work in Node, browser pages, and Chrome extension contexts.
-- Use browser CSSOM as an optional fallback for complex browser-supported shorthands.
+- Work in Node.js, browser pages, Chrome extension service workers, content scripts, and extension pages.
+- Use CSSTree grammar matching for complex shorthand syntax rather than depending on browser CSSOM.
 
 ## Property API
 
@@ -71,6 +71,20 @@ expandShorthand("text-decoration", "wavy underline purple 25%");
   "text-decoration-color": "purple",
   "text-decoration-thickness": "25%"
 }
+```
+
+Complex and multi-layer shorthands work without a DOM:
+
+```ts
+expandShorthand(
+  "background",
+  "url(a.png) center / cover no-repeat, red",
+);
+
+expandShorthand(
+  "transition",
+  "opacity 200ms ease 50ms",
+);
 ```
 
 ### Collapse
@@ -153,23 +167,7 @@ Returns:
 }
 ```
 
-The same option works with `collapseCss()`, `collapseDeclarations()`, and `collapseLonghands()`:
-
-```ts
-collapseCss(`
-  .example {
-    top: 0;
-    right: 0;
-    bottom: 0;
-  }
-`, {
-  fillMissingLonghands: "initial",
-});
-
-// .example{inset:0 0 0 auto}
-```
-
-Use this option only when treating omitted longhands as their initial values is correct for your input. It is intentionally opt-in for raw CSS.
+The same option works with `collapseCss()`, `collapseDeclarations()`, and `collapseLonghands()`.
 
 ## Real CSS
 
@@ -187,8 +185,6 @@ expandCss(`
   }
 `);
 ```
-
-Produces semantically equivalent CSS with supported shorthands expanded to longhands.
 
 ### Collapse a stylesheet
 
@@ -213,17 +209,19 @@ Produces:
 }
 ```
 
-The generated formatting is controlled by CSSTree, so whitespace may be normalized.
-
-The collapse pass is cascade-aware. Compatible longhands may be separated by unrelated declarations, but overlapping shorthands, duplicate constituents, source order, and `!important` are considered before a replacement is emitted.
+The generated formatting is controlled by CSSTree, so whitespace may be normalized. The collapse pass is cascade-aware: source order, overlapping shorthands, duplicate constituents, and `!important` are considered before a replacement is emitted.
 
 ### Declaration fragments
+
+Declaration-only input is supported directly, which is useful for inline styles and element inspectors:
 
 ```ts
 import {
   expandDeclarations,
   collapseDeclarations,
 } from "@moyarich/css-expand-collapse";
+
+expandDeclarations("text-decoration: underline;");
 
 expandDeclarations(`margin: 10px 20px; padding: 1rem;`);
 
@@ -244,6 +242,26 @@ transformCss(css, { mode: "expand" });
 transformCss(css, { mode: "collapse" });
 ```
 
+## Node.js
+
+The transform APIs do not use `document` or `CSSStyleDeclaration`:
+
+```ts
+import {
+  expandShorthand,
+  supportsPureTransform,
+} from "@moyarich/css-expand-collapse";
+
+supportsPureTransform("background"); // true
+supportsPureTransform("animation");  // true
+supportsPureTransform("font");       // true
+supportsPureTransform("grid");       // true
+
+expandShorthand("transition", "opacity 200ms ease");
+```
+
+Both ESM and CommonJS package entries are provided.
+
 ## `getComputedStyle()`
 
 The package accepts the same read-only shape returned by `window.getComputedStyle()`:
@@ -258,21 +276,17 @@ import {
 const computed = getComputedStyle(element);
 
 getComputedLonghands(computed, "margin");
-
 collapseComputedStyle(computed, "margin");
-// { property: "margin", value: "10px 20px", ... }
-
 styleToDeclarations(computed);
-// Record<string, string>
 ```
 
 This is useful for inspectors and visual CSS editors where browser-computed longhand values need to be grouped back into editable shorthand controls.
 
 ## Chrome extensions / Manifest V3
 
-The package has a browser ESM entry and can be bundled by Vite into Chrome extension content scripts, DevTools pages, popups, side panels, or other DOM-capable extension pages.
+The package can be bundled into Chrome extension content scripts, DevTools pages, popups, side panels, and background service workers.
 
-For an inspector such as `element-inspector`, a computed-style export can be compacted directly:
+For an inspector such as `element-inspector`:
 
 ```ts
 import {
@@ -288,60 +302,36 @@ const compact = collapseLonghands(declarations, {
 });
 ```
 
-Manifest V3 background service workers do not expose `document`, so CSSOM-only shorthand strategies are not available there by default. Pure strategies continue to work.
-
-Use the runtime helpers when shared code can execute in both extension pages and service workers:
+A Manifest V3 service worker can transform CSS strings or declaration objects without `document`:
 
 ```ts
 import {
-  hasCssomSupport,
+  expandDeclarations,
   supportsRuntimeTransform,
 } from "@moyarich/css-expand-collapse";
 
-hasCssomSupport();
+supportsRuntimeTransform("background"); // true
 
-supportsRuntimeTransform("margin");
-// true in service workers and DOM contexts
-
-supportsRuntimeTransform("background");
-// true when CSSOM is available, otherwise false
+expandDeclarations("text-decoration: underline;");
 ```
 
-A DOM-less environment can also provide an existing mutable `CSSStyleDeclaration`:
+`supportsRuntimeTransform()` remains available for compatibility and now reflects whether the package implements the shorthand, not whether a DOM is present.
 
-```ts
-supportsRuntimeTransform("background", {
-  style: scratchStyle,
-});
-```
+## Runtime-neutral complex shorthands
 
-## Browser CSSOM fallback
+CSSTree-backed property modules handle complex grammar such as multi-layer and slash-separated values. Examples include:
 
-Some CSS shorthands have complex grammars (`background`, `animation`, `transition`, and others). In a browser, the library can use a mutable `CSSStyleDeclaration` as a standards-aware fallback.
+- `background` and `mask`
+- `animation` and `transition`
+- `border-image` and `mask-border`
+- `font`, `font-variant`, and `font-synthesis`
+- `grid`, `grid-template`, and `grid-area`
+- `offset`
+- `list-style`
+- `text-emphasis`
+- scroll/view timelines
 
-By default it creates a detached element when `document` is available. You can also provide your own mutable style object:
-
-```ts
-const scratch = document.createElement("div").style;
-
-expandShorthand("transition", "opacity 200ms ease", {
-  style: scratch,
-});
-```
-
-The pure JavaScript strategies do not require a DOM and currently cover the common shorthand families used by CSS inspectors, including:
-
-- `margin`, `padding`, `inset`
-- logical block/inline margin, padding, inset, scroll-margin, and scroll-padding
-- `border`, border sides, `border-width`, `border-style`, `border-color`, `border-radius`
-- `outline`, `column-rule`
-- `gap`, `overflow`, `overscroll-behavior`
-- `place-content`, `place-items`, `place-self`
-- `flex-flow`
-- `text-decoration`
-- `-webkit-text-stroke`
-
-The shorthand registry recognizes the shorthand names listed by MDN even when a shorthand currently relies on browser CSSOM for transformation.
+System-font keywords such as `font: menu` are user-agent dependent and cannot be deterministically decomposed outside a browser. Explicit `font` shorthand values are supported.
 
 ## API
 
@@ -352,8 +342,7 @@ getLonghands(shorthand)
 getShorthands(longhand)
 supportsTransform(property)
 supportsPureTransform(property)
-supportsRuntimeTransform(property, options?)
-hasCssomSupport(options?)
+supportsRuntimeTransform(property)
 getShorthandStrategy(property)
 
 expandShorthand(property, value, options?)
