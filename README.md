@@ -2,6 +2,12 @@
 
 A monorepo for expanding CSS shorthands into longhands and safely collapsing longhands back into shorthands.
 
+## Playground
+
+Live playground: https://moyarich.github.io/css-expand-collapse/
+
+The playground is deployed from `apps/playground` with GitHub Actions and uses the production base path `/css-expand-collapse/` for GitHub Pages.
+
 ## Workspaces
 
 - [`packages/css-expand-collapse`](./packages/css-expand-collapse) — publishable `@moyarich/css-expand-collapse` package.
