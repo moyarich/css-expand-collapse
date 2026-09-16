@@ -5,6 +5,7 @@ import {
   SHORTHAND_PROPERTIES,
   SHORTHAND_SET,
   type ShorthandDefinition,
+  type ShorthandStrategy,
 } from "./registry.js";
 
 export type DeclarationMap = Record<string, string>;
@@ -48,9 +49,19 @@ export function getShorthands(longhand: string): string[] {
   return [...(LONGHAND_TO_SHORTHANDS.get(normalizeProperty(longhand)) ?? [])];
 }
 
+export function getShorthandStrategy(property: string): ShorthandStrategy | null {
+  return SHORTHAND_DEFINITIONS[normalizeProperty(property)]?.strategy ?? null;
+}
+
+/** True when the registry has an implementation path for this shorthand. */
+export function supportsTransform(property: string): boolean {
+  return Boolean(SHORTHAND_DEFINITIONS[normalizeProperty(property)]);
+}
+
+/** True when expansion/collapse can run without browser CSSOM. */
 export function supportsPureTransform(property: string): boolean {
   const definition = SHORTHAND_DEFINITIONS[normalizeProperty(property)];
-  return Boolean(definition && definition.strategy !== "unsupported");
+  return Boolean(definition && definition.strategy !== "cssom");
 }
 
 /** Split a CSS value on top-level whitespace without breaking strings or functions. */
@@ -102,6 +113,56 @@ export function splitTopLevelWhitespace(value: string): string[] {
   }
   push();
   return result;
+}
+
+function splitTopLevelSlash(value: string): string[] {
+  const parts: string[] = [];
+  let current = "";
+  let quote: "'" | '"' | null = null;
+  let escaped = false;
+  let parenDepth = 0;
+  let bracketDepth = 0;
+
+  const push = () => {
+    parts.push(current.trim());
+    current = "";
+  };
+
+  for (const char of value.trim()) {
+    if (escaped) {
+      current += char;
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      current += char;
+      escaped = true;
+      continue;
+    }
+    if (quote) {
+      current += char;
+      if (char === quote) quote = null;
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      current += char;
+      continue;
+    }
+    if (char === "(") parenDepth++;
+    if (char === ")") parenDepth = Math.max(0, parenDepth - 1);
+    if (char === "[") bracketDepth++;
+    if (char === "]") bracketDepth = Math.max(0, bracketDepth - 1);
+
+    if (char === "/" && parenDepth === 0 && bracketDepth === 0) {
+      push();
+    } else {
+      current += char;
+    }
+  }
+
+  push();
+  return parts;
 }
 
 function matchProperty(property: string, value: string): boolean {
@@ -207,6 +268,20 @@ function expandBorderAll(value: string): DeclarationMap | null {
   return result;
 }
 
+function expandLogicalBorderAxis(longhands: readonly string[], value: string): DeclarationMap | null {
+  if (longhands.length !== 6) return null;
+  const firstSide = expandTriple("border-top", longhands.slice(0, 3), value);
+  if (!firstSide) return null;
+  return {
+    [longhands[0]!]: firstSide[longhands[0]!]!,
+    [longhands[1]!]: firstSide[longhands[1]!]!,
+    [longhands[2]!]: firstSide[longhands[2]!]!,
+    [longhands[3]!]: firstSide[longhands[0]!]!,
+    [longhands[4]!]: firstSide[longhands[1]!]!,
+    [longhands[5]!]: firstSide[longhands[2]!]!,
+  };
+}
+
 function expandTextDecoration(longhands: readonly string[], value: string): DeclarationMap | null {
   const tokens = splitTopLevelWhitespace(value);
   if (!tokens.length) return null;
@@ -254,6 +329,112 @@ function expandFlexFlow(value: string): DeclarationMap | null {
   return result;
 }
 
+function expandFlex(value: string): DeclarationMap | null {
+  if (value === "none") {
+    return { "flex-grow": "0", "flex-shrink": "0", "flex-basis": "auto" };
+  }
+  if (value === "auto") {
+    return { "flex-grow": "1", "flex-shrink": "1", "flex-basis": "auto" };
+  }
+
+  const tokens = splitTopLevelWhitespace(value);
+  if (tokens.length < 1 || tokens.length > 3) return null;
+
+  const isNumber = (token: string) => matchProperty("flex-grow", token);
+  const isBasis = (token: string) => matchProperty("flex-basis", token);
+
+  if (tokens.length === 1) {
+    const [first] = tokens;
+    if (isNumber(first!)) {
+      return { "flex-grow": first!, "flex-shrink": "1", "flex-basis": "0%" };
+    }
+    if (isBasis(first!)) {
+      return { "flex-grow": "1", "flex-shrink": "1", "flex-basis": first! };
+    }
+    return null;
+  }
+
+  const [first, second, third] = tokens;
+  if (!isNumber(first!)) return null;
+
+  if (tokens.length === 2) {
+    if (isNumber(second!)) {
+      return { "flex-grow": first!, "flex-shrink": second!, "flex-basis": "0%" };
+    }
+    if (isBasis(second!)) {
+      return { "flex-grow": first!, "flex-shrink": "1", "flex-basis": second! };
+    }
+    return null;
+  }
+
+  if (!isNumber(second!) || !isBasis(third!)) return null;
+  return { "flex-grow": first!, "flex-shrink": second!, "flex-basis": third! };
+}
+
+function expandComponents(
+  definition: ShorthandDefinition,
+  value: string,
+): DeclarationMap | null {
+  if (!definition.initialValues || definition.initialValues.length !== definition.longhands.length) {
+    return null;
+  }
+
+  const tokens = splitTopLevelWhitespace(value);
+  if (!tokens.length) return null;
+
+  const result = Object.fromEntries(
+    definition.longhands.map((longhand, index) => [longhand, definition.initialValues![index]!]),
+  ) as DeclarationMap;
+  const assigned = new Set<string>();
+
+  for (const token of tokens) {
+    const candidates = definition.longhands
+      .filter((longhand) => !assigned.has(longhand))
+      .filter((longhand) => matchProperty(longhand, token));
+
+    if (candidates.length === 1) {
+      result[candidates[0]!] = token;
+      assigned.add(candidates[0]!);
+      continue;
+    }
+
+    // A single token such as `auto` can legitimately be the initial value of more
+    // than one component (for example `columns: auto`). In that case assigning it to
+    // every matching initial-valued component preserves the shorthand semantics.
+    const initialMatches = candidates.filter((longhand) => {
+      const index = definition.longhands.indexOf(longhand);
+      return definition.initialValues?.[index] === token;
+    });
+    if (initialMatches.length === candidates.length && initialMatches.length > 1) {
+      for (const longhand of initialMatches) {
+        result[longhand] = token;
+        assigned.add(longhand);
+      }
+      continue;
+    }
+
+    return null;
+  }
+
+  return result;
+}
+
+function expandSlashPair(
+  definition: ShorthandDefinition,
+  value: string,
+): DeclarationMap | null {
+  if (definition.longhands.length !== 2 || !definition.initialValues?.[1]) return null;
+  const parts = splitTopLevelSlash(value);
+  if (parts.length < 1 || parts.length > 2 || parts.some((part) => !part)) return null;
+
+  const first = parts[0]!;
+  const second = parts[1] ?? definition.initialValues[1]!;
+  return {
+    [definition.longhands[0]!]: first,
+    [definition.longhands[1]!]: second,
+  };
+}
+
 export function expandShorthand(
   property: string,
   value: string,
@@ -283,13 +464,25 @@ export function expandShorthand(
     case "border-all":
       expanded = expandBorderAll(normalizedValue);
       break;
+    case "logical-border-axis":
+      expanded = expandLogicalBorderAxis(definition.longhands, normalizedValue);
+      break;
     case "text-decoration":
       expanded = expandTextDecoration(definition.longhands, normalizedValue);
+      break;
+    case "flex":
+      expanded = expandFlex(normalizedValue);
       break;
     case "flex-flow":
       expanded = expandFlexFlow(normalizedValue);
       break;
-    case "unsupported":
+    case "components":
+      expanded = expandComponents(definition, normalizedValue);
+      break;
+    case "slash-pair":
+      expanded = expandSlashPair(definition, normalizedValue);
+      break;
+    case "cssom":
       break;
   }
 
@@ -302,6 +495,31 @@ function compressQuad(values: readonly string[]): string {
   if (top === bottom && right === left) return `${top} ${right}`;
   if (right === left) return `${top} ${right} ${bottom}`;
   return values.join(" ");
+}
+
+function collapseFlex(concrete: readonly string[]): string {
+  const [grow, shrink, basis] = concrete;
+  if (grow === "0" && shrink === "0" && basis === "auto") return "none";
+  if (grow === "1" && shrink === "1" && basis === "auto") return "auto";
+  return `${grow} ${shrink} ${basis}`;
+}
+
+function collapseLogicalBorderAxis(concrete: readonly string[]): string | null {
+  if (concrete.length !== 6) return null;
+  const first = concrete.slice(0, 3);
+  const second = concrete.slice(3, 6);
+  if (!first.every((value, index) => value === second[index])) return null;
+  return first.join(" ");
+}
+
+function collapseSlashPair(
+  definition: ShorthandDefinition,
+  concrete: readonly string[],
+): string | null {
+  if (concrete.length !== 2) return null;
+  const [first, second] = concrete;
+  if (second === definition.initialValues?.[1]) return first!;
+  return `${first} / ${second}`;
 }
 
 function collapsePure(
@@ -324,8 +542,16 @@ function collapsePure(
       return concrete[0] === concrete[1] ? concrete[0]! : concrete.join(" ");
     case "triple":
       return concrete.join(" ");
+    case "logical-border-axis":
+      return collapseLogicalBorderAxis(concrete);
+    case "flex":
+      return collapseFlex(concrete);
     case "flex-flow":
       return concrete.join(" ");
+    case "components":
+      return concrete.join(" ");
+    case "slash-pair":
+      return collapseSlashPair(definition, concrete);
     case "text-decoration":
       return concrete.join(" ");
     case "border-all": {
@@ -338,7 +564,7 @@ function collapsePure(
       const first = sides[0]!.join(" ");
       return sides.every((side) => side.join(" ") === first) ? first : null;
     }
-    case "unsupported":
+    case "cssom":
       return null;
   }
 }
