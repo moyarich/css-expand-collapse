@@ -29,7 +29,7 @@ runtime.MonacoEnvironment = {
 
 const typeScriptDefaults = monaco.languages.typescript.typescriptDefaults;
 typeScriptDefaults.setCompilerOptions({
-  target: monaco.languages.typescript.ScriptTarget.ES2022,
+  target: monaco.languages.typescript.ScriptTarget.ES2020,
   module: monaco.languages.typescript.ModuleKind.CommonJS,
   moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
   allowNonTsExtensions: true,
