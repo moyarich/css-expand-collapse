@@ -264,9 +264,6 @@ The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such
 
 https://moyarich.github.io/css-expand-collapse/
 
-## More documentation
-
-- [Package API and examples](./packages/css-expand-collapse/README.md)
 
 ## License
 

@@ -17,14 +17,20 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "generate:registry": "node scripts/generate-registry.mjs",
     "check:registry": "node scripts/generate-registry.mjs --check",
     "build": "npm run check:registry && tsup src/index.ts --format esm,cjs --dts --clean",
     "typecheck": "npm run check:registry && tsc --noEmit",
     "test": "npm run check:registry && vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepack": "node ../../scripts/sync-package-readme.mjs && npm run build",
+    "postpack": "node ../../scripts/sync-package-readme.mjs --clean"
   },
   "dependencies": {
     "css-tree": "^3.2.1"
