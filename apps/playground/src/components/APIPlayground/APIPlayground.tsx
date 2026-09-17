@@ -49,11 +49,6 @@ export function APIPlayground() {
 
         <APIRunner key={example.id} initialSource={example.source} />
       </div>
-
-      <footer className="api-playground-footer">
-        The API playground runs TypeScript locally in your browser against the bundled
-        <code>@moyarich/css-expand-collapse</code> package.
-      </footer>
     </div>
   );
 }

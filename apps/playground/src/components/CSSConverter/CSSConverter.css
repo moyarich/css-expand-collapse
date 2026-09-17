@@ -366,23 +366,6 @@
   outline-offset: 3px;
 }
 
-/* ==========================================================================
-   Footer
-   ========================================================================== */
-
-.css-converter-footer {
-  margin-top: 14px;
-  color: #718096;
-  font-size: 0.82rem;
-  line-height: 1.55;
-}
-
-.css-converter-footer code {
-  border-radius: 5px;
-  padding: 2px 5px;
-  background: #e9eef7;
-  color: #33425c;
-}
 
 /* ==========================================================================
    Responsive

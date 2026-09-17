@@ -29,19 +29,16 @@ const CSS_WHITESPACE = new Set([0x0009, 0x000A, 0x000C, 0x000D, 0x0020]);
 
 const MODE_META: Record<Mode, {
   label: string;
-  description: string;
   inputLabel: string;
   outputLabel: string;
 }> = {
   expand: {
     label: "Expand",
-    description: "Turn compact shorthand declarations into their individual CSS properties.",
     inputLabel: "Shorthand CSS",
     outputLabel: "Longhand CSS",
   },
   collapse: {
     label: "Collapse",
-    description: "Combine compatible longhand declarations into concise CSS shorthands.",
     inputLabel: "Longhand CSS",
     outputLabel: "Shorthand CSS",
   },
@@ -392,10 +389,6 @@ export function CSSConverter() {
           </article>
         </section>
       </div>
-
-      <footer className="css-converter-footer">
-        Powered by <code>@moyarich/css-expand-collapse</code>. {meta.description}
-      </footer>
     </div>
   );
 }

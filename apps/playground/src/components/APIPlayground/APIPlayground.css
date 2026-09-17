@@ -141,8 +141,7 @@
    Sidebar content
    ========================================================================== */
 
-.api-playground .api-sidebar code,
-.api-playground-footer code {
+.api-playground .api-sidebar code {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
@@ -257,23 +256,6 @@
   text-align: center;
 }
 
-/* ==========================================================================
-   Footer
-   ========================================================================== */
-
-.api-playground-footer {
-  margin-top: 14px;
-  color: #718096;
-  font-size: 0.82rem;
-  line-height: 1.55;
-}
-
-.api-playground-footer code {
-  border-radius: 5px;
-  padding: 2px 5px;
-  background: #e9eef7;
-  color: #33425c;
-}
 
 /* ==========================================================================
    Responsive
