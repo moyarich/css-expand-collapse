@@ -1,0 +1,831 @@
+name: Refactor registry ownership
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/refactor-registry-ownership.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refactor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Refactor shorthand ownership
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path('packages/css-expand-collapse/src')
+          registry = root / 'registry'
+          shorthands = registry / 'shorthands'
+
+          (registry / 'context.ts').write_text(r'''import { lexer } from "css-tree";
+          import type { ShorthandCollapseContext, ShorthandExpandContext } from "./module.js";
+
+          export function splitTopLevel(value: string, separator: string): string[] {
+            const parts: string[] = [];
+            let current = "";
+            let quote: "'" | '"' | null = null;
+            let escaped = false;
+            let parenDepth = 0;
+            let bracketDepth = 0;
+
+            const push = () => {
+              parts.push(current.trim());
+              current = "";
+            };
+
+            for (const char of value.trim()) {
+              if (escaped) {
+                current += char;
+                escaped = false;
+                continue;
+              }
+              if (char === "\\") {
+                current += char;
+                escaped = true;
+                continue;
+              }
+              if (quote) {
+                current += char;
+                if (char === quote) quote = null;
+                continue;
+              }
+              if (char === "'" || char === '"') {
+                quote = char;
+                current += char;
+                continue;
+              }
+              if (char === "(") parenDepth += 1;
+              if (char === ")") parenDepth = Math.max(0, parenDepth - 1);
+              if (char === "[") bracketDepth += 1;
+              if (char === "]") bracketDepth = Math.max(0, bracketDepth - 1);
+
+              if (char === separator && parenDepth === 0 && bracketDepth === 0) {
+                push();
+              } else {
+                current += char;
+              }
+            }
+
+            push();
+            return parts;
+          }
+
+          export function splitTopLevelWhitespace(value: string): string[] {
+            const result: string[] = [];
+            let current = "";
+            let quote: "'" | '"' | null = null;
+            let escaped = false;
+            let parenDepth = 0;
+            let bracketDepth = 0;
+
+            const push = () => {
+              const token = current.trim();
+              if (token) result.push(token);
+              current = "";
+            };
+
+            for (const char of value.trim()) {
+              if (escaped) {
+                current += char;
+                escaped = false;
+                continue;
+              }
+              if (char === "\\") {
+                current += char;
+                escaped = true;
+                continue;
+              }
+              if (quote) {
+                current += char;
+                if (char === quote) quote = null;
+                continue;
+              }
+              if (char === "'" || char === '"') {
+                quote = char;
+                current += char;
+                continue;
+              }
+              if (char === "(") parenDepth += 1;
+              if (char === ")") parenDepth = Math.max(0, parenDepth - 1);
+              if (char === "[") bracketDepth += 1;
+              if (char === "]") bracketDepth = Math.max(0, bracketDepth - 1);
+
+              if (/\s/.test(char) && parenDepth === 0 && bracketDepth === 0) {
+                push();
+              } else {
+                current += char;
+              }
+            }
+
+            push();
+            return result;
+          }
+
+          export const splitTopLevelSlash = (value: string): string[] => splitTopLevel(value, "/");
+          export const splitTopLevelComma = (value: string): string[] => splitTopLevel(value, ",");
+
+          export function matchProperty(property: string, value: string): boolean {
+            try {
+              const result = lexer.matchProperty(property, value) as unknown as {
+                matched?: unknown;
+                error?: unknown;
+              };
+              return Boolean(result.matched) && !result.error;
+            } catch {
+              return false;
+            }
+          }
+
+          export const shorthandExpandContext: ShorthandExpandContext = {
+            matchProperty,
+            splitWhitespace: splitTopLevelWhitespace,
+            splitSlash: splitTopLevelSlash,
+          };
+
+          export const shorthandCollapseContext: ShorthandCollapseContext = {
+            matchProperty,
+          };
+          '''.replace('          ', ''))
+
+          (registry / 'collapsers.ts').write_text(r'''import type { DeclarationMap, ShorthandCollapser } from "./module.js";
+
+          const GLOBAL_VALUES = new Set(["inherit", "initial", "unset", "revert", "revert-layer"]);
+
+          function concreteValues(
+            longhands: readonly string[],
+            declarations: DeclarationMap,
+          ): string[] | null {
+            const values = longhands.map((property) => declarations[property]?.trim());
+            return values.some((value) => !value) ? null : values as string[];
+          }
+
+          function globalValue(values: readonly string[]): string | null {
+            const first = values[0];
+            return first && values.every((value) => value === first) && GLOBAL_VALUES.has(first)
+              ? first
+              : null;
+          }
+
+          export function collapseQuad(longhands: readonly string[]): ShorthandCollapser {
+            return (declarations) => {
+              const values = concreteValues(longhands, declarations);
+              if (!values || values.length !== 4) return null;
+              const global = globalValue(values);
+              if (global) return global;
+              const [top, right, bottom, left] = values;
+              if (top === right && top === bottom && top === left) return top!;
+              if (top === bottom && right === left) return `${top} ${right}`;
+              if (right === left) return `${top} ${right} ${bottom}`;
+              return values.join(" ");
+            };
+          }
+
+          export function collapsePair(longhands: readonly string[]): ShorthandCollapser {
+            return (declarations) => {
+              const values = concreteValues(longhands, declarations);
+              if (!values || values.length !== 2) return null;
+              const global = globalValue(values);
+              if (global) return global;
+              return values[0] === values[1] ? values[0]! : values.join(" ");
+            };
+          }
+
+          export function collapseTriple(longhands: readonly string[]): ShorthandCollapser {
+            return (declarations) => {
+              const values = concreteValues(longhands, declarations);
+              if (!values || values.length !== 3) return null;
+              return globalValue(values) ?? values.join(" ");
+            };
+          }
+
+          export function collapseComponents(longhands: readonly string[]): ShorthandCollapser {
+            return (declarations) => {
+              const values = concreteValues(longhands, declarations);
+              if (!values) return null;
+              return globalValue(values) ?? values.join(" ");
+            };
+          }
+
+          export function collapseSlashPair(
+            longhands: readonly [string, string],
+            initialValues: readonly [string, string],
+          ): ShorthandCollapser {
+            return (declarations) => {
+              const values = concreteValues(longhands, declarations);
+              if (!values || values.length !== 2) return null;
+              const global = globalValue(values);
+              if (global) return global;
+              const [first, second] = values;
+              return second === initialValues[1] ? first! : `${first} / ${second}`;
+            };
+          }
+
+          export function collapseLogicalBorderAxis(longhands: readonly string[]): ShorthandCollapser {
+            return (declarations) => {
+              const values = concreteValues(longhands, declarations);
+              if (!values || values.length !== 6) return null;
+              const global = globalValue(values);
+              if (global) return global;
+              const first = values.slice(0, 3);
+              const second = values.slice(3, 6);
+              if (!first.every((value, index) => value === second[index])) return null;
+              return first.join(" ");
+            };
+          }
+          '''.replace('          ', ''))
+
+          (registry / 'module.ts').write_text(r'''export type DeclarationMap = Record<string, string>;
+
+          export interface ShorthandExpandContext {
+            matchProperty(property: string, value: string): boolean;
+            splitWhitespace(value: string): string[];
+            splitSlash(value: string): string[];
+          }
+
+          export interface ShorthandCollapseContext {
+            matchProperty(property: string, value: string): boolean;
+          }
+
+          export type ShorthandExpander = (
+            value: string,
+            context: ShorthandExpandContext,
+          ) => DeclarationMap | null;
+
+          export type ShorthandCollapser = (
+            declarations: DeclarationMap,
+            context: ShorthandCollapseContext,
+          ) => string | null;
+
+          /**
+           * Common contract implemented by every shorthand property module.
+           * The CSS property name comes from the module filename.
+           */
+          export interface ShorthandModule {
+            readonly longhands: readonly string[];
+            readonly initialValues?: readonly string[];
+            readonly expand: ShorthandExpander;
+            readonly collapse: ShorthandCollapser;
+            /** False when a shorthand has cascade/reset effects beyond its registered longhands. */
+            readonly safeToDropWhenFullyShadowed?: boolean;
+          }
+
+          export type ShorthandModuleMap = Readonly<Record<string, ShorthandModule>>;
+          '''.replace('          ', ''))
+
+          (registry / 'types.ts').write_text(r'''export type {
+            DeclarationMap,
+            ShorthandCollapseContext,
+            ShorthandCollapser,
+            ShorthandExpandContext,
+            ShorthandExpander,
+            ShorthandModule,
+            ShorthandModuleMap,
+          } from "./module.js";
+          '''.replace('          ', ''))
+
+          (registry / 'index.ts').write_text(r'''import { SHORTHANDS } from "./shorthands/index.js";
+          import type { ShorthandModule, ShorthandModuleMap } from "./module.js";
+
+          export type { ShorthandModule, ShorthandModuleMap } from "./module.js";
+          export type {
+            DeclarationMap,
+            ShorthandCollapseContext,
+            ShorthandCollapser,
+            ShorthandExpandContext,
+            ShorthandExpander,
+          } from "./types.js";
+
+          const shorthandEntries = Object.entries(SHORTHANDS) as [string, ShorthandModule][];
+
+          function buildDefinitions(): ShorthandModuleMap {
+            const definitions: Record<string, ShorthandModule> = {};
+            for (const [property, module] of shorthandEntries) {
+              if (!module.longhands.length) continue;
+              definitions[property] = module;
+            }
+            return Object.freeze(definitions);
+          }
+
+          export const SHORTHAND_MODULES: ShorthandModuleMap = Object.freeze(SHORTHANDS);
+          export const SHORTHAND_PROPERTIES = Object.freeze(Object.keys(SHORTHAND_MODULES));
+          export const SHORTHAND_DEFINITIONS = buildDefinitions();
+          export const SHORTHAND_SET = new Set<string>(SHORTHAND_PROPERTIES);
+
+          export const LONGHAND_TO_SHORTHANDS = (() => {
+            const map = new Map<string, string[]>();
+            for (const [shorthand, module] of shorthandEntries) {
+              for (const longhand of module.longhands) {
+                const values = map.get(longhand) ?? [];
+                values.push(shorthand);
+                map.set(longhand, values);
+              }
+            }
+            return map;
+          })();
+          '''.replace('          ', ''))
+
+          (root / 'core.ts').write_text(r'''import {
+            LONGHAND_TO_SHORTHANDS,
+            SHORTHAND_DEFINITIONS,
+            SHORTHAND_PROPERTIES,
+            SHORTHAND_SET,
+            type DeclarationMap,
+            type ShorthandModule,
+          } from "./registry.js";
+          import {
+            shorthandCollapseContext,
+            shorthandExpandContext,
+          } from "./registry/context.js";
+
+          export type { DeclarationMap } from "./registry.js";
+
+          export interface TransformOptions {
+            /** Fill omitted registered longhands with their module-owned initial values while collapsing. */
+            fillMissingLonghands?: false | "initial";
+          }
+
+          export interface CollapseResult {
+            property: string;
+            value: string;
+            consumed: string[];
+            declarations: DeclarationMap;
+          }
+
+          const GLOBAL_VALUES = new Set(["inherit", "initial", "unset", "revert", "revert-layer"]);
+          const normalizeProperty = (property: string) => property.trim().toLowerCase();
+
+          export function isShorthand(property: string): boolean {
+            return SHORTHAND_SET.has(normalizeProperty(property));
+          }
+
+          export function isLonghand(property: string): boolean {
+            return LONGHAND_TO_SHORTHANDS.has(normalizeProperty(property));
+          }
+
+          export function getLonghands(shorthand: string): string[] {
+            return [...(SHORTHAND_DEFINITIONS[normalizeProperty(shorthand)]?.longhands ?? [])];
+          }
+
+          export function getShorthands(longhand: string): string[] {
+            return [...(LONGHAND_TO_SHORTHANDS.get(normalizeProperty(longhand)) ?? [])];
+          }
+
+          export function supportsTransform(property: string): boolean {
+            return Boolean(SHORTHAND_DEFINITIONS[normalizeProperty(property)]);
+          }
+
+          export function supportsPureTransform(property: string): boolean {
+            return supportsTransform(property);
+          }
+
+          export function expandShorthand(
+            property: string,
+            value: string,
+            _options?: TransformOptions,
+          ): DeclarationMap | null {
+            const shorthand = normalizeProperty(property);
+            const definition = SHORTHAND_DEFINITIONS[shorthand];
+            if (!definition) return null;
+
+            const normalizedValue = value.trim();
+            if (!normalizedValue) return null;
+
+            if (GLOBAL_VALUES.has(normalizedValue)) {
+              return Object.fromEntries(
+                definition.longhands.map((longhand) => [longhand, normalizedValue]),
+              );
+            }
+
+            return definition.expand(normalizedValue, shorthandExpandContext);
+          }
+
+          function fillMissingInitialLonghands(
+            definition: ShorthandModule,
+            declarations: DeclarationMap,
+            options?: TransformOptions,
+          ): DeclarationMap {
+            const completed = { ...declarations };
+            if (options?.fillMissingLonghands !== "initial" || !definition.initialValues) {
+              return completed;
+            }
+
+            definition.longhands.forEach((longhand, index) => {
+              if (completed[longhand]) return;
+              const initialValue = definition.initialValues?.[index];
+              if (initialValue) completed[longhand] = initialValue;
+            });
+            return completed;
+          }
+
+          export function collapseToShorthand(
+            shorthandProperty: string,
+            declarations: DeclarationMap,
+            options?: TransformOptions,
+          ): CollapseResult | null {
+            const property = normalizeProperty(shorthandProperty);
+            const definition = SHORTHAND_DEFINITIONS[property];
+            if (!definition) return null;
+
+            const normalized = Object.fromEntries(
+              Object.entries(declarations).map(([key, value]) => [normalizeProperty(key), value.trim()]),
+            );
+            const consumed = definition.longhands.filter((longhand) => Object.hasOwn(normalized, longhand));
+            if (!consumed.length) return null;
+
+            const completed = fillMissingInitialLonghands(definition, normalized, options);
+            const concrete = definition.longhands.map((longhand) => completed[longhand]);
+            const first = concrete[0];
+            const value = first && concrete.every((entry) => entry === first) && GLOBAL_VALUES.has(first)
+              ? first
+              : definition.collapse(completed, shorthandCollapseContext);
+            if (!value) return null;
+
+            return {
+              property,
+              value,
+              consumed,
+              declarations: Object.fromEntries(
+                definition.longhands.map((longhand) => [longhand, completed[longhand]!]),
+              ),
+            };
+          }
+
+          export function findCollapsibleShorthands(
+            declarations: DeclarationMap,
+            options?: TransformOptions,
+          ): CollapseResult[] {
+            return Object.entries(SHORTHAND_DEFINITIONS)
+              .sort(([, a], [, b]) => b.longhands.length - a.longhands.length)
+              .map(([shorthand]) => collapseToShorthand(shorthand, declarations, options))
+              .filter((result): result is CollapseResult => Boolean(result));
+          }
+
+          export function collapseLonghands(
+            declarations: DeclarationMap,
+            options?: TransformOptions,
+          ): DeclarationMap {
+            const output: DeclarationMap = Object.fromEntries(
+              Object.entries(declarations).map(([property, value]) => [normalizeProperty(property), value]),
+            );
+            const consumed = new Set<string>();
+
+            for (const result of findCollapsibleShorthands(output, options)) {
+              if (result.consumed.some((property) => consumed.has(property))) continue;
+              if (!result.consumed.every((property) => Object.hasOwn(output, property))) continue;
+              for (const property of result.consumed) {
+                delete output[property];
+                consumed.add(property);
+              }
+              output[result.property] = result.value;
+            }
+            return output;
+          }
+
+          export { SHORTHAND_PROPERTIES };
+          '''.replace('          ', ''))
+
+          # expanders now consume shared context splitting instead of owning parser helpers.
+          expanders = (registry / 'expanders.ts').read_text()
+          marker = 'export function expandOrderedPair'
+          if marker not in expanders:
+            raise SystemExit('expanders marker not found')
+          expanders = '''import { splitTopLevelComma } from "./context.js";\nimport type {\n  DeclarationMap,\n  ShorthandExpander,\n} from "./types.js";\n\n''' + expanders[expanders.index(marker):]
+          (registry / 'expanders.ts').write_text(expanders)
+
+          # Property-specific modules own their inverse semantics.
+          (shorthands / 'all.ts').write_text('''import type { ShorthandModule } from "../module.js";\n\nexport default {\n  longhands: [],\n  expand: () => null,\n  collapse: () => null,\n} satisfies ShorthandModule;\n''')
+
+          (shorthands / 'flex.ts').write_text(r'''import type { ShorthandCollapser, ShorthandExpander, ShorthandModule } from "../types.js";
+
+          const longhands = ["flex-grow", "flex-shrink", "flex-basis"] as const;
+          const initialValues = ["0", "1", "auto"] as const;
+
+          const expand: ShorthandExpander = (value, context) => {
+            if (value === "none") return { "flex-grow": "0", "flex-shrink": "0", "flex-basis": "auto" };
+            if (value === "auto") return { "flex-grow": "1", "flex-shrink": "1", "flex-basis": "auto" };
+
+            const tokens = context.splitWhitespace(value);
+            if (tokens.length < 1 || tokens.length > 3) return null;
+            const isNumber = (token: string) => context.matchProperty("flex-grow", token);
+            const isBasis = (token: string) => context.matchProperty("flex-basis", token);
+
+            if (tokens.length === 1) {
+              const first = tokens[0]!;
+              if (isNumber(first)) return { "flex-grow": first, "flex-shrink": "1", "flex-basis": "0%" };
+              if (isBasis(first)) return { "flex-grow": "1", "flex-shrink": "1", "flex-basis": first };
+              return null;
+            }
+
+            const [first, second, third] = tokens;
+            if (!isNumber(first!)) return null;
+            if (tokens.length === 2) {
+              if (isNumber(second!)) return { "flex-grow": first!, "flex-shrink": second!, "flex-basis": "0%" };
+              if (isBasis(second!)) return { "flex-grow": first!, "flex-shrink": "1", "flex-basis": second! };
+              return null;
+            }
+            if (!isNumber(second!) || !isBasis(third!)) return null;
+            return { "flex-grow": first!, "flex-shrink": second!, "flex-basis": third! };
+          };
+
+          const collapse: ShorthandCollapser = (declarations, context) => {
+            const grow = declarations["flex-grow"]?.trim();
+            const shrink = declarations["flex-shrink"]?.trim();
+            const basis = declarations["flex-basis"]?.trim();
+            if (!grow || !shrink || !basis) return null;
+            if (grow === "0" && shrink === "0" && basis === "auto") return "none";
+            if (grow === "1" && shrink === "1" && basis === "auto") return "auto";
+            const candidate = `${grow} ${shrink} ${basis}`;
+            return context.matchProperty("flex", candidate) ? candidate : null;
+          };
+
+          export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;
+          '''.replace('          ', ''))
+
+          (shorthands / 'text-decoration.ts').write_text(r'''import type { DeclarationMap, ShorthandCollapser, ShorthandExpander, ShorthandModule } from "../types.js";
+
+          const longhands = [
+            "text-decoration-line",
+            "text-decoration-style",
+            "text-decoration-color",
+            "text-decoration-thickness",
+          ] as const;
+          const initialValues = ["none", "solid", "currentcolor", "auto"] as const;
+
+          const expand: ShorthandExpander = (value, context) => {
+            const tokens = context.splitWhitespace(value);
+            if (!tokens.length) return null;
+            const result: DeclarationMap = {
+              "text-decoration-line": "none",
+              "text-decoration-style": "solid",
+              "text-decoration-color": "currentcolor",
+              "text-decoration-thickness": "auto",
+            };
+            const lineTokens: string[] = [];
+            const assigned = new Set<string>();
+            for (const token of tokens) {
+              if (context.matchProperty("text-decoration-line", token)) {
+                lineTokens.push(token);
+                continue;
+              }
+              const candidates = longhands
+                .filter((property) => property !== "text-decoration-line" && !assigned.has(property))
+                .filter((property) => context.matchProperty(property, token));
+              if (candidates.length !== 1) return null;
+              result[candidates[0]!] = token;
+              assigned.add(candidates[0]!);
+            }
+            if (lineTokens.length) {
+              const joined = lineTokens.join(" ");
+              if (!context.matchProperty("text-decoration-line", joined)) return null;
+              result["text-decoration-line"] = joined;
+            }
+            return result;
+          };
+
+          const collapse: ShorthandCollapser = (declarations, context) => {
+            const line = declarations["text-decoration-line"]?.trim();
+            const style = declarations["text-decoration-style"]?.trim();
+            const color = declarations["text-decoration-color"]?.trim();
+            const thickness = declarations["text-decoration-thickness"]?.trim();
+            if (!line || !style || !color || !thickness) return null;
+            const parts = [line];
+            if (style !== "solid") parts.push(style);
+            if (color !== "currentcolor") parts.push(color);
+            if (thickness !== "auto") parts.push(thickness);
+            const candidate = parts.join(" ");
+            return context.matchProperty("text-decoration", candidate) ? candidate : null;
+          };
+
+          export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;
+          '''.replace('          ', ''))
+
+          (shorthands / 'border.ts').write_text(r'''import { expandTriple } from "../expanders.js";
+          import type { DeclarationMap, ShorthandCollapser, ShorthandExpander, ShorthandModule } from "../types.js";
+
+          const longhands = [
+            "border-top-width", "border-top-style", "border-top-color",
+            "border-right-width", "border-right-style", "border-right-color",
+            "border-bottom-width", "border-bottom-style", "border-bottom-color",
+            "border-left-width", "border-left-style", "border-left-color",
+          ] as const;
+          const expandTop = expandTriple(longhands.slice(0, 3));
+
+          const expand: ShorthandExpander = (value, context) => {
+            const top = expandTop(value, context);
+            if (!top) return null;
+            const result: DeclarationMap = {};
+            for (const side of ["top", "right", "bottom", "left"] as const) {
+              result[`border-${side}-width`] = top["border-top-width"]!;
+              result[`border-${side}-style`] = top["border-top-style"]!;
+              result[`border-${side}-color`] = top["border-top-color"]!;
+            }
+            return result;
+          };
+
+          const collapse: ShorthandCollapser = (declarations, context) => {
+            const sides = ["top", "right", "bottom", "left"].map((side) => [
+              declarations[`border-${side}-width`]?.trim(),
+              declarations[`border-${side}-style`]?.trim(),
+              declarations[`border-${side}-color`]?.trim(),
+            ]);
+            if (sides.some((side) => side.some((value) => !value))) return null;
+            const first = sides[0]!.join(" ");
+            if (!sides.every((side) => side.join(" ") === first)) return null;
+            return context.matchProperty("border", first) ? first : null;
+          };
+
+          export default {
+            longhands,
+            expand,
+            collapse,
+            safeToDropWhenFullyShadowed: false,
+          } satisfies ShorthandModule;
+          '''.replace('          ', ''))
+
+          factories = {
+            'quad': ('collapseQuad', 'collapseQuad(longhands)'),
+            'pair': ('collapsePair', 'collapsePair(longhands)'),
+            'triple': ('collapseTriple', 'collapseTriple(longhands)'),
+            'logical-border-axis': ('collapseLogicalBorderAxis', 'collapseLogicalBorderAxis(longhands)'),
+            'flex-flow': ('collapseComponents', 'collapseComponents(longhands)'),
+            'components': ('collapseComponents', 'collapseComponents(longhands)'),
+            'slash-pair': ('collapseSlashPair', 'collapseSlashPair(longhands, initialValues)'),
+          }
+          specials = {'all.ts', 'flex.ts', 'text-decoration.ts', 'border.ts', 'index.ts'}
+
+          for path in sorted(shorthands.glob('*.ts')):
+            if path.name in specials:
+              continue
+            text = path.read_text()
+            match = re.search(r'strategy:\s*"([^"]+)"', text)
+            if not match:
+              # Modules already rewritten without strategy must still satisfy the contract.
+              if 'collapse' not in text:
+                raise SystemExit(f'{path.name}: missing collapse and strategy')
+              continue
+            strategy = match.group(1)
+
+            if strategy == 'csstree':
+              if 'collapse' not in text:
+                raise SystemExit(f'{path.name}: csstree module has no collapse')
+              if 'safeToDropWhenFullyShadowed' not in text:
+                text = text.replace('  longhands,\n', '  longhands,\n  safeToDropWhenFullyShadowed: false,\n', 1)
+            elif strategy in factories:
+              import_name, expression = factories[strategy]
+              text = f'import {{ {import_name} }} from "../collapsers.js";\n' + text
+              export_pos = text.find('export default')
+              if export_pos < 0:
+                raise SystemExit(f'{path.name}: export default not found')
+              text = text[:export_pos] + f'const collapse = {expression};\n\n' + text[export_pos:]
+              # Add the callback to either inline or multiline module object.
+              if re.search(r'export default \{[^\n]*\}', text):
+                text = re.sub(r'(export default \{[^\n]*?)(\s*\} satisfies ShorthandModule;)',
+                              lambda m: m.group(1).rstrip().rstrip(',') + ', collapse' + m.group(2), text, count=1)
+              else:
+                text = text.replace('\n} satisfies ShorthandModule;', '\n  collapse,\n} satisfies ShorthandModule;', 1)
+            else:
+              raise SystemExit(f'{path.name}: unsupported strategy {strategy}')
+
+            text = re.sub(r'(?m)^\s*strategy:\s*"[^"]+",\s*\n', '', text)
+            text = re.sub(r'strategy:\s*"[^"]+",\s*', '', text)
+            path.write_text(text)
+
+          # Move comma splitting imports to context.
+          for path in shorthands.glob('*.ts'):
+            text = path.read_text()
+            text = text.replace('import { splitTopLevelComma } from "../expanders.js";',
+                                'import { splitTopLevelComma } from "../context.js";')
+            path.write_text(text)
+
+          # CSS cascade logic consumes module capability metadata, never strategy names.
+          css_path = root / 'css.ts'
+          css = css_path.read_text()
+          css = re.sub(
+            r'const redundantGenericShorthand =\s*\n\s*definition\.strategy !== "csstree" && !changesEffectiveValue;',
+            'const redundantGenericShorthand =\n          definition.safeToDropWhenFullyShadowed !== false && !changesEffectiveValue;',
+            css,
+          )
+          css = css.replace('return definition.strategy !== "csstree" && definition.strategy !== "border-all";',
+                            'return definition.safeToDropWhenFullyShadowed !== false;')
+          css_path.write_text(css)
+
+          # Public barrel exports the parser helper from its new home and drops strategy API.
+          index_path = root / 'index.ts'
+          index = index_path.read_text()
+          index = index.replace('  getShorthandStrategy,\n', '')
+          index = index.replace('  splitTopLevelWhitespace,\n', '')
+          index += '\nexport { splitTopLevelWhitespace } from "./registry/context.js";\n'
+          index_path.write_text(index)
+
+          # Registry contract tests now enforce property-owned collapse and absence of strategy dispatch.
+          test_path = Path('packages/css-expand-collapse/tests/registry-modules.test.ts')
+          test_path.write_text(r'''import { describe, expect, it } from "vitest";
+          import {
+            SHORTHAND_PROPERTIES,
+            expandShorthand,
+            isShorthand,
+            supportsTransform,
+          } from "../src/index.js";
+          import { SHORTHAND_MODULES } from "../src/registry.js";
+
+          describe("per-shorthand registry", () => {
+            it("derives a unique property list from shorthand module filenames", () => {
+              expect(new Set(SHORTHAND_PROPERTIES).size).toBe(SHORTHAND_PROPERTIES.length);
+              expect(SHORTHAND_PROPERTIES).toContain("margin");
+              expect(SHORTHAND_PROPERTIES).toContain("background");
+              expect(SHORTHAND_PROPERTIES).toContain("all");
+            });
+
+            it("requires every shorthand file to own expand and collapse behavior", () => {
+              for (const module of Object.values(SHORTHAND_MODULES)) {
+                expect(Array.isArray(module.longhands)).toBe(true);
+                expect(typeof module.expand).toBe("function");
+                expect(typeof module.collapse).toBe("function");
+                expect("strategy" in module).toBe(false);
+              }
+            });
+
+            it("keeps all recognized but non-transformable", () => {
+              expect(SHORTHAND_MODULES.all.longhands).toEqual([]);
+              expect(typeof SHORTHAND_MODULES.all.expand).toBe("function");
+              expect(typeof SHORTHAND_MODULES.all.collapse).toBe("function");
+              expect(isShorthand("all")).toBe(true);
+              expect(supportsTransform("all")).toBe(false);
+              expect(expandShorthand("all", "initial")).toBeNull();
+            });
+          });
+          '''.replace('          ', ''))
+
+          strategy_test = Path('packages/css-expand-collapse/tests/strategy-support.test.ts')
+          module_test = Path('packages/css-expand-collapse/tests/module-support.test.ts')
+          content = strategy_test.read_text()
+          content = content.replace('  getShorthandStrategy,\n', '')
+          content = content.replace('describe("supported shorthand strategies",', 'describe("module-owned shorthand transforms",')
+          content = re.sub(r'\s*expect\(getShorthandStrategy\([^\n]+\);', '', content)
+          module_test.write_text(content)
+          strategy_test.unlink()
+
+          # Remove strategy API/docs references from consumer READMEs.
+          for doc in [Path('README.md'), Path('packages/css-expand-collapse/README.md')]:
+            text = doc.read_text()
+            text = text.replace('  getShorthandStrategy,\n', '')
+            text = re.sub(r'\ngetShorthandStrategy\("background"\);\n// "csstree"\n', '\n', text)
+            text = text.replace('getShorthandStrategy(property)\n', '')
+            doc.write_text(text)
+
+          # Developer docs: describe callback ownership rather than strategy dispatch.
+          for doc in [Path('docs/README-dev.md'), registry / 'README.md']:
+            text = doc.read_text()
+            text = re.sub(r'\s*readonly strategy: ShorthandStrategy \| null;\n', '', text)
+            text = text.replace('  readonly collapse?: ShorthandCollapser;', '  readonly collapse: ShorthandCollapser;')
+            text = text.replace('strategy: "quad",\n', '')
+            text = text.replace('strategy: "csstree",\n', '')
+            text = re.sub(r'`strategy: null`[^\n]*\n', '`all` is recognized but non-transformable because it has no finite registered longhand set.\n', text)
+            text = text.replace('Strategy', 'Implementation')
+            doc.write_text(text)
+
+          # No executable strategy fields or old strategy API may remain in package source/tests.
+          offenders = []
+          for base in [root, Path('packages/css-expand-collapse/tests')]:
+            for path in base.rglob('*.ts'):
+              text = path.read_text()
+              if 'getShorthandStrategy' in text or re.search(r'\bstrategy\s*:', text):
+                offenders.append(str(path))
+          if offenders:
+            raise SystemExit('strategy remnants: ' + ', '.join(offenders))
+          PY
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate registry
+        run: npm run generate:registry
+
+      - name: Test
+        run: npm test
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit refactor
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor: move shorthand behavior into registry modules"
+          git push
