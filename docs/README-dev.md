@@ -21,7 +21,7 @@ The two workspaces are:
 - `packages/css-expand-collapse` — publishable `@moyarich/css-expand-collapse` package.
 - `apps/playground` — React + Vite playground for exercising the package against real CSS.
 
-The playground consumes the package source directly during development, so the library does not need to be built before starting the playground.
+The playground consumes package source directly during development, so the library does not need to be built before starting it.
 
 ## Repository setup
 
@@ -29,8 +29,6 @@ The playground consumes the package source directly during development, so the l
 npm install
 npm run dev
 ```
-
-`npm run dev` starts the playground workspace.
 
 ## Workspace commands
 
@@ -51,17 +49,15 @@ The package also exposes `check:registry`; package `test`, `typecheck`, and `bui
 
 The playground lives in `apps/playground` and is deployed to GitHub Pages by GitHub Actions.
 
-Production URL:
-
 ```text
 https://moyarich.github.io/css-expand-collapse/
 ```
 
-The Vite production base path is `/css-expand-collapse/` when the GitHub Pages build is running.
+The Vite production base path is `/css-expand-collapse/` for the Pages build.
 
 ## Runtime architecture
 
-Transformation logic must be runtime-neutral. Do not use `document`, detached elements, or mutable `CSSStyleDeclaration` objects to parse a shorthand. The same shorthand implementation should run in:
+Transformation logic must be runtime-neutral. Do not use `document`, detached elements, or mutable `CSSStyleDeclaration` objects to parse or serialize a shorthand. The same implementation must work in:
 
 ```text
 Node.js
@@ -72,9 +68,27 @@ workers
 CLI processes
 ```
 
-CSSTree provides CSS parsing and grammar matching. The package provides shorthand-specific semantics such as omitted-value defaults, component assignment, slash groups, comma-separated layers, and safe serialization.
+CSSTree provides CSS grammar matching. The package owns shorthand-specific semantics such as omitted-value defaults, component assignment, slash groups, comma-separated layers, and safe serialization.
 
-`core.ts` owns orchestration and shared CSSTree grammar matching. Property-specific behavior belongs to the shorthand module.
+The source layout is intentionally divided by responsibility:
+
+```text
+src/
+├── core.ts                 # public transformation orchestration
+├── css.ts                  # stylesheet/cascade orchestration
+└── registry/
+    ├── index.ts            # lookup tables derived from modules
+    ├── module.ts           # common shorthand contract
+    ├── context.ts          # CSSTree matching + value splitting
+    ├── expanders.ts        # reusable expand factories
+    ├── collapsers.ts       # reusable collapse factories
+    ├── helpers.ts          # longhand-name helpers
+    └── shorthands/         # one implementation per shorthand
+```
+
+`core.ts` does not contain property-family parsing or collapse strategy switches. It normalizes input, resolves the module, handles shared global-value/initial-fill behavior, and delegates to that module.
+
+`css.ts` owns stylesheet-level behavior: source order, `!important`, declaration consumption, overlapping shorthands, AST replacement, and cascade-safe removal. Those concerns do not belong in individual shorthand files.
 
 ## Shorthand module architecture
 
@@ -84,7 +98,7 @@ Each CSS shorthand lives in its own file under:
 packages/css-expand-collapse/src/registry/shorthands/
 ```
 
-The **filename is the CSS property name**. For example:
+The **filename is the CSS property name**:
 
 ```text
 margin.ts               -> margin
@@ -93,159 +107,132 @@ background.ts           -> background
 -webkit-text-stroke.ts  -> -webkit-text-stroke
 ```
 
-Every shorthand module must satisfy the same `ShorthandModule` interface:
+Every module satisfies the same contract:
 
 ```ts
 export interface ShorthandModule {
-  readonly longhands: readonly string[];  readonly initialValues?: readonly string[];
+  readonly longhands: readonly string[];
+  readonly initialValues?: readonly string[];
   readonly expand: ShorthandExpander;
   readonly collapse: ShorthandCollapser;
+  readonly safeToDropWhenFullyShadowed?: boolean;
 }
 ```
 
 The property name is intentionally not repeated inside the object. The generated registry derives it from the filename.
 
-`all` is recognized but non-transformable because it has no finite registered longhand set.
+There is no executable `strategy` field and no central strategy switch. A shorthand module owns both transformation directions.
 
-`TransformableShorthandModule` is the narrower contract for modules with a real strategy:
+`all.ts` still satisfies the interface, but its longhand set is empty, so it is recognized by `isShorthand()` while remaining non-transformable.
+
+## Shared transformation context
+
+`registry/context.ts` owns CSSTree matching and top-level value splitting.
 
 ```ts
-export type TransformableShorthandModule = ShorthandModule & {
-  readonly strategy: ShorthandImplementation;
+export const shorthandExpandContext = {
+  matchProperty,
+  splitWhitespace,
+  splitSlash,
+};
+
+export const shorthandCollapseContext = {
+  matchProperty,
 };
 ```
 
+`matchProperty()` delegates to CSSTree's lexer and should be used as the grammar authority instead of maintaining duplicate keyword tables where possible.
 
-## Expansion belongs to the shorthand module
+Top-level splitting preserves commas, slashes, whitespace, strings, brackets, and functions correctly rather than using naive `String.split()` calls.
 
-Each shorthand owns its own `expand` function. `core.ts` does not contain a switch that knows how every shorthand expands. It builds the shared expansion context and delegates to the module:
+## Simple shorthand implementations
 
-```ts
-definition.expand(value, context)
-```
-
-The shared context is intentionally runtime-neutral:
-
-```ts
-export interface ShorthandExpandContext {
-  matchProperty(property: string, value: string): boolean;
-  splitWhitespace(value: string): string[];
-  splitSlash(value: string): string[];
-}
-```
-
-`matchProperty()` delegates to CSSTree's lexer. It should be used as the grammar authority instead of handwritten keyword tables where possible.
-
-Simple grammars should compose shared expanders from `registry/expanders.ts`:
+Simple grammars should compose reusable helpers from `registry/expanders.ts` and `registry/collapsers.ts`.
 
 ```ts
 // registry/shorthands/margin.ts
+import { collapseQuad } from "../collapsers.js";
 import { expandQuad } from "../expanders.js";
 import { quad } from "../helpers.js";
-import type { ShorthandModule } from "../module.js";
+import type { ShorthandModule } from "../types.js";
 
 const longhands = quad("margin");
+const expand = expandQuad(longhands);
+const collapse = collapseQuad(longhands);
 
 export default {
   longhands,
-    expand: expandQuad(longhands),
+  expand,
+  collapse,
 } satisfies ShorthandModule;
 ```
 
-Property-specific grammars keep their semantics in the property file. For example, a multi-layer or slash-based property can combine top-level splitting with CSSTree validation:
+Reusable collapse factories currently include:
+
+```text
+collapseQuad
+collapsePair
+collapseTriple
+collapseComponents
+collapseSlashPair
+collapseLogicalBorderAxis
+```
+
+The inverse expansion factories live in `expanders.ts`.
+
+## Property-specific implementations
+
+When a shorthand has special ordering, ambiguity, reset behavior, layer alignment, or serialization rules, keep those semantics inside its own module.
+
+For example, `flex.ts` owns `none` and `auto` collapse semantics; `text-decoration.ts` owns omission of its default style/color/thickness components; and `border.ts` owns the requirement that all four side triples agree before producing `border`.
+
+A property-specific module should validate the shorthand candidate with CSSTree before returning it:
 
 ```ts
-import { splitTopLevelComma } from "../expanders.js";
-import type { ShorthandExpander, ShorthandModule } from "../module.js";
-
-const longhands = ["example-a", "example-b"] as const;
-
-const expand: ShorthandExpander = (value, context) => {
-  const layers = splitTopLevelComma(value);
-  if (!layers.length) return null;
-
-  // Property-specific defaulting and assignment belongs here.
-  // Validate components with context.matchProperty(...).
-  return {
-    "example-a": layers.join(", "),
-    "example-b": "initial-value",
-  };
+const collapse: ShorthandCollapser = (declarations, context) => {
+  const candidate = buildCandidate(declarations);
+  return context.matchProperty("example", candidate)
+    ? candidate
+    : null;
 };
-
-export default {
-  longhands,
-    expand,
-} satisfies ShorthandModule;
 ```
 
-## Collapse belongs to the module when the grammar is property-specific
+Collapse should be conservative. If an equivalent shorthand cannot be reconstructed without guessing, return `null` and leave the longhands unchanged.
 
-Generic strategies such as `quad`, `pair`, `triple`, `flex`, and `slash-pair` have shared collapse behavior in `core.ts`.
+## Cascade safety metadata
 
-A `csstree` module should provide `collapse()` when reconstruction needs property-specific ordering, slash syntax, layer alignment, or reset checks:
+`safeToDropWhenFullyShadowed` is metadata only; it never chooses expansion/collapse code.
 
-```ts
-export default {
-  longhands,
-    expand,
-  collapse(declarations, context) {
-    const candidate = buildCandidate(declarations);
-    return context.matchProperty("example", candidate)
-      ? candidate
-      : null;
-  },
-} satisfies ShorthandModule;
-```
+Most simple modules can omit it. Set it to `false` when the shorthand has reset or cascade effects beyond the registered longhands. `css.ts` uses this to decide whether an earlier shorthand can be removed after a complete later longhand set is collapsed.
 
-Collapse should be conservative. If the module cannot reconstruct an equivalent shorthand without guessing, return `null` and leave the longhands unchanged.
+For example, complex reset shorthands such as `background` remain conservative, while a shorthand whose registered longhands completely describe its effect can be safely replaced.
 
-## Complex shorthand rules
+## Adding a shorthand
 
-For complex shorthands:
+1. Add `packages/css-expand-collapse/src/registry/shorthands/<property>.ts`.
+2. Declare the complete registered longhand list.
+3. Add `initialValues` when partial computed/export collapse should be able to fill omitted values.
+4. Implement `expand` and `collapse` in that module.
+5. Reuse factories from `expanders.ts` and `collapsers.ts` when appropriate.
+6. Keep property-specific parsing and serialization in the module itself.
+7. Use `context.matchProperty(...)` to validate CSS grammar.
+8. Set `safeToDropWhenFullyShadowed: false` only when the registered longhands are not the complete cascade/reset effect.
+9. Run `npm run generate:registry`.
+10. Add expansion, collapse, and round-trip tests.
 
-- validate the entire shorthand with CSSTree when useful;
-- split only at the top level so commas/slashes inside functions are preserved;
-- explicitly encode CSS initial/reset values;
-- preserve layer counts across comma-separated longhands;
-- keep property-specific precedence and ambiguity rules in the module;
-- return `null` for grammar forms that cannot be deterministically represented;
-- add round-trip tests when collapse is supported.
-
-Examples of `csstree` modules include `background`, `mask`, `animation`, `transition`, `font`, `grid`, `border-image`, `offset`, and timeline shorthands.
-
-System-font keywords such as `font: menu` are user-agent dependent and intentionally cannot be decomposed deterministically by a runtime-neutral library. Explicit font shorthands are supported.
-
-## Non-transformable shorthand modules
-
-`all.ts` still follows the common interface even though it is intentionally non-transformable:
-
-```ts
-import type { ShorthandModule } from "../module.js";
-
-export default {
-  longhands: [],
-  strategy: null,
-  expand: () => null,
-} satisfies ShorthandModule;
-```
+Adding a new shorthand should not require editing `core.ts`.
 
 ## Generated registry
 
-Do not manually edit:
+`packages/css-expand-collapse/src/registry/shorthands/index.ts` is generated by:
 
-```text
-packages/css-expand-collapse/src/registry/shorthands/index.ts
+```bash
+npm run generate:registry
 ```
 
-It is generated from shorthand filenames and type-checked as:
+Do not edit that file by hand. The generated map is typed as `Record<string, ShorthandModule>`, so a module that does not satisfy the common contract fails typecheck.
 
-```ts
-Readonly<Record<string, ShorthandModule>>
-```
-
-A newly discovered shorthand file with the wrong export shape therefore fails TypeScript validation automatically.
-
-The package derives these structures from the generated registry:
+The registry derives:
 
 ```text
 SHORTHAND_MODULES
@@ -255,43 +242,28 @@ SHORTHAND_SET
 LONGHAND_TO_SHORTHANDS
 ```
 
-There is no separate hand-maintained shorthand-property list.
+`SHORTHAND_DEFINITIONS` contains modules with non-empty longhand sets. This is how transformability is determined; there is no strategy discriminator.
 
-## Adding a new CSS shorthand
+## Testing expectations
 
-1. Create `packages/css-expand-collapse/src/registry/shorthands/<property>.ts`.
-2. Default-export an object that `satisfies ShorthandModule`.
-3. Define the constituent `longhands`.
-4. Choose a generic collapse `strategy`, or use `"csstree"` for property-specific grammar. Use `null` only for a recognized non-transformable shorthand.
-5. Add `initialValues` when omitted constituents or `fillMissingLonghands: "initial"` require them.
-6. Implement the module's runtime-neutral `expand` function. Reuse `expanders.ts` for common grammars and use CSSTree matching for grammar validation.
-7. Implement `collapse()` when a generic collapse strategy cannot safely reconstruct the shorthand.
-8. Regenerate the registry:
+For each shorthand, add tests that cover the forms its grammar supports. When both directions are supported, include round-trip checks where practical.
 
-```bash
-npm run generate:registry
-```
+Important areas include:
 
-9. Add expansion, collapse, and round-trip regression tests as appropriate.
-10. Run validation:
+- omitted/default shorthand components;
+- one-, two-, three-, and four-value families;
+- slash-separated grammar;
+- comma-separated layers;
+- global values such as `inherit` and `initial`;
+- `!important` and source-order behavior at the stylesheet layer;
+- computed/export CSS containing a shorthand followed by its resolved longhands;
+- values containing functions, strings, commas, or slashes;
+- `fillMissingLonghands: "initial"` behavior.
+
+Before publishing or merging a structural change, run:
 
 ```bash
 npm test
 npm run typecheck
 npm run build
 ```
-
-The registry freshness check is already included in package `test`, `typecheck`, and `build`, so CI catches a shorthand file that was added or removed without regenerating the barrel.
-
-## Validation before publishing
-
-Before publishing a package version, run:
-
-```bash
-npm test
-npm run typecheck
-npm run build:lib
-npm run pack:lib
-```
-
-`npm run pack:lib` performs an npm dry run so the packaged files can be inspected before publishing.
