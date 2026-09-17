@@ -229,7 +229,7 @@ export function CSSConverter() {
   };
 
   return (
-    <>
+    <div className="css-converter">
       <div className="playground-layout">
         <aside className="settings-sidebar" aria-label="Conversion settings">
           <section className="sidebar-section example-section">
@@ -393,9 +393,9 @@ export function CSSConverter() {
         </section>
       </div>
 
-      <footer className="footer-note">
+      <footer className="css-converter-footer">
         Powered by <code>@moyarich/css-expand-collapse</code>. {meta.description}
       </footer>
-    </>
+    </div>
   );
 }

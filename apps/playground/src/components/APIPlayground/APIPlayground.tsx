@@ -1,3 +1,4 @@
+import "./APIPlayground.css";
 import { useMemo, useState } from "react";
 import { DEFAULT_FUNCTION_EXAMPLE, FUNCTION_EXAMPLES } from "../../examples/APIPlayground";
 import { APIRunner } from "./APIRunner";
@@ -10,7 +11,8 @@ export function APIPlayground() {
   );
 
   return (
-    <div className="api-playground-layout">
+    <div className="api-playground">
+      <div className="api-playground-layout">
       <aside className="settings-sidebar api-sidebar" aria-label="API playground examples">
         <section className="sidebar-section example-section">
           <span className="sidebar-section-label">Load example</span>
@@ -45,7 +47,13 @@ export function APIPlayground() {
         </section>
       </aside>
 
-      <APIRunner key={example.id} initialSource={example.source} />
+        <APIRunner key={example.id} initialSource={example.source} />
+      </div>
+
+      <footer className="api-playground-footer">
+        The API playground runs TypeScript locally in your browser against the bundled
+        <code>@moyarich/css-expand-collapse</code> package.
+      </footer>
     </div>
   );
 }

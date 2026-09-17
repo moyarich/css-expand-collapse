@@ -52,13 +52,6 @@ export function App() {
       </nav>
 
       {isApiView ? <APIPlayground /> : <CSSConverter />}
-
-      {isApiView && (
-        <footer className="footer-note">
-          The API playground runs TypeScript locally in your browser against the bundled
-          <code>@moyarich/css-expand-collapse</code> package.
-        </footer>
-      )}
     </main>
   );
 }

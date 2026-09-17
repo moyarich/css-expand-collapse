@@ -1,0 +1,336 @@
+/* ==========================================================================
+   Component shell
+   ========================================================================== */
+
+.api-playground {
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Sidebar & panels
+   ========================================================================== */
+
+.api-playground .settings-sidebar,
+.api-playground .panel {
+  border: 1px solid #dde4ef;
+  background: #fff;
+  box-shadow: 0 10px 28px rgb(45 60 85 / 0.05);
+}
+
+.api-playground .settings-sidebar {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.api-playground .sidebar-section {
+  padding: 18px 16px;
+  border-bottom: 1px solid #e8edf4;
+}
+
+.api-playground .sidebar-section:last-child {
+  border-bottom: 0;
+}
+
+.api-playground .sidebar-section-label {
+  display: block;
+  margin: 0 0 8px;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.api-playground .example-section {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  background: #fbfcff;
+}
+
+.api-playground .example-select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d6deeb;
+  border-radius: 10px;
+  padding: 10px 11px;
+  background: #fff;
+  color: #29374f;
+  font: inherit;
+  font-size: 0.84rem;
+}
+
+.api-playground .panel {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.api-playground .panel-header {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #e5eaf2;
+  padding: 13px 16px;
+}
+
+.api-playground .panel-header h2 {
+  margin: 0 0 3px;
+  color: #202c40;
+  font-size: 1rem;
+  font-weight: 820;
+}
+
+.api-playground .panel-header p {
+  margin: 0;
+  color: #7b8799;
+  font-size: 0.75rem;
+}
+
+.api-playground .result-actions {
+  display: flex;
+  align-items: center;
+}
+
+.api-playground .editor-surface {
+  width: 100%;
+  height: 488px;
+  min-height: 488px;
+  flex: 1;
+  overflow: hidden;
+  background: #1e1e1e;
+}
+
+.api-playground .editor-loading {
+  display: grid;
+  width: 100%;
+  min-height: 488px;
+  flex: 1;
+  place-items: center;
+  margin: 0;
+  padding: 20px;
+  background: #111722;
+  color: #8492a8;
+  text-align: center;
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.api-playground-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 16px;
+}
+
+.api-playground .api-workspace {
+  display: grid;
+  min-width: 0;
+  min-height: 560px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.65fr);
+  gap: 18px;
+}
+
+/* ==========================================================================
+   Sidebar content
+   ========================================================================== */
+
+.api-playground .api-sidebar code,
+.api-playground-footer code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.api-playground .sidebar-help {
+  margin: 0;
+  color: #65748a;
+  font-size: 0.77rem;
+  line-height: 1.55;
+}
+
+.api-playground .sidebar-help code {
+  overflow-wrap: anywhere;
+  border-radius: 4px;
+  padding: 1px 4px;
+  background: #eef2f7;
+  color: #33425c;
+  font-size: 0.72rem;
+}
+
+.api-playground .sidebar-help kbd {
+  display: inline-block;
+  margin: 2px 1px;
+  border: 1px solid #cad3e0;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 1px 5px;
+  background: #fff;
+  color: #33425c;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Actions
+   ========================================================================== */
+
+.api-playground .run-button,
+.api-playground .console-clear-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.api-playground .run-button {
+  min-width: 78px;
+  border: 1px solid #3346b4;
+  background: #3346b4;
+  color: #fff;
+  box-shadow: 0 4px 12px rgb(51 70 180 / 0.2);
+}
+
+.api-playground .run-button:hover {
+  background: #293aa2;
+}
+
+.api-playground .console-clear-button {
+  border: 1px solid #d6deeb;
+  background: #fff;
+  color: #42526b;
+}
+
+.api-playground .console-clear-button:hover:not(:disabled) {
+  border-color: #aebbd0;
+  background: #f8fafc;
+}
+
+.api-playground .console-clear-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ==========================================================================
+   Console
+   ========================================================================== */
+
+.api-playground .console-surface {
+  min-height: 488px;
+  flex: 1;
+  overflow: auto;
+  padding: 18px;
+  background: #0d1117;
+  color: #d9e2f1;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.api-playground .console-surface pre {
+  margin: 0;
+  font: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.api-playground .console-error {
+  color: #ffb4b4;
+}
+
+.api-playground .console-empty {
+  display: grid;
+  min-height: 100%;
+  place-items: center;
+  color: #77859a;
+  text-align: center;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.api-playground-footer {
+  margin-top: 14px;
+  color: #718096;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.api-playground-footer code {
+  border-radius: 5px;
+  padding: 2px 5px;
+  background: #e9eef7;
+  color: #33425c;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 1080px) {
+  .api-playground-layout {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+
+  .api-playground .api-workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.75fr);
+  }
+}
+
+@media (max-width: 880px) {
+  .api-playground-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .api-playground .settings-sidebar {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .api-playground .sidebar-section {
+    border-right: 1px solid #e8edf4;
+    border-bottom: 0;
+  }
+
+  .api-playground .sidebar-section:last-child {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .api-playground .settings-sidebar {
+    display: block;
+  }
+
+  .api-playground .sidebar-section {
+    border-right: 0;
+    border-bottom: 1px solid #e8edf4;
+  }
+
+  .api-playground .sidebar-section:last-child {
+    border-bottom: 0;
+  }
+
+  .api-playground .api-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .api-playground .editor-surface,
+  .api-playground .editor-loading,
+  .api-playground .console-surface {
+    height: 360px;
+    min-height: 360px;
+  }
+}
