@@ -1,3 +1,0 @@
-export default `.example {
-  border-image: linear-gradient(#7c3aed, #2563eb) 30;
-}`;

@@ -1,3 +1,0 @@
-export default `.example {
-  border-block-start: 1px solid slateblue;
-}`;

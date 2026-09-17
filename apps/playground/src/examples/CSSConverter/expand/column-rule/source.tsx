@@ -1,3 +1,0 @@
-export default `.example {
-  column-rule: 2px solid #94a3b8;
-}`;

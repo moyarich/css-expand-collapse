@@ -1,3 +1,0 @@
-export default `.example {
-  grid-column: 2 / span 3;
-}`;

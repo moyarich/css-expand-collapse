@@ -1,3 +1,0 @@
-export default `.example {
-  grid: auto-flow 80px / repeat(3, 1fr);
-}`;

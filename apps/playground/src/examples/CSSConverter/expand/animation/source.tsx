@@ -1,3 +1,0 @@
-export default `.example {
-  animation: fade 1s ease-in-out 200ms 2 alternate both running;
-}`;

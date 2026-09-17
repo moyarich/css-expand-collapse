@@ -1,3 +1,0 @@
-export default `.example {
-  border-radius: 12px 24px 8px 16px;
-}`;

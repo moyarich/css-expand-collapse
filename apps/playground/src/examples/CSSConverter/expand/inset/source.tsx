@@ -1,3 +1,0 @@
-export default `.example {
-  inset: 10px 20px 30px 40px;
-}`;

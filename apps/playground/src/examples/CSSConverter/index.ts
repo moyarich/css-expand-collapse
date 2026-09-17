@@ -16,7 +16,8 @@ export interface CSSConverterExample extends CSSConverterExampleMeta {
   source: string;
 }
 
-const sourceModules = import.meta.glob("./*/*/source.tsx", {
+const sourceModules = import.meta.glob("./*/*/source.css", {
+  query: "?raw",
   import: "default",
   eager: true,
 }) as Record<string, string>;
@@ -32,12 +33,12 @@ export const CSS_CONVERTER_EXAMPLES: readonly CSSConverterExample[] = Object.ent
     const mode = parts.at(-3) as CSSConverterMode;
     const id = parts.at(-2)!;
     const key = `${mode}/${id}`;
-    const source = sourceModules[`./${mode}/${id}/source.tsx`];
+    const source = sourceModules[`./${mode}/${id}/source.css`];
 
     if (mode !== "expand" && mode !== "collapse") {
       throw new Error(`Invalid CSS converter example mode: ${mode}`);
     }
-    if (!source) throw new Error(`Missing source.tsx for CSS converter example: ${key}`);
+    if (!source) throw new Error(`Missing source.css for CSS converter example: ${key}`);
     if (metadata.id !== id) throw new Error(`CSS converter metadata id mismatch: ${key}`);
 
     return { ...metadata, key, mode, source };

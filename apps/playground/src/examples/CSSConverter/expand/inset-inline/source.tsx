@@ -1,3 +1,0 @@
-export default `.example {
-  inset-inline: 20px 40px;
-}`;

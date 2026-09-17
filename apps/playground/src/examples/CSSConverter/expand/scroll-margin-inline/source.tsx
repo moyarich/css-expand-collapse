@@ -1,3 +1,0 @@
-export default `.example {
-  scroll-margin-inline: 16px 28px;
-}`;

@@ -1,3 +1,0 @@
-export default `.example {
-  transition: opacity 250ms ease 50ms;
-}`;
