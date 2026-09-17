@@ -182,7 +182,7 @@ console.log(css);`,
   {
     id: "style-to-declarations",
     label: "styleToDeclarations()",
-    description: "Convert a read-only computed-style shape to a plain declaration map.",
+    description: "Convert a read-only style declaration to a plain declaration map.",
     source: `import {
   styleToDeclarations,
   type ReadonlyStyleDeclaration,
@@ -205,11 +205,11 @@ const style: ReadonlyStyleDeclaration = {
 console.log(styleToDeclarations(style));`,
   },
   {
-    id: "get-computed-longhands",
-    label: "getComputedLonghands()",
-    description: "Read only the computed longhands registered for one shorthand.",
+    id: "get-style-longhands",
+    label: "getStyleLonghands()",
+    description: "Read the registered longhands for one shorthand from a read-only style declaration.",
     source: `import {
-  getComputedLonghands,
+  getStyleLonghands,
   type ReadonlyStyleDeclaration,
 } from "@moyarich/css-expand-collapse";
 
@@ -226,14 +226,14 @@ const style: ReadonlyStyleDeclaration = {
   getPropertyValue: (property) => values[property] ?? "",
 };
 
-console.log(getComputedLonghands(style, "margin"));`,
+console.log(getStyleLonghands(style, "margin"));`,
   },
   {
-    id: "collapse-computed-style",
-    label: "collapseComputedStyle()",
-    description: "Collapse one shorthand from a read-only computed-style shape.",
+    id: "collapse-style-declaration",
+    label: "collapseStyleDeclaration()",
+    description: "Collapse one shorthand from a read-only style declaration.",
     source: `import {
-  collapseComputedStyle,
+  collapseStyleDeclaration,
   type ReadonlyStyleDeclaration,
 } from "@moyarich/css-expand-collapse";
 
@@ -250,14 +250,14 @@ const style: ReadonlyStyleDeclaration = {
   getPropertyValue: (property) => values[property] ?? "",
 };
 
-console.log(collapseComputedStyle(style, "margin"));`,
+console.log(collapseStyleDeclaration(style, "margin"));`,
   },
   {
-    id: "collapse-computed-styles",
-    label: "collapseComputedStyles()",
-    description: "Collapse multiple requested shorthands from one computed-style shape.",
+    id: "collapse-style-declarations",
+    label: "collapseStyleDeclarations()",
+    description: "Collapse multiple requested shorthands from one read-only style declaration.",
     source: `import {
-  collapseComputedStyles,
+  collapseStyleDeclarations,
   type ReadonlyStyleDeclaration,
 } from "@moyarich/css-expand-collapse";
 
@@ -278,7 +278,7 @@ const style: ReadonlyStyleDeclaration = {
   getPropertyValue: (property) => values[property] ?? "",
 };
 
-console.log(collapseComputedStyles(style, ["margin", "padding"]));`,
+console.log(collapseStyleDeclarations(style, ["margin", "padding"]));`,
   },
   {
     id: "split-top-level-whitespace",

@@ -66,16 +66,16 @@ declare module "@moyarich/css-expand-collapse" {
     style: ReadonlyStyleDeclaration,
     properties?: Iterable<string>,
   ): DeclarationMap;
-  export function getComputedLonghands(
+  export function getStyleLonghands(
     style: ReadonlyStyleDeclaration,
     shorthand: string,
   ): DeclarationMap;
-  export function collapseComputedStyle(
+  export function collapseStyleDeclaration(
     style: ReadonlyStyleDeclaration,
     shorthand: string,
     options?: TransformOptions,
   ): CollapseResult | null;
-  export function collapseComputedStyles(
+  export function collapseStyleDeclarations(
     style: ReadonlyStyleDeclaration,
     shorthands?: Iterable<string>,
     options?: TransformOptions,

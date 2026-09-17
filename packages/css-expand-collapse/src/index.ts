@@ -32,12 +32,12 @@ export type {
 } from "./css.js";
 
 export {
-  collapseComputedStyle,
-  collapseComputedStyles,
-  getComputedLonghands,
+  collapseStyleDeclaration,
+  collapseStyleDeclarations,
+  getStyleLonghands,
   styleToDeclarations,
-} from "./computed.js";
+} from "./style.js";
 
-export type { ReadonlyStyleDeclaration } from "./computed.js";
+export type { ReadonlyStyleDeclaration } from "./style.js";
 
 export { splitTopLevelWhitespace } from "./registry/context.js";

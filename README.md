@@ -194,21 +194,21 @@ collapseDeclarations(`
 `);
 ```
 
-## Computed styles
+## Style declarations
 
-In a browser, the package can work directly with the read-only shape returned by `getComputedStyle()`:
+The style-declaration APIs accept any read-only `CSSStyleDeclaration`-like object, including the value returned by `getComputedStyle()`:
 
 ```js
 import {
-  collapseComputedStyle,
-  getComputedLonghands,
+  collapseStyleDeclaration,
+  getStyleLonghands,
   styleToDeclarations,
 } from "@moyarich/css-expand-collapse";
 
 const computed = getComputedStyle(element);
 
-getComputedLonghands(computed, "margin");
-collapseComputedStyle(computed, "margin");
+getStyleLonghands(computed, "margin");
+collapseStyleDeclaration(computed, "margin");
 styleToDeclarations(computed);
 ```
 
@@ -252,10 +252,10 @@ System-font keywords such as `font: menu` are user-agent dependent and cannot be
 | Stylesheet | `transformCss(css, { mode, ...options })` | Runs the generic stylesheet transformer in `expand` or `collapse` mode. |
 | Declarations | `expandDeclarations(css)` | Expands shorthand declarations in declaration-only CSS text. |
 | Declarations | `collapseDeclarations(css, options?)` | Collapses longhands in declaration-only CSS text. |
-| Computed style | `styleToDeclarations(style, properties?)` | Converts a read-only style declaration into a plain declaration object. |
-| Computed style | `getComputedLonghands(style, shorthand)` | Reads the computed longhands registered for one shorthand. |
-| Computed style | `collapseComputedStyle(style, shorthand, options?)` | Collapses one shorthand from a computed/read-only style declaration. |
-| Computed style | `collapseComputedStyles(style, shorthands?, options?)` | Collapses multiple shorthands from a computed/read-only style declaration. |
+| Style declaration | `styleToDeclarations(style, properties?)` | Converts a read-only style declaration into a plain declaration object. |
+| Style declaration | `getStyleLonghands(style, shorthand)` | Reads the registered longhands for one shorthand from a read-only style declaration. |
+| Style declaration | `collapseStyleDeclaration(style, shorthand, options?)` | Collapses one shorthand from a read-only style declaration. |
+| Style declaration | `collapseStyleDeclarations(style, shorthands?, options?)` | Collapses multiple shorthands from a read-only style declaration. |
 | Utility | `splitTopLevelWhitespace(value)` | Splits a CSS value on top-level whitespace while preserving strings, functions, brackets, commas, and slashes. |
 
 The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `TransformOptions`, `TransformCssOptions`, `CollapseResult`, `TransformMode`, and `ReadonlyStyleDeclaration`.

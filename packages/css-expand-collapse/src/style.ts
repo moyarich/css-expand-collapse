@@ -36,14 +36,14 @@ export function styleToDeclarations(
   return output;
 }
 
-export function getComputedLonghands(
+export function getStyleLonghands(
   style: ReadonlyStyleDeclaration,
   shorthand: string,
 ): DeclarationMap {
   return styleToDeclarations(style, getLonghands(shorthand));
 }
 
-export function collapseComputedStyle(
+export function collapseStyleDeclaration(
   style: ReadonlyStyleDeclaration,
   shorthand: string,
   options?: TransformOptions,
@@ -55,14 +55,14 @@ export function collapseComputedStyle(
   return collapseToShorthand(shorthand, declarations, options);
 }
 
-export function collapseComputedStyles(
+export function collapseStyleDeclarations(
   style: ReadonlyStyleDeclaration,
   shorthands: Iterable<string> = SHORTHAND_PROPERTIES,
   options?: TransformOptions,
 ): CollapseResult[] {
   const results: CollapseResult[] = [];
   for (const shorthand of shorthands) {
-    const result = collapseComputedStyle(style, shorthand, options);
+    const result = collapseStyleDeclaration(style, shorthand, options);
     if (result) results.push(result);
   }
   return results;

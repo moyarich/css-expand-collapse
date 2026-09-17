@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  collapseComputedStyle,
+  collapseStyleDeclaration,
   collapseCss,
   collapseLonghands,
   collapseToShorthand,
@@ -351,8 +351,8 @@ describe("real CSS", () => {
   });
 });
 
-describe("computed style", () => {
-  it("can consume the CSSStyleDeclaration shape returned by getComputedStyle", () => {
+describe("style declarations", () => {
+  it("can consume a read-only CSSStyleDeclaration-like object", () => {
     const values: Record<string, string> = {
       "margin-top": "10px",
       "margin-right": "20px",
@@ -366,7 +366,7 @@ describe("computed style", () => {
       getPropertyValue: (property: string) => values[property] ?? "",
     };
 
-    expect(collapseComputedStyle(style, "margin")).toMatchObject({
+    expect(collapseStyleDeclaration(style, "margin")).toMatchObject({
       property: "margin",
       value: "10px 20px",
     });

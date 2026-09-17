@@ -265,21 +265,21 @@ expandShorthand("transition", "opacity 200ms ease");
 
 Both ESM and CommonJS package entries are provided.
 
-## `getComputedStyle()`
+## Style declarations
 
-The package accepts the same read-only shape returned by `window.getComputedStyle()`:
+The package accepts a read-only style declaration interface compatible with `window.getComputedStyle()`:
 
 ```ts
 import {
-  collapseComputedStyle,
-  getComputedLonghands,
+  collapseStyleDeclaration,
+  getStyleLonghands,
   styleToDeclarations,
 } from "@moyarich/css-expand-collapse";
 
 const computed = getComputedStyle(element);
 
-getComputedLonghands(computed, "margin");
-collapseComputedStyle(computed, "margin");
+getStyleLonghands(computed, "margin");
+collapseStyleDeclaration(computed, "margin");
 styleToDeclarations(computed);
 ```
 
@@ -358,9 +358,9 @@ expandDeclarations(css)
 collapseDeclarations(css, options?)
 
 styleToDeclarations(style, properties?)
-getComputedLonghands(style, shorthand)
-collapseComputedStyle(style, shorthand, options?)
-collapseComputedStyles(style, shorthands?, options?)
+getStyleLonghands(style, shorthand)
+collapseStyleDeclaration(style, shorthand, options?)
+collapseStyleDeclarations(style, shorthands?, options?)
 ```
 
 ## Playground
