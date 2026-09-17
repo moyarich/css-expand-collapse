@@ -32,8 +32,8 @@ jobs:
           text = text.replace('return `${top} ${right} ${bottom}`;', 'return top + " " + right + " " + bottom;')
           text = text.replace('return second === longhands.get(properties[1]!) ? first! : `${first} / ${second}`;', 'return second === longhands.get(properties[1]!) ? first! : first + " / " + second;')
 
-          # Derive defaults from property metadata instead of depending on the old
-          # source representation (some modules computed their arrays dynamically).
+          # Use MDN metadata where available and preserve existing module defaults for
+          # vendor-prefixed longhands missing from the metadata package.
           text = text.replace(
               'import fs from "node:fs";\n',
               'import fs from "node:fs";\nimport { createRequire } from "node:module";\n',
@@ -45,11 +45,36 @@ jobs:
           )
           start = text.index('function evaluateInitialValues')
           end = text.index('function mapDeclaration')
-          replacement = '''function evaluateInitialValues(_text, shorthand) {
-            return getLonghands(shorthand).map((longhand) => {
+          replacement = '''function sourceInitialValues(text, names) {
+            const match = text.match(/const initialValues\\s*=\\s*([\\s\\S]*?);/);
+            if (!match) return [];
+            let expression = match[1].trim();
+            expression = expression
+              .replace(/\\s+as const$/, "")
+              .replace(/\\s+as readonly string\\[\\]$/, "");
+            if (expression === 'longhands.map(() => "normal")') {
+              return names.map(() => "normal");
+            }
+            if (!expression.startsWith("[")) return [];
+            const values = Function(`"use strict"; return (${expression});`)();
+            return Array.isArray(values)
+              ? values.map((value) => value === null ? "initial" : String(value))
+              : [];
+          }
+
+          function evaluateInitialValues(text, shorthand) {
+            const names = getLonghands(shorthand);
+            const sourceValues = sourceInitialValues(text, names);
+            return names.map((longhand, index) => {
               const initial = cssProperties[longhand]?.initial;
-              if (initial == null) throw new Error(`Missing initial value for ${shorthand} -> ${longhand}`);
-              return initial === "dependsOnUserAgent" ? "initial" : String(initial);
+              if (initial != null) {
+                return initial === "dependsOnUserAgent" ? "initial" : String(initial);
+              }
+              const sourceValue = sourceValues[index];
+              if (sourceValue == null) {
+                throw new Error(`Missing initial value for ${shorthand} -> ${longhand}`);
+              }
+              return sourceValue;
             });
           }
 
