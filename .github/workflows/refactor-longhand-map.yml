@@ -27,6 +27,12 @@ jobs:
           path = Path('scripts/refactor-longhand-map.mjs')
           text = path.read_text()
 
+          # Remove any legacy initialValues declaration, regardless of assertion style.
+          text = text.replace(
+              'text = text.replace(/const initialValues\\s*=\\s*[\\s\\S]*?\\s+as const;\\n/, "");',
+              'text = text.replace(/const initialValues\\s*=\\s*[\\s\\S]*?;\\n/, "");',
+          )
+
           # Avoid nested template literals inside generated source strings.
           text = text.replace('return `${top} ${right}`;', 'return top + " " + right;')
           text = text.replace('return `${top} ${right} ${bottom}`;', 'return top + " " + right + " " + bottom;')
