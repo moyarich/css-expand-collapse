@@ -80,6 +80,13 @@ jobs:
 
           '''
           text = text[:start] + replacement + text[end:]
+
+          # A custom module may derive an ordered values array from the map for its
+          # positional grammar. Only exporting an initialValues metadata field is forbidden.
+          text = text.replace(
+              'if (/\\binitialValues\\b/.test(exportBlock)) throw new Error(`${name} still exports initialValues metadata`);',
+              'if (/^\\s*initialValues,\\s*$/m.test(exportBlock)) throw new Error(`${name} still exports initialValues metadata`);',
+          )
           path.write_text(text)
           PY
       - name: Apply LonghandMap refactor
@@ -90,7 +97,7 @@ jobs:
             echo "ShorthandModule still exposes initialValues"
             exit 1
           fi
-          if grep -R "initialValues," packages/css-expand-collapse/src/registry/shorthands; then
+          if grep -R -E '^[[:space:]]*initialValues,[[:space:]]*$' packages/css-expand-collapse/src/registry/shorthands; then
             echo "A shorthand still exports initialValues"
             exit 1
           fi
