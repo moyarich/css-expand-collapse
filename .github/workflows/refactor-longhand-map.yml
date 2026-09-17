@@ -20,15 +20,41 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run build:lib
-      - name: Fix generator literals
+      - name: Prepare refactor generator
         run: |
           python <<'PY'
           from pathlib import Path
           path = Path('scripts/refactor-longhand-map.mjs')
           text = path.read_text()
+
+          # Avoid nested template literals inside generated source strings.
           text = text.replace('return `${top} ${right}`;', 'return top + " " + right;')
           text = text.replace('return `${top} ${right} ${bottom}`;', 'return top + " " + right + " " + bottom;')
           text = text.replace('return second === longhands.get(properties[1]!) ? first! : `${first} / ${second}`;', 'return second === longhands.get(properties[1]!) ? first! : first + " / " + second;')
+
+          # Derive defaults from property metadata instead of depending on the old
+          # source representation (some modules computed their arrays dynamically).
+          text = text.replace(
+              'import fs from "node:fs";\n',
+              'import fs from "node:fs";\nimport { createRequire } from "node:module";\n',
+          )
+          marker = 'const shorthandRoot = path.join(packageRoot, "src/registry/shorthands");\n'
+          text = text.replace(
+              marker,
+              marker + '\nconst require = createRequire(import.meta.url);\nconst cssProperties = require("mdn-data/css/properties.json");\n',
+          )
+          start = text.index('function evaluateInitialValues')
+          end = text.index('function mapDeclaration')
+          replacement = '''function evaluateInitialValues(_text, shorthand) {
+            return getLonghands(shorthand).map((longhand) => {
+              const initial = cssProperties[longhand]?.initial;
+              if (initial == null) throw new Error(`Missing initial value for ${shorthand} -> ${longhand}`);
+              return initial === "dependsOnUserAgent" ? "initial" : String(initial);
+            });
+          }
+
+          '''
+          text = text[:start] + replacement + text[end:]
           path.write_text(text)
           PY
       - name: Apply LonghandMap refactor
