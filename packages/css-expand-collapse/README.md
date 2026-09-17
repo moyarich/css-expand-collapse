@@ -315,7 +315,7 @@ supportsTransform("background"); // true
 expandDeclarations("text-decoration: underline;");
 ```
 
-`supportsTransform()` remains available for compatibility and now reflects whether the package implements the shorthand, not whether a DOM is present.
+`supportsTransform()` reports whether the package implements a shorthand transform.
 
 ## Runtime-neutral complex shorthands
 
@@ -342,7 +342,6 @@ getLonghands(shorthand)
 getShorthands(longhand)
 supportsTransform(property)
 supportsPureTransform(property)
-supportsTransform(property)
 getShorthandStrategy(property)
 
 expandShorthand(property, value, options?)

@@ -15,7 +15,8 @@ export {
 } from "./core.js";
 
 export type {
-  CollapseResult,  DeclarationMap,
+  CollapseResult,
+  DeclarationMap,
   TransformOptions,
 } from "./core.js";
 
@@ -40,4 +41,3 @@ export {
 } from "./computed.js";
 
 export type { ReadonlyStyleDeclaration } from "./computed.js";
-
