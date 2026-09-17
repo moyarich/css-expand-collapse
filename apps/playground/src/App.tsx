@@ -20,9 +20,6 @@ import {
 type Mode = "expand" | "collapse";
 type InputKind = "stylesheet" | "declarations";
 
-const MDN_SHORTHAND_URL =
-  "https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Shorthand_properties#shorthand_properties";
-
 const MODE_META: Record<Mode, {
   label: string;
   direction: string;
@@ -47,6 +44,10 @@ const MODE_META: Record<Mode, {
 };
 
 const DEFAULT_EXAMPLE = getShorthandExample("text-decoration")!;
+
+function detectInputKind(source: string): InputKind {
+  return source.includes("{") ? "stylesheet" : "declarations";
+}
 
 function transform(
   source: string,
@@ -177,12 +178,12 @@ function formatCss(css: string, inputKind: InputKind): string {
 
 export function App() {
   const [mode, setMode] = useState<Mode>("expand");
-  const [inputKind, setInputKind] = useState<InputKind>("stylesheet");
   const [source, setSource] = useState(DEFAULT_EXAMPLE.source);
   const [fillMissingLonghands, setFillMissingLonghands] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const meta = MODE_META[mode];
+  const inputKind = useMemo(() => detectInputKind(source), [source]);
 
   const result = useMemo(() => {
     try {
@@ -198,7 +199,6 @@ export function App() {
 
   const loadExample = (selection: string) => {
     if (selection === COMPUTED_EXPORT_EXAMPLE_ID) {
-      setInputKind("stylesheet");
       setMode("collapse");
       setFillMissingLonghands(true);
       setSource(COMPUTED_EXPORT_EXAMPLE);
@@ -208,7 +208,6 @@ export function App() {
 
     const example = getShorthandExample(selection as ExampleProperty);
     if (!example) return;
-    setInputKind("stylesheet");
     setMode("expand");
     setFillMissingLonghands(false);
     setSource(example.source);
@@ -252,24 +251,8 @@ export function App() {
 
       <div className="playground-layout">
         <aside className="settings-sidebar" aria-label="Conversion settings">
-          <div className="sidebar-header">
-            <span className="sidebar-kicker">Playground</span>
-            <h2>Conversion settings</h2>
-          </div>
-
           <section className="sidebar-section example-section">
-            <div className="sidebar-section-heading">
-              <span className="sidebar-section-label">Load example</span>
-              <a
-                className="mdn-link"
-                href={MDN_SHORTHAND_URL}
-                target="_blank"
-                rel="noreferrer"
-                title="MDN shorthand properties"
-              >
-                MDN ↗
-              </a>
-            </div>
+            <span className="sidebar-section-label">Load example</span>
             <select
               className="example-select"
               defaultValue=""
@@ -301,11 +284,12 @@ export function App() {
           </section>
 
           <section className="sidebar-section">
-            <div className="sidebar-section-heading stacked">
-              <span className="sidebar-section-label">Conversion</span>
-              <small>Choose what you want to produce.</small>
-            </div>
-            <div className="segmented-control direction-options" role="group" aria-label="Conversion direction">
+            <span className="sidebar-section-label">Conversion</span>
+            <div
+              className="segmented-control direction-options"
+              role="group"
+              aria-label="Conversion direction"
+            >
               {(Object.keys(MODE_META) as Mode[]).map((option) => {
                 const optionMeta = MODE_META[option];
                 return (
@@ -319,76 +303,44 @@ export function App() {
                       setCopied(false);
                     }}
                   >
-                    <span>{optionMeta.label}</span>
-                    <small>{option === "expand" ? "Shorthand → Longhand" : "Longhand → Shorthand"}</small>
+                    {optionMeta.label}
                   </button>
                 );
               })}
             </div>
           </section>
 
-          <section className="sidebar-section">
-            <div className="sidebar-section-heading stacked">
-              <span className="sidebar-section-label">Input format</span>
-              <small>Paste a full rule or declarations only.</small>
-            </div>
-            <div className="segmented-control input-kind-options" role="group" aria-label="Input format">
-              <button
-                type="button"
-                className={inputKind === "stylesheet" ? "active" : ""}
-                aria-pressed={inputKind === "stylesheet"}
-                onClick={() => setInputKind("stylesheet")}
-              >
-                Stylesheet
-              </button>
-              <button
-                type="button"
-                className={inputKind === "declarations" ? "active" : ""}
-                aria-pressed={inputKind === "declarations"}
-                onClick={() => setInputKind("declarations")}
-              >
-                Declarations
-              </button>
-            </div>
+          <section className="sidebar-section options-section">
+            <span className="sidebar-section-label">Options</span>
+            <label className={`switch-control ${mode !== "collapse" ? "disabled" : ""}`}>
+              <input
+                type="checkbox"
+                role="switch"
+                disabled={mode !== "collapse"}
+                checked={fillMissingLonghands}
+                onChange={(event) => setFillMissingLonghands(event.target.checked)}
+              />
+              <span className="switch-track" aria-hidden="true">
+                <span className="switch-thumb" />
+              </span>
+              <span className="switch-copy">
+                <strong>Fill missing longhands</strong>
+                <small>
+                  {mode === "collapse"
+                    ? "Use CSS initial values for computed/export CSS."
+                    : "Available when collapsing."}
+                </small>
+              </span>
+            </label>
           </section>
-
-          {mode === "collapse" && (
-            <section className="sidebar-section">
-              <label className="switch-control">
-                <input
-                  type="checkbox"
-                  role="switch"
-                  checked={fillMissingLonghands}
-                  onChange={(event) => setFillMissingLonghands(event.target.checked)}
-                />
-                <span className="switch-track" aria-hidden="true">
-                  <span className="switch-thumb" />
-                </span>
-                <span className="switch-copy">
-                  <strong>Fill missing longhands</strong>
-                  <small>Use initial values for computed/export CSS.</small>
-                </span>
-              </label>
-            </section>
-          )}
-
-          <div className="sidebar-status" aria-live="polite">
-            <div>
-              <span className="sidebar-section-label">Current conversion</span>
-              <strong>{meta.direction}</strong>
-              <p>{meta.description}</p>
-            </div>
-            <span className="live-badge">Live</span>
-          </div>
         </aside>
 
         <section className="workspace" aria-label="CSS conversion workspace">
-          <article className="panel">
+          <article className="panel source-panel">
             <div className="panel-header">
               <div>
-                <span className="panel-kicker">Source</span>
-                <h2>{meta.inputLabel}</h2>
-                <p>{inputKind === "stylesheet" ? "Full CSS stylesheet" : "Declaration block only"}</p>
+                <h2>Source</h2>
+                <p>{meta.inputLabel} · {inputKind === "stylesheet" ? "Stylesheet" : "Declarations"}</p>
               </div>
             </div>
 
@@ -444,9 +396,8 @@ export function App() {
           <article className="panel result-panel">
             <div className="panel-header">
               <div>
-                <span className="panel-kicker">Result</span>
-                <h2>{meta.outputLabel}</h2>
-                <p>Formatted for readability</p>
+                <h2>Result</h2>
+                <p>{meta.outputLabel}</p>
               </div>
               <div className="result-actions">
                 <button
@@ -504,8 +455,7 @@ export function App() {
       </div>
 
       <footer className="footer-note">
-        Powered by <code>@moyarich/css-expand-collapse</code>. Examples follow the
-        shorthand catalog in MDN’s CSS cascading guide.
+        Powered by <code>@moyarich/css-expand-collapse</code>. {meta.description}
       </footer>
     </main>
   );
