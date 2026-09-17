@@ -1,4 +1,4 @@
-import Editor from "@monaco-editor/react";
+import { MonacoEditor } from "../MonacoEditor";
 import { useMemo, useState } from "react";
 import {
   collapseCss,
@@ -320,10 +320,9 @@ export function CSSConverter() {
             </div>
 
             <div className="editor-surface">
-              <Editor
+              <MonacoEditor
                 path="input.css"
                 language="css"
-                theme="vs-dark"
                 value={source}
                 onChange={(value) => {
                   setSource(value ?? "");
@@ -332,26 +331,6 @@ export function CSSConverter() {
                 loading={<div className="editor-loading">Loading CSS editor…</div>}
                 options={{
                   ariaLabel: `${meta.inputLabel} input`,
-                  automaticLayout: true,
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  lineHeight: 22,
-                  lineNumbersMinChars: 3,
-                  tabSize: 2,
-                  insertSpaces: true,
-                  detectIndentation: false,
-                  wordWrap: "on",
-                  scrollBeyondLastLine: false,
-                  smoothScrolling: true,
-                  folding: true,
-                  glyphMargin: false,
-                  stickyScroll: { enabled: false },
-                  overviewRulerLanes: 0,
-                  hideCursorInOverviewRuler: true,
-                  renderLineHighlight: "line",
-                  padding: { top: 16, bottom: 16 },
-                  formatOnPaste: true,
-                  formatOnType: true,
                 }}
               />
             </div>
@@ -393,32 +372,16 @@ export function CSSConverter() {
               </div>
             ) : result.css ? (
               <div className="editor-surface">
-                <Editor
+                <MonacoEditor
                   path="output.css"
                   language="css"
-                  theme="vs-dark"
                   value={result.css}
                   loading={<div className="editor-loading">Loading CSS editor…</div>}
                   options={{
                     ariaLabel: `${meta.outputLabel} output`,
-                    automaticLayout: true,
                     readOnly: true,
                     domReadOnly: true,
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    lineHeight: 22,
-                    lineNumbersMinChars: 3,
-                    tabSize: 2,
-                    wordWrap: "on",
-                    scrollBeyondLastLine: false,
-                    smoothScrolling: true,
-                    folding: true,
-                    glyphMargin: false,
-                    stickyScroll: { enabled: false },
-                    overviewRulerLanes: 0,
-                    hideCursorInOverviewRuler: true,
                     renderLineHighlight: "none",
-                    padding: { top: 16, bottom: 16 },
                   }}
                 />
               </div>

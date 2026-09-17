@@ -1,4 +1,4 @@
-import Editor from "@monaco-editor/react";
+import { MonacoEditor } from "../MonacoEditor";
 import { useState } from "react";
 import { runFunctionSource, type RunOutput } from "./run";
 
@@ -33,10 +33,9 @@ export function APIRunner({ initialSource }: APIRunnerProps) {
         </div>
 
         <div className="editor-surface api-editor-surface">
-          <Editor
+          <MonacoEditor
             path="playground.ts"
             language="typescript"
-            theme="vs-dark"
             value={source}
             onChange={(value) => setSource(value ?? "")}
             onMount={(editor, monaco) => {
@@ -48,26 +47,6 @@ export function APIRunner({ initialSource }: APIRunnerProps) {
             loading={<div className="editor-loading">Loading TypeScript editor…</div>}
             options={{
               ariaLabel: "TypeScript API playground",
-              automaticLayout: true,
-              minimap: { enabled: false },
-              fontSize: 14,
-              lineHeight: 22,
-              lineNumbersMinChars: 3,
-              tabSize: 2,
-              insertSpaces: true,
-              detectIndentation: false,
-              wordWrap: "on",
-              scrollBeyondLastLine: false,
-              smoothScrolling: true,
-              folding: true,
-              glyphMargin: false,
-              stickyScroll: { enabled: false },
-              overviewRulerLanes: 0,
-              hideCursorInOverviewRuler: true,
-              renderLineHighlight: "line",
-              padding: { top: 16, bottom: 16 },
-              formatOnPaste: true,
-              formatOnType: true,
               quickSuggestions: true,
               suggestOnTriggerCharacters: true,
             }}
