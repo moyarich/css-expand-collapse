@@ -82,7 +82,7 @@ const expand: ShorthandExpander = (value, context) => {
 
 export default {
   longhands,
-  strategy: "csstree",
+  safeToDropWhenFullyShadowed: false,
   expand,
   collapse(declarations, context) {
     const family = declarations["font-family"];

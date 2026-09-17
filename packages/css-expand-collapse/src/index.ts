@@ -6,10 +6,8 @@ export {
   findCollapsibleShorthands,
   getLonghands,
   getShorthands,
-  getShorthandStrategy,
   isLonghand,
   isShorthand,
-  splitTopLevelWhitespace,
   supportsPureTransform,
   supportsTransform,
 } from "./core.js";
@@ -41,3 +39,5 @@ export {
 } from "./computed.js";
 
 export type { ReadonlyStyleDeclaration } from "./computed.js";
+
+export { splitTopLevelWhitespace } from "./registry/context.js";

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   SHORTHAND_PROPERTIES,
   expandShorthand,
-  getShorthandStrategy,
   isShorthand,
   supportsTransform,
 } from "../src/index.js";
@@ -16,23 +15,21 @@ describe("per-shorthand registry", () => {
     expect(SHORTHAND_PROPERTIES).toContain("all");
   });
 
-  it("requires every shorthand file to satisfy the common module contract", () => {
+  it("requires every shorthand file to own expand and collapse behavior", () => {
     for (const module of Object.values(SHORTHAND_MODULES)) {
       expect(Array.isArray(module.longhands)).toBe(true);
-      expect(module.strategy === null || typeof module.strategy === "string").toBe(true);
       expect(typeof module.expand).toBe("function");
+      expect(typeof module.collapse).toBe("function");
+      expect("strategy" in module).toBe(false);
     }
   });
 
-  it("keeps all as a module while marking it non-transformable", () => {
-    expect(SHORTHAND_MODULES.all).toMatchObject({
-      longhands: [],
-      strategy: null,
-    });
+  it("keeps all recognized but non-transformable", () => {
+    expect(SHORTHAND_MODULES.all.longhands).toEqual([]);
     expect(typeof SHORTHAND_MODULES.all.expand).toBe("function");
+    expect(typeof SHORTHAND_MODULES.all.collapse).toBe("function");
     expect(isShorthand("all")).toBe(true);
     expect(supportsTransform("all")).toBe(false);
-    expect(getShorthandStrategy("all")).toBeNull();
     expect(expandShorthand("all", "initial")).toBeNull();
   });
 });

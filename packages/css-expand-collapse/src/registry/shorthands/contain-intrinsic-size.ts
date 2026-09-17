@@ -1,3 +1,4 @@
+import { collapsePair } from "../collapsers.js";
 import { expandPair } from "../expanders.js";
 import type { ShorthandModule } from "../types.js";
 
@@ -5,4 +6,6 @@ const longhands = ["contain-intrinsic-width", "contain-intrinsic-height"] as con
 const initialValues = ["none", "none"] as const;
 const expand = expandPair(longhands);
 
-export default { longhands, strategy: "pair", initialValues, expand } satisfies ShorthandModule;
+const collapse = collapsePair(longhands);
+
+export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;

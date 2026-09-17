@@ -97,23 +97,21 @@ Every shorthand module must satisfy the same `ShorthandModule` interface:
 
 ```ts
 export interface ShorthandModule {
-  readonly longhands: readonly string[];
-  readonly strategy: ShorthandStrategy | null;
-  readonly initialValues?: readonly string[];
+  readonly longhands: readonly string[];  readonly initialValues?: readonly string[];
   readonly expand: ShorthandExpander;
-  readonly collapse?: ShorthandCollapser;
+  readonly collapse: ShorthandCollapser;
 }
 ```
 
 The property name is intentionally not repeated inside the object. The generated registry derives it from the filename.
 
-`strategy: null` is reserved for recognized shorthands that do not expose a finite transform in this package, such as `all`.
+`all` is recognized but non-transformable because it has no finite registered longhand set.
 
 `TransformableShorthandModule` is the narrower contract for modules with a real strategy:
 
 ```ts
 export type TransformableShorthandModule = ShorthandModule & {
-  readonly strategy: ShorthandStrategy;
+  readonly strategy: ShorthandImplementation;
 };
 ```
 
@@ -150,8 +148,7 @@ const longhands = quad("margin");
 
 export default {
   longhands,
-  strategy: "quad",
-  expand: expandQuad(longhands),
+    expand: expandQuad(longhands),
 } satisfies ShorthandModule;
 ```
 
@@ -177,8 +174,7 @@ const expand: ShorthandExpander = (value, context) => {
 
 export default {
   longhands,
-  strategy: "csstree",
-  expand,
+    expand,
 } satisfies ShorthandModule;
 ```
 
@@ -191,8 +187,7 @@ A `csstree` module should provide `collapse()` when reconstruction needs propert
 ```ts
 export default {
   longhands,
-  strategy: "csstree",
-  expand,
+    expand,
   collapse(declarations, context) {
     const candidate = buildCandidate(declarations);
     return context.matchProperty("example", candidate)

@@ -1,3 +1,4 @@
+import { collapseQuad } from "../collapsers.js";
 import { expandQuad } from "../expanders.js";
 import { quad } from "../helpers.js";
 import type { ShorthandModule } from "../types.js";
@@ -5,4 +6,6 @@ import type { ShorthandModule } from "../types.js";
 const longhands = quad("padding");
 const expand = expandQuad(longhands);
 
-export default { longhands, strategy: "quad", expand } satisfies ShorthandModule;
+const collapse = collapseQuad(longhands);
+
+export default { longhands, expand, collapse } satisfies ShorthandModule;

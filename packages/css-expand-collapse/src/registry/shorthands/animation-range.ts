@@ -7,7 +7,7 @@ const expand = expandOrderedPair(longhands, initialValues);
 
 export default {
   longhands,
-  strategy: "csstree",
+  safeToDropWhenFullyShadowed: false,
   initialValues,
   expand,
   collapse(declarations, context) {

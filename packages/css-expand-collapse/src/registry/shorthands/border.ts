@@ -1,5 +1,5 @@
 import { expandTriple } from "../expanders.js";
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandCollapser, ShorthandExpander, ShorthandModule } from "../types.js";
 
 const longhands = [
   "border-top-width", "border-top-style", "border-top-color",
@@ -9,10 +9,9 @@ const longhands = [
 ] as const;
 const expandTop = expandTriple(longhands.slice(0, 3));
 
-const expandPure: ShorthandExpander = (value, context) => {
+const expand: ShorthandExpander = (value, context) => {
   const top = expandTop(value, context);
   if (!top) return null;
-
   const result: DeclarationMap = {};
   for (const side of ["top", "right", "bottom", "left"] as const) {
     result[`border-${side}-width`] = top["border-top-width"]!;
@@ -22,6 +21,21 @@ const expandPure: ShorthandExpander = (value, context) => {
   return result;
 };
 
-const expand = expandPure;
+const collapse: ShorthandCollapser = (declarations, context) => {
+  const sides = ["top", "right", "bottom", "left"].map((side) => [
+    declarations[`border-${side}-width`]?.trim(),
+    declarations[`border-${side}-style`]?.trim(),
+    declarations[`border-${side}-color`]?.trim(),
+  ]);
+  if (sides.some((side) => side.some((value) => !value))) return null;
+  const first = sides[0]!.join(" ");
+  if (!sides.every((side) => side.join(" ") === first)) return null;
+  return context.matchProperty("border", first) ? first : null;
+};
 
-export default { longhands, strategy: "border-all", expand } satisfies ShorthandModule;
+export default {
+  longhands,
+  expand,
+  collapse,
+  safeToDropWhenFullyShadowed: false,
+} satisfies ShorthandModule;

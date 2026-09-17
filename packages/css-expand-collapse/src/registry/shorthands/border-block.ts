@@ -1,3 +1,4 @@
+import { collapseLogicalBorderAxis } from "../collapsers.js";
 import { expandLogicalBorderAxis } from "../expanders.js";
 import type { ShorthandModule } from "../types.js";
 
@@ -7,4 +8,6 @@ const longhands = [
 ] as const;
 const expand = expandLogicalBorderAxis(longhands);
 
-export default { longhands, strategy: "logical-border-axis", expand } satisfies ShorthandModule;
+const collapse = collapseLogicalBorderAxis(longhands);
+
+export default { longhands, expand, collapse } satisfies ShorthandModule;

@@ -6,7 +6,4 @@ export type {
   ShorthandExpander,
   ShorthandModule,
   ShorthandModuleMap,
-  ShorthandStrategy,
-  TransformableShorthandModule,
-  TransformableShorthandModuleMap,
 } from "./module.js";

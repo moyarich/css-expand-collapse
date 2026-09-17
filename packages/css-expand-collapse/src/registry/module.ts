@@ -20,47 +20,17 @@ export type ShorthandCollapser = (
   context: ShorthandCollapseContext,
 ) => string | null;
 
-export type ShorthandStrategy =
-  | "quad"
-  | "pair"
-  | "triple"
-  | "border-all"
-  | "logical-border-axis"
-  | "text-decoration"
-  | "flex"
-  | "flex-flow"
-  | "components"
-  | "slash-pair"
-  | "csstree";
-
 /**
  * Common contract implemented by every shorthand property module.
- *
- * The CSS property name comes from the module filename, so it is intentionally
- * not duplicated here. A null strategy marks a recognized shorthand that does
- * not expose a finite transform in this package (for example `all`).
+ * The CSS property name comes from the module filename.
  */
 export interface ShorthandModule {
   readonly longhands: readonly string[];
-  readonly strategy: ShorthandStrategy | null;
   readonly initialValues?: readonly string[];
   readonly expand: ShorthandExpander;
-  /** Optional property-specific collapse for grammars that cannot use a generic strategy. */
-  readonly collapse?: ShorthandCollapser;
-  /**
-   * Overrides the core's conservative shadow-removal rule. Set this when the
-   * registered longhands fully describe the shorthand's cascade effects, so an
-   * earlier shorthand can be removed after a complete later longhand set is
-   * collapsed back into the same effective shorthand.
-   */
+  readonly collapse: ShorthandCollapser;
+  /** False when a shorthand has cascade/reset effects beyond its registered longhands. */
   readonly safeToDropWhenFullyShadowed?: boolean;
 }
 
-export type TransformableShorthandModule = ShorthandModule & {
-  readonly strategy: ShorthandStrategy;
-};
-
 export type ShorthandModuleMap = Readonly<Record<string, ShorthandModule>>;
-export type TransformableShorthandModuleMap = Readonly<
-  Record<string, TransformableShorthandModule>
->;

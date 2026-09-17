@@ -342,7 +342,6 @@ getLonghands(shorthand)
 getShorthands(longhand)
 supportsTransform(property)
 supportsPureTransform(property)
-getShorthandStrategy(property)
 
 expandShorthand(property, value, options?)
 collapseToShorthand(shorthand, declarations, options?)

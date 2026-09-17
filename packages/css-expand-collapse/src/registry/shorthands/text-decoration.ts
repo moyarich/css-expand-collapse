@@ -1,5 +1,4 @@
-
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandCollapser, ShorthandExpander, ShorthandModule } from "../types.js";
 
 const longhands = [
   "text-decoration-line",
@@ -7,11 +6,11 @@ const longhands = [
   "text-decoration-color",
   "text-decoration-thickness",
 ] as const;
+const initialValues = ["none", "solid", "currentcolor", "auto"] as const;
 
-const expandPure: ShorthandExpander = (value, context) => {
+const expand: ShorthandExpander = (value, context) => {
   const tokens = context.splitWhitespace(value);
   if (!tokens.length) return null;
-
   const result: DeclarationMap = {
     "text-decoration-line": "none",
     "text-decoration-style": "solid",
@@ -20,13 +19,11 @@ const expandPure: ShorthandExpander = (value, context) => {
   };
   const lineTokens: string[] = [];
   const assigned = new Set<string>();
-
   for (const token of tokens) {
     if (context.matchProperty("text-decoration-line", token)) {
       lineTokens.push(token);
       continue;
     }
-
     const candidates = longhands
       .filter((property) => property !== "text-decoration-line" && !assigned.has(property))
       .filter((property) => context.matchProperty(property, token));
@@ -34,16 +31,26 @@ const expandPure: ShorthandExpander = (value, context) => {
     result[candidates[0]!] = token;
     assigned.add(candidates[0]!);
   }
-
   if (lineTokens.length) {
     const joined = lineTokens.join(" ");
     if (!context.matchProperty("text-decoration-line", joined)) return null;
     result["text-decoration-line"] = joined;
   }
-
   return result;
 };
 
-const expand = expandPure;
+const collapse: ShorthandCollapser = (declarations, context) => {
+  const line = declarations["text-decoration-line"]?.trim();
+  const style = declarations["text-decoration-style"]?.trim();
+  const color = declarations["text-decoration-color"]?.trim();
+  const thickness = declarations["text-decoration-thickness"]?.trim();
+  if (!line || !style || !color || !thickness) return null;
+  const parts = [line];
+  if (style !== "solid") parts.push(style);
+  if (color !== "currentcolor") parts.push(color);
+  if (thickness !== "auto") parts.push(thickness);
+  const candidate = parts.join(" ");
+  return context.matchProperty("text-decoration", candidate) ? candidate : null;
+};
 
-export default { longhands, strategy: "text-decoration", expand } satisfies ShorthandModule;
+export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;

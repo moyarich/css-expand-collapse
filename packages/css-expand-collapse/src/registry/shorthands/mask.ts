@@ -1,4 +1,4 @@
-import { splitTopLevelComma } from "../expanders.js";
+import { splitTopLevelComma } from "../context.js";
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
@@ -125,7 +125,7 @@ const expand: ShorthandExpander = (value, context) => {
 
 export default {
   longhands,
-  strategy: "csstree",
+  safeToDropWhenFullyShadowed: false,
   initialValues,
   expand,
   collapse(declarations, context) {

@@ -144,7 +144,7 @@ function removeRedundantDeclarations(children: any[], options?: TransformOptions
         // conservatively because some CSS shorthands reset state beyond their primary
         // serializable longhands.
         const redundantGenericShorthand =
-          definition.strategy !== "csstree" && !changesEffectiveValue;
+          definition.safeToDropWhenFullyShadowed !== false && !changesEffectiveValue;
 
         if (!redundantGenericShorthand) output.push(child);
 
@@ -212,7 +212,7 @@ function canDropWhenFullyShadowed(property: string): boolean {
   if (definition.safeToDropWhenFullyShadowed !== undefined) {
     return definition.safeToDropWhenFullyShadowed;
   }
-  return definition.strategy !== "csstree" && definition.strategy !== "border-all";
+  return definition.safeToDropWhenFullyShadowed !== false;
 }
 
 function findFullyShadowedEarlierShorthands(

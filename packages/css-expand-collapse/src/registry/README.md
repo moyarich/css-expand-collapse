@@ -4,11 +4,9 @@ Each CSS shorthand lives in its own module under `shorthands/`. The **filename i
 
 ```ts
 export interface ShorthandModule {
-  readonly longhands: readonly string[];
-  readonly strategy: ShorthandStrategy | null;
-  readonly initialValues?: readonly string[];
+  readonly longhands: readonly string[];  readonly initialValues?: readonly string[];
   readonly expand: ShorthandExpander;
-  readonly collapse?: ShorthandCollapser;
+  readonly collapse: ShorthandCollapser;
 }
 ```
 
@@ -28,8 +26,7 @@ const longhands = quad("margin");
 
 export default {
   longhands,
-  strategy: "quad",
-  expand: expandQuad(longhands),
+    expand: expandQuad(longhands),
 } satisfies ShorthandModule;
 ```
 
@@ -50,8 +47,7 @@ const expand: ShorthandExpander = (value, context) => {
 
 export default {
   longhands,
-  strategy: "csstree",
-  expand,
+    expand,
   collapse(declarations, context) {
     const candidate = buildCandidate(declarations);
     return context.matchProperty("example", candidate) ? candidate : null;
@@ -75,5 +71,5 @@ The transform path must not depend on `document` or `CSSStyleDeclaration`. The s
 
 `shorthands/index.ts` is generated from filenames and must not be edited manually. `SHORTHAND_MODULES`, `SHORTHAND_PROPERTIES`, `SHORTHAND_DEFINITIONS`, `SHORTHAND_SET`, and `LONGHAND_TO_SHORTHANDS` are derived from that generated map.
 
-`all.ts` also satisfies `ShorthandModule`; it uses `strategy: null`, an empty longhand list, and an expander that returns `null` because `all` does not expose a finite longhand set that this package can enumerate safely.
+`all.ts` also satisfies `ShorthandModule`; it uses `all` is recognized but non-transformable because it has no finite registered longhand set.
 

@@ -1,3 +1,4 @@
+import { collapseComponents } from "../collapsers.js";
 
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
@@ -19,4 +20,6 @@ const expandPure: ShorthandExpander = (value, context) => {
 
 const expand = expandPure;
 
-export default { longhands, strategy: "flex-flow", expand } satisfies ShorthandModule;
+const collapse = collapseComponents(longhands);
+
+export default { longhands, expand, collapse } satisfies ShorthandModule;

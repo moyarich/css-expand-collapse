@@ -1,24 +1,20 @@
-import { lexer } from "css-tree";
 import {
   LONGHAND_TO_SHORTHANDS,
   SHORTHAND_DEFINITIONS,
   SHORTHAND_PROPERTIES,
   SHORTHAND_SET,
   type DeclarationMap,
-  type TransformableShorthandModule,
-  type ShorthandExpandContext,
-  type ShorthandStrategy,
+  type ShorthandModule,
 } from "./registry.js";
+import {
+  shorthandCollapseContext,
+  shorthandExpandContext,
+} from "./registry/context.js";
 
 export type { DeclarationMap } from "./registry.js";
 
 export interface TransformOptions {
-  /**
-   * Opt in to filling missing longhands with registered CSS initial values while
-   * collapsing. This is useful for computed/export CSS, but can change cascade
-   * behavior for raw stylesheets because the resulting shorthand explicitly sets
-   * properties that were previously omitted.
-   */
+  /** Fill omitted registered longhands with their module-owned initial values while collapsing. */
   fillMissingLonghands?: false | "initial";
 }
 
@@ -30,7 +26,6 @@ export interface CollapseResult {
 }
 
 const GLOBAL_VALUES = new Set(["inherit", "initial", "unset", "revert", "revert-layer"]);
-
 const normalizeProperty = (property: string) => property.trim().toLowerCase();
 
 export function isShorthand(property: string): boolean {
@@ -49,132 +44,12 @@ export function getShorthands(longhand: string): string[] {
   return [...(LONGHAND_TO_SHORTHANDS.get(normalizeProperty(longhand)) ?? [])];
 }
 
-export function getShorthandStrategy(property: string): ShorthandStrategy | null {
-  return SHORTHAND_DEFINITIONS[normalizeProperty(property)]?.strategy ?? null;
-}
-
-/** True when the registry has an implementation path for this shorthand. */
 export function supportsTransform(property: string): boolean {
   return Boolean(SHORTHAND_DEFINITIONS[normalizeProperty(property)]);
 }
 
-/** True when the shorthand can be transformed without a browser DOM/CSSOM. */
 export function supportsPureTransform(property: string): boolean {
   return supportsTransform(property);
-}
-
-/** Split a CSS value on top-level whitespace without breaking strings or functions. */
-export function splitTopLevelWhitespace(value: string): string[] {
-  const result: string[] = [];
-  let current = "";
-  let quote: "'" | '"' | null = null;
-  let escaped = false;
-  let parenDepth = 0;
-  let bracketDepth = 0;
-
-  const push = () => {
-    const token = current.trim();
-    if (token) result.push(token);
-    current = "";
-  };
-
-  for (const char of value.trim()) {
-    if (escaped) {
-      current += char;
-      escaped = false;
-      continue;
-    }
-    if (char === "\\") {
-      current += char;
-      escaped = true;
-      continue;
-    }
-    if (quote) {
-      current += char;
-      if (char === quote) quote = null;
-      continue;
-    }
-    if (char === "'" || char === '"') {
-      quote = char;
-      current += char;
-      continue;
-    }
-    if (char === "(") parenDepth += 1;
-    if (char === ")") parenDepth = Math.max(0, parenDepth - 1);
-    if (char === "[") bracketDepth += 1;
-    if (char === "]") bracketDepth = Math.max(0, bracketDepth - 1);
-
-    if (/\s/.test(char) && parenDepth === 0 && bracketDepth === 0) {
-      push();
-    } else {
-      current += char;
-    }
-  }
-
-  push();
-  return result;
-}
-
-function splitTopLevelSlash(value: string): string[] {
-  const parts: string[] = [];
-  let current = "";
-  let quote: "'" | '"' | null = null;
-  let escaped = false;
-  let parenDepth = 0;
-  let bracketDepth = 0;
-
-  const push = () => {
-    parts.push(current.trim());
-    current = "";
-  };
-
-  for (const char of value.trim()) {
-    if (escaped) {
-      current += char;
-      escaped = false;
-      continue;
-    }
-    if (char === "\\") {
-      current += char;
-      escaped = true;
-      continue;
-    }
-    if (quote) {
-      current += char;
-      if (char === quote) quote = null;
-      continue;
-    }
-    if (char === "'" || char === '"') {
-      quote = char;
-      current += char;
-      continue;
-    }
-    if (char === "(") parenDepth += 1;
-    if (char === ")") parenDepth = Math.max(0, parenDepth - 1);
-    if (char === "[") bracketDepth += 1;
-    if (char === "]") bracketDepth = Math.max(0, bracketDepth - 1);
-
-    if (char === "/" && parenDepth === 0 && bracketDepth === 0) {
-      push();
-    } else {
-      current += char;
-    }
-  }
-
-  push();
-  return parts;
-}
-
-function matchProperty(property: string, value: string): boolean {
-  try {
-    const result = lexer.matchProperty(property, value) as unknown as {
-      matched?: unknown;
-      error?: unknown;
-    };
-    return Boolean(result.matched) && !result.error;
-  } catch {
-    return false;
-  }
 }
 
 export function expandShorthand(
@@ -184,7 +59,7 @@ export function expandShorthand(
 ): DeclarationMap | null {
   const shorthand = normalizeProperty(property);
   const definition = SHORTHAND_DEFINITIONS[shorthand];
-  if (!isShorthand(shorthand) || !definition) return null;
+  if (!definition) return null;
 
   const normalizedValue = value.trim();
   if (!normalizedValue) return null;
@@ -195,94 +70,11 @@ export function expandShorthand(
     );
   }
 
-  const context: ShorthandExpandContext = {
-    matchProperty,
-    splitWhitespace: splitTopLevelWhitespace,
-    splitSlash: splitTopLevelSlash,
-  };
-
-  return definition.expand(normalizedValue, context);
-}
-
-function compressQuad(values: readonly string[]): string {
-  const [top, right, bottom, left] = values;
-  if (top === right && top === bottom && top === left) return top!;
-  if (top === bottom && right === left) return `${top} ${right}`;
-  if (right === left) return `${top} ${right} ${bottom}`;
-  return values.join(" ");
-}
-
-function collapseFlex(concrete: readonly string[]): string {
-  const [grow, shrink, basis] = concrete;
-  if (grow === "0" && shrink === "0" && basis === "auto") return "none";
-  if (grow === "1" && shrink === "1" && basis === "auto") return "auto";
-  return `${grow} ${shrink} ${basis}`;
-}
-
-function collapseLogicalBorderAxis(concrete: readonly string[]): string | null {
-  if (concrete.length !== 6) return null;
-  const first = concrete.slice(0, 3);
-  const second = concrete.slice(3, 6);
-  if (!first.every((value, index) => value === second[index])) return null;
-  return first.join(" ");
-}
-
-function collapseSlashPair(
-  definition: TransformableShorthandModule,
-  concrete: readonly string[],
-): string | null {
-  if (concrete.length !== 2) return null;
-  const [first, second] = concrete;
-  if (second === definition.initialValues?.[1]) return first!;
-  return `${first} / ${second}`;
-}
-
-function collapsePure(
-  definition: TransformableShorthandModule,
-  declarations: DeclarationMap,
-): string | null {
-  const values = definition.longhands.map((property) => declarations[property]?.trim());
-  if (values.some((value) => !value)) return null;
-  const concrete = values as string[];
-
-  if (concrete.every((value) => value === concrete[0]) && GLOBAL_VALUES.has(concrete[0]!)) {
-    return concrete[0]!;
-  }
-
-  switch (definition.strategy) {
-    case "quad":
-      return compressQuad(concrete);
-    case "pair":
-      return concrete[0] === concrete[1] ? concrete[0]! : concrete.join(" ");
-    case "triple":
-      return concrete.join(" ");
-    case "logical-border-axis":
-      return collapseLogicalBorderAxis(concrete);
-    case "flex":
-      return collapseFlex(concrete);
-    case "flex-flow":
-    case "components":
-    case "text-decoration":
-      return concrete.join(" ");
-    case "slash-pair":
-      return collapseSlashPair(definition, concrete);
-    case "border-all": {
-      const sides = ["top", "right", "bottom", "left"].map((side) => [
-        declarations[`border-${side}-width`],
-        declarations[`border-${side}-style`],
-        declarations[`border-${side}-color`],
-      ]);
-      if (sides.some((side) => side.some((value) => !value))) return null;
-      const first = sides[0]!.join(" ");
-      return sides.every((side) => side.join(" ") === first) ? first : null;
-    }
-    case "csstree":
-      return null;
-  }
+  return definition.expand(normalizedValue, shorthandExpandContext);
 }
 
 function fillMissingInitialLonghands(
-  definition: TransformableShorthandModule,
+  definition: ShorthandModule,
   declarations: DeclarationMap,
   options?: TransformOptions,
 ): DeclarationMap {
@@ -296,7 +88,6 @@ function fillMissingInitialLonghands(
     const initialValue = definition.initialValues?.[index];
     if (initialValue) completed[longhand] = initialValue;
   });
-
   return completed;
 }
 
@@ -316,8 +107,11 @@ export function collapseToShorthand(
   if (!consumed.length) return null;
 
   const completed = fillMissingInitialLonghands(definition, normalized, options);
-  const value = definition.collapse?.(completed, { matchProperty })
-    ?? collapsePure(definition, completed);
+  const concrete = definition.longhands.map((longhand) => completed[longhand]);
+  const first = concrete[0];
+  const value = first && concrete.every((entry) => entry === first) && GLOBAL_VALUES.has(first)
+    ? first
+    : definition.collapse(completed, shorthandCollapseContext);
   if (!value) return null;
 
   return {

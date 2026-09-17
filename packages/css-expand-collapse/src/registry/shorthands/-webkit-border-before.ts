@@ -1,3 +1,4 @@
+import { collapseTriple } from "../collapsers.js";
 import { expandTriple } from "../expanders.js";
 import type { ShorthandModule } from "../types.js";
 
@@ -8,4 +9,6 @@ const longhands = [
 ] as const;
 const expand = expandTriple(longhands);
 
-export default { longhands, strategy: "triple", expand } satisfies ShorthandModule;
+const collapse = collapseTriple(longhands);
+
+export default { longhands, expand, collapse } satisfies ShorthandModule;

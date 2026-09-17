@@ -66,14 +66,11 @@ All registered transformable shorthands use runtime-neutral JavaScript + CSSTree
 ```js
 import {
   supportsPureTransform,
-  getShorthandStrategy,
 } from "@moyarich/css-expand-collapse";
 
 supportsPureTransform("background");
 // true
 
-getShorthandStrategy("background");
-// "csstree"
 ```
 
 ## Chrome extensions / Manifest V3
@@ -249,7 +246,6 @@ getLonghands(shorthand)
 getShorthands(longhand)
 supportsTransform(property)
 supportsPureTransform(property)
-getShorthandStrategy(property)
 
 expandShorthand(property, value, options?)
 collapseToShorthand(shorthand, declarations, options?)
