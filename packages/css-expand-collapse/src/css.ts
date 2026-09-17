@@ -209,6 +209,9 @@ function hasEarlierOverlappingShorthand(
 function canDropWhenFullyShadowed(property: string): boolean {
   const definition = SHORTHAND_DEFINITIONS[property];
   if (!definition) return false;
+  if (definition.safeToDropWhenFullyShadowed !== undefined) {
+    return definition.safeToDropWhenFullyShadowed;
+  }
   return definition.strategy !== "csstree" && definition.strategy !== "border-all";
 }
 
