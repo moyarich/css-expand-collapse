@@ -5,7 +5,7 @@ import {
   type DeclarationMap,
   type TransformOptions,
 } from "./core.js";
-import { SHORTHAND_PROPERTIES } from "./registry.js";
+import { SHORTHAND_PROPERTIES } from "./registry/index.js";
 
 export interface ReadonlyStyleDeclaration {
   readonly length: number;

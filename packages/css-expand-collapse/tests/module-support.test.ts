@@ -2,17 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   collapseToShorthand,
   expandShorthand,
-  supportsPureTransform,
   supportsTransform,
 } from "../src/index.js";
 
 describe("module-owned shorthand transforms", () => {
-  it("reports CSSTree-backed shorthands as runtime-neutral", () => {
+  it("reports runtime-neutral shorthand support", () => {
     expect(supportsTransform("flex")).toBe(true);
-    expect(supportsPureTransform("flex")).toBe(true);
-
     expect(supportsTransform("background")).toBe(true);
-    expect(supportsPureTransform("background")).toBe(true);
   });
 
   it("expands and collapses flex without a DOM", () => {

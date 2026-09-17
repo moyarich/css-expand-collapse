@@ -5,7 +5,7 @@ import {
   type DeclarationMap,
   type TransformOptions,
 } from "./core.js";
-import { SHORTHAND_DEFINITIONS } from "./registry.js";
+import { SHORTHAND_DEFINITIONS } from "./registry/index.js";
 
 export type TransformMode = "expand" | "collapse";
 
@@ -17,6 +17,13 @@ type EffectiveDeclaration = {
   value: string;
   important: boolean;
 };
+
+const TRANSPARENT_BLACK_VALUES = new Set([
+  "transparent",
+  "rgba(0,0,0,0)",
+  "rgb(0 0 0/0)",
+  "rgb(0 0 0 / 0)",
+]);
 
 function makeDeclaration(property: string, value: string, important = false): any {
   return parse(`${property}:${value}${important ? "!important" : ""}`, {
@@ -40,23 +47,11 @@ function canonicalizeCssValue(value: string): string {
   }
 }
 
-function isTransparentBlack(value: string): boolean {
-  const normalized = value.toLowerCase();
-  return (
-    normalized === "transparent" ||
-    normalized === "rgba(0,0,0,0)" ||
-    normalized === "rgb(0 0 0/0)" ||
-    normalized === "rgb(0 0 0 / 0)"
-  );
-}
-
 function valuesEquivalent(property: string, left: string, right: string): boolean {
   const a = canonicalizeCssValue(left);
   const b = canonicalizeCssValue(right);
   if (a === b) return true;
 
-  // Computed background-size commonly serializes the initial two-value form
-  // `auto auto` as the equivalent one-value form `auto`.
   if (
     property === "background-size" &&
     ((a === "auto" && b === "auto auto") ||
@@ -65,27 +60,25 @@ function valuesEquivalent(property: string, left: string, right: string): boolea
     return true;
   }
 
-  // The CSS keyword transparent is transparent black. Chromium computed styles
-  // commonly serialize it as rgba(0, 0, 0, 0).
-  if (property === "background-color" && isTransparentBlack(a) && isTransparentBlack(b)) {
-    return true;
-  }
-
-  return false;
+  return property === "background-color" &&
+    TRANSPARENT_BLACK_VALUES.has(a.toLowerCase()) &&
+    TRANSPARENT_BLACK_VALUES.has(b.toLowerCase());
 }
 
-function expandBlock(children: any[], options?: TransformOptions): any[] {
+function expandBlock(children: any[]): any[] {
   const output: any[] = [];
   for (const child of children) {
     if (child.type !== "Declaration") {
       output.push(child);
       continue;
     }
-    const expanded = expandShorthand(child.property, declarationValue(child), options);
+
+    const expanded = expandShorthand(child.property, declarationValue(child));
     if (!expanded) {
       output.push(child);
       continue;
     }
+
     for (const [property, value] of Object.entries(expanded)) {
       output.push(makeDeclaration(property, value, Boolean(child.important)));
     }
@@ -113,7 +106,7 @@ function declarationWouldApply(
  * combine a complete set of those overrides and remove an earlier shorthand when the
  * cascade proves that shorthand is fully overridden.
  */
-function removeRedundantDeclarations(children: any[], options?: TransformOptions): any[] {
+function removeRedundantDeclarations(children: any[]): any[] {
   const output: any[] = [];
   const effective = new Map<string, EffectiveDeclaration>();
 
@@ -129,24 +122,24 @@ function removeRedundantDeclarations(children: any[], options?: TransformOptions
     const definition = SHORTHAND_DEFINITIONS[property];
 
     if (definition) {
-      const expanded = expandShorthand(property, value, options);
+      const expanded = expandShorthand(property, value);
 
       if (expanded) {
         const entries = Object.entries(expanded);
         const changesEffectiveValue = entries.some(([longhand, longhandValue]) => {
           const current = effective.get(longhand);
           if (!declarationWouldApply(current, important)) return false;
-          return !current || !valuesEquivalent(longhand, current.value, longhandValue) || current.important !== important;
+          return !current ||
+            !valuesEquivalent(longhand, current.value, longhandValue) ||
+            current.important !== important;
         });
 
-        // Generic strategies have a fully enumerated constituent set, so an exact
-        // restatement can be removed safely. Keep property-specific CSSTree shorthands
-        // conservatively because some CSS shorthands reset state beyond their primary
-        // serializable longhands.
-        const redundantGenericShorthand =
-          definition.safeToDropWhenFullyShadowed !== false && !changesEffectiveValue;
-
-        if (!redundantGenericShorthand) output.push(child);
+        // Modules whose registered longhand set fully describes their effect can be
+        // removed when they are exact restatements. Reset-heavy shorthands opt out
+        // through safeToDropWhenFullyShadowed.
+        if (definition.safeToDropWhenFullyShadowed === false || changesEffectiveValue) {
+          output.push(child);
+        }
 
         for (const [longhand, longhandValue] of entries) {
           const current = effective.get(longhand);
@@ -156,8 +149,6 @@ function removeRedundantDeclarations(children: any[], options?: TransformOptions
         continue;
       }
 
-      // We know which longhands the shorthand affects, but not their resulting values.
-      // Invalidate only values this declaration can actually override.
       for (const longhand of definition.longhands.keys()) {
         const current = effective.get(longhand);
         if (declarationWouldApply(current, important)) effective.delete(longhand);
@@ -167,13 +158,15 @@ function removeRedundantDeclarations(children: any[], options?: TransformOptions
     }
 
     const current = effective.get(property);
-
-    // A non-important declaration cannot override an existing !important value.
     if (!declarationWouldApply(current, important)) continue;
 
-    // Exact repeated declarations are redundant, including longhands generated by
-    // getComputedStyle()-style exporters after an equivalent shorthand.
-    if (current && valuesEquivalent(property, current.value, value) && current.important === important) continue;
+    if (
+      current &&
+      valuesEquivalent(property, current.value, value) &&
+      current.important === important
+    ) {
+      continue;
+    }
 
     output.push(child);
     effective.set(property, { value, important });
@@ -184,35 +177,10 @@ function removeRedundantDeclarations(children: any[], options?: TransformOptions
 
 function overlapsCandidate(property: string, expected: Set<string>): boolean {
   const definition = SHORTHAND_DEFINITIONS[property];
-  return Boolean(definition && [...definition.longhands.keys()].some((longhand) => expected.has(longhand)));
-}
-
-function hasEarlierOverlappingShorthand(
-  children: any[],
-  beforeIndex: number,
-  expected: Set<string>,
-): boolean {
-  for (let cursor = 0; cursor < beforeIndex; cursor += 1) {
-    const node = children[cursor];
-    if (node.type !== "Declaration") continue;
-    const property = normalizeProperty(node.property);
-    if (overlapsCandidate(property, expected)) return true;
-  }
-  return false;
-}
-
-/**
- * Some shorthands have reset side effects beyond the longhands recorded in the
- * registry. They can still participate in normal collapsing, but they must not be
- * deleted merely because a later candidate covers the registered longhands.
- */
-function canDropWhenFullyShadowed(property: string): boolean {
-  const definition = SHORTHAND_DEFINITIONS[property];
-  if (!definition) return false;
-  if (definition.safeToDropWhenFullyShadowed !== undefined) {
-    return definition.safeToDropWhenFullyShadowed;
-  }
-  return definition.safeToDropWhenFullyShadowed !== false;
+  return Boolean(
+    definition &&
+    [...definition.longhands.keys()].some((longhand) => expected.has(longhand)),
+  );
 }
 
 function findFullyShadowedEarlierShorthands(
@@ -229,15 +197,13 @@ function findFullyShadowedEarlierShorthands(
 
     const property = normalizeProperty(node.property);
     const definition = SHORTHAND_DEFINITIONS[property];
-    if (!definition || !canDropWhenFullyShadowed(property)) continue;
+    if (!definition || definition.safeToDropWhenFullyShadowed === false) continue;
 
-    // The later shorthand must replace every constituent affected by the earlier one.
-    if (![...definition.longhands.keys()].every((longhand) => expected.has(longhand))) continue;
+    if (![...definition.longhands.keys()].every((longhand) => expected.has(longhand))) {
+      continue;
+    }
 
-    const earlierImportant = Boolean(node.important);
-    // Later normal declarations cannot override an earlier !important shorthand.
-    if (earlierImportant && !replacementImportant) continue;
-
+    if (Boolean(node.important) && !replacementImportant) continue;
     shadowed.push(cursor);
   }
 
@@ -249,10 +215,10 @@ function findFullyShadowedEarlierShorthands(
  * contiguous; unrelated declarations and comments may appear between them.
  *
  * By default every constituent longhand must be present. When
- * `fillMissingLonghands: "initial"` is enabled and a shorthand registers initial
- * values, a partial set may collapse by filling omitted constituents with those
- * initial values. That opt-in is intended for computed/export CSS; it can change the
- * cascade meaning of raw stylesheets by explicitly setting previously omitted values.
+ * `fillMissingLonghands: "initial"` is enabled, a partial set may collapse by filling
+ * omitted constituents from the module-owned LonghandMap. That opt-in is intended for
+ * computed/export CSS; it can change raw stylesheet semantics by explicitly setting
+ * previously omitted values.
  */
 function tryCollapseAt(
   children: any[],
@@ -302,10 +268,18 @@ function tryCollapseAt(
     const complete = matches.size === expected.size;
     if (!complete && !canFillMissing) continue;
 
-    // If a prior shorthand contributes one of the missing values, blindly using the
-    // CSS initial value could change semantics. Partial initial-fill collapse is only
-    // allowed when there is no earlier overlapping shorthand in this block.
-    if (!complete && hasEarlierOverlappingShorthand(children, index, expected)) continue;
+    if (!complete) {
+      let earlierOverlap = false;
+      for (let cursor = 0; cursor < index; cursor += 1) {
+        const node = children[cursor];
+        if (node.type !== "Declaration") continue;
+        if (overlapsCandidate(normalizeProperty(node.property), expected)) {
+          earlierOverlap = true;
+          break;
+        }
+      }
+      if (earlierOverlap) continue;
+    }
 
     const declarations: DeclarationMap = {};
     for (const [property, match] of matches) {
@@ -331,11 +305,6 @@ function collapseBlock(children: any[], options?: TransformOptions): any[] {
   const consumed = new Set<number>();
   const replacements = new Map<number, any>();
 
-  // Collapse complete longhand sets before deduping repeated values. Computed-style
-  // exports often contain an earlier shorthand followed by all of its resolved
-  // longhands. Some of those longhands may equal the earlier shorthand while others
-  // override it. Removing the equal declarations first would make the later set look
-  // incomplete and prevent replacing the earlier shorthand with the final value.
   for (let index = 0; index < children.length; index += 1) {
     if (consumed.has(index)) continue;
 
@@ -357,15 +326,7 @@ function collapseBlock(children: any[], options?: TransformOptions): any[] {
     if (!consumed.has(index)) collapsedOutput.push(children[index]);
   }
 
-  // Then remove computed longhands that merely restate the shorthand. Comparison is
-  // syntax-normalized so harmless serialization differences do not keep duplicates.
-  return removeRedundantDeclarations(collapsedOutput, options);
-}
-
-function replaceChildren(block: any, children: any[]): void {
-  const list = new List();
-  for (const child of children) list.appendData(child);
-  block.children = list;
+  return removeRedundantDeclarations(collapsedOutput);
 }
 
 export function transformCss(css: string, options: TransformCssOptions): string {
@@ -376,17 +337,19 @@ export function transformCss(css: string, options: TransformCssOptions): string 
     enter(block: any) {
       const children = block.children.toArray();
       const transformed = options.mode === "expand"
-        ? expandBlock(children, options)
+        ? expandBlock(children)
         : collapseBlock(children, options);
-      replaceChildren(block, transformed);
+      const list = new List();
+      for (const child of transformed) list.appendData(child);
+      block.children = list;
     },
   });
 
   return generate(ast);
 }
 
-export function expandCss(css: string, options?: TransformOptions): string {
-  return transformCss(css, { ...options, mode: "expand" });
+export function expandCss(css: string): string {
+  return transformCss(css, { mode: "expand" });
 }
 
 export function collapseCss(css: string, options?: TransformOptions): string {
@@ -405,8 +368,8 @@ function transformDeclarationBlock(
   return open === -1 || close === -1 ? output : output.slice(open + 1, close);
 }
 
-export function expandDeclarations(declarations: string, options?: TransformOptions): string {
-  return transformDeclarationBlock(declarations, "expand", options);
+export function expandDeclarations(declarations: string): string {
+  return transformDeclarationBlock(declarations, "expand");
 }
 
 export function collapseDeclarations(declarations: string, options?: TransformOptions): string {

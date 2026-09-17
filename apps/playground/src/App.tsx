@@ -20,6 +20,17 @@ type Mode = "expand" | "collapse";
 type InputKind = "stylesheet" | "declarations";
 type PlaygroundView = "converter" | "api";
 
+const QUOTATIONMARK = 0x0022;     // U+0022  -  "
+const APOSTROPHE = 0x0027;        // U+0027  -  '
+const LEFTPARENTHESIS = 0x0028;   // U+0028  -  (
+const RIGHTPARENTHESIS = 0x0029;  // U+0029  -  )
+const COLON = 0x003A;             // U+003A  -  :
+const SEMICOLON = 0x003B;         // U+003B  -  ;
+const LEFTCURLYBRACKET = 0x007B;  // U+007B  -  {
+const REVERSESOLIDUS = 0x005C;    // U+005C  -  \
+const RIGHTCURLYBRACKET = 0x007D; // U+007D  -  }
+const CSS_WHITESPACE = new Set([0x0009, 0x000A, 0x000C, 0x000D, 0x0020]);
+
 const MODE_META: Record<Mode, {
   label: string;
   direction: string;
@@ -45,38 +56,13 @@ const MODE_META: Record<Mode, {
 
 const DEFAULT_EXAMPLE = getShorthandExample("text-decoration")!;
 
-function detectInputKind(source: string): InputKind {
-  return source.includes("{") ? "stylesheet" : "declarations";
-}
-
-function transform(
-  source: string,
-  mode: Mode,
-  inputKind: InputKind,
-  fillMissingLonghands: boolean,
-): string {
-  const collapseOptions = fillMissingLonghands
-    ? { fillMissingLonghands: "initial" as const }
-    : undefined;
-
-  if (inputKind === "declarations") {
-    return mode === "expand"
-      ? expandDeclarations(source)
-      : collapseDeclarations(source, collapseOptions);
-  }
-
-  return mode === "expand"
-    ? expandCss(source)
-    : collapseCss(source, collapseOptions);
-}
-
 function formatCss(css: string, inputKind: InputKind): string {
   const source = css.trim();
   if (!source) return "";
 
   let output = "";
   let indent = 0;
-  let quote: "'" | '"' | null = null;
+  let quoteCode = 0;
   let escaped = false;
   let parenDepth = 0;
   let pendingSpace = false;
@@ -85,44 +71,47 @@ function formatCss(css: string, inputKind: InputKind): string {
     output += "  ".repeat(Math.max(0, indent));
   };
 
-  for (const char of source) {
+  for (let index = 0; index < source.length; index += 1) {
+    const code = source.charCodeAt(index);
+    const char = source[index]!;
+
     if (escaped) {
       output += char;
       escaped = false;
       continue;
     }
 
-    if (char === "\\") {
+    if (code === REVERSESOLIDUS) {
       output += char;
       escaped = true;
       continue;
     }
 
-    if (quote) {
+    if (quoteCode) {
       output += char;
-      if (char === quote) quote = null;
+      if (code === quoteCode) quoteCode = 0;
       continue;
     }
 
-    if (char === "'" || char === '"') {
+    if (code === APOSTROPHE || code === QUOTATIONMARK) {
       if (pendingSpace) {
         output += " ";
         pendingSpace = false;
       }
-      quote = char;
+      quoteCode = code;
       output += char;
       continue;
     }
 
-    if (char === "(") parenDepth += 1;
-    if (char === ")") parenDepth = Math.max(0, parenDepth - 1);
+    if (code === LEFTPARENTHESIS) parenDepth += 1;
+    if (code === RIGHTPARENTHESIS) parenDepth = Math.max(0, parenDepth - 1);
 
-    if (/\s/.test(char) && parenDepth === 0) {
+    if (CSS_WHITESPACE.has(code) && parenDepth === 0) {
       pendingSpace = true;
       continue;
     }
 
-    if (char === "{" && parenDepth === 0) {
+    if (code === LEFTCURLYBRACKET && parenDepth === 0) {
       output = output.trimEnd();
       output += " {\n";
       indent += 1;
@@ -131,7 +120,7 @@ function formatCss(css: string, inputKind: InputKind): string {
       continue;
     }
 
-    if (char === ";" && parenDepth === 0) {
+    if (code === SEMICOLON && parenDepth === 0) {
       output = output.trimEnd();
       output += ";\n";
       writeIndent();
@@ -139,7 +128,7 @@ function formatCss(css: string, inputKind: InputKind): string {
       continue;
     }
 
-    if (char === "}" && parenDepth === 0) {
+    if (code === RIGHTCURLYBRACKET && parenDepth === 0) {
       output = output.trimEnd();
       indent = Math.max(0, indent - 1);
       output += "\n";
@@ -149,7 +138,11 @@ function formatCss(css: string, inputKind: InputKind): string {
       continue;
     }
 
-    if (char === ":" && parenDepth === 0) {
+    if (
+      code === COLON &&
+      parenDepth === 0 &&
+      (inputKind === "declarations" || indent > 0)
+    ) {
       output = output.trimEnd();
       output += ": ";
       pendingSpace = false;
@@ -169,11 +162,9 @@ function formatCss(css: string, inputKind: InputKind): string {
     .join("\n")
     .trim();
 
-  if (inputKind === "declarations") {
-    return formatted.replace(/^\s{2}/gm, "");
-  }
-
-  return formatted;
+  return inputKind === "declarations"
+    ? formatted.replace(/^\s{2}/gm, "")
+    : formatted;
 }
 
 export function App() {
@@ -184,11 +175,26 @@ export function App() {
   const [copied, setCopied] = useState(false);
 
   const meta = MODE_META[mode];
-  const inputKind = useMemo(() => detectInputKind(source), [source]);
+  const inputKind = useMemo<InputKind>(
+    () => source.indexOf(String.fromCharCode(LEFTCURLYBRACKET)) === -1
+      ? "declarations"
+      : "stylesheet",
+    [source],
+  );
 
   const result = useMemo(() => {
     try {
-      const css = transform(source, mode, inputKind, fillMissingLonghands);
+      const collapseOptions = fillMissingLonghands
+        ? { fillMissingLonghands: "initial" as const }
+        : undefined;
+      const css = inputKind === "declarations"
+        ? mode === "expand"
+          ? expandDeclarations(source)
+          : collapseDeclarations(source, collapseOptions)
+        : mode === "expand"
+          ? expandCss(source)
+          : collapseCss(source, collapseOptions);
+
       return { css: formatCss(css, inputKind), error: "" };
     } catch (error) {
       return {

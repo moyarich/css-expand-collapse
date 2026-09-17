@@ -8,7 +8,6 @@ export {
   getShorthands,
   isLonghand,
   isShorthand,
-  supportsPureTransform,
   supportsTransform,
 } from "./core.js";
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   collapseToShorthand,
   expandShorthand,
-  supportsPureTransform,
+  supportsTransform,
 } from "../src/index.js";
 
 describe("CSSTree runtime-neutral shorthands", () => {
@@ -91,7 +91,7 @@ describe("CSSTree runtime-neutral shorthands", () => {
     expect(expandShorthand("transition", collapsed!.value)).toEqual(collapsed!.declarations);
   });
 
-  it("reports formerly CSSOM-backed shorthands as pure transforms", () => {
+  it("reports complex shorthands as supported transforms", () => {
     for (const property of [
       "background",
       "mask",
@@ -103,7 +103,7 @@ describe("CSSTree runtime-neutral shorthands", () => {
       "offset",
       "text-emphasis",
     ]) {
-      expect(supportsPureTransform(property)).toBe(true);
+      expect(supportsTransform(property)).toBe(true);
     }
   });
 });

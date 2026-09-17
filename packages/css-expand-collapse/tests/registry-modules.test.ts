@@ -5,7 +5,7 @@ import {
   isShorthand,
   supportsTransform,
 } from "../src/index.js";
-import { SHORTHAND_MODULES } from "../src/registry.js";
+import { SHORTHAND_MODULES } from "../src/registry/index.js";
 
 describe("per-shorthand registry", () => {
   it("derives a unique property list from shorthand module filenames", () => {

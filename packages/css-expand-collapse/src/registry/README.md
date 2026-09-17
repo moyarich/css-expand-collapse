@@ -11,6 +11,12 @@ export interface ShorthandModule {
 }
 ```
 
+`LonghandMap` is the source of truth for both constituent property names and CSS initial values:
+
+```ts
+export type LonghandMap = ReadonlyMap<string, string>;
+```
+
 There is no strategy dispatcher. A shorthand module owns both transformation directions. Adding a new shorthand should not require adding a case to `core.ts`.
 
 ## Registry responsibilities
@@ -20,7 +26,7 @@ registry/
 ├── context.ts       # CSSTree matching and top-level value splitting
 ├── expanders.ts     # reusable expansion factories
 ├── collapsers.ts    # reusable collapse factories
-├── helpers.ts       # longhand-name helpers
+├── helpers.ts       # longhand-map helpers
 ├── module.ts        # common module contract
 ├── index.ts         # derived lookup tables
 └── shorthands/      # one module per CSS shorthand
@@ -36,10 +42,15 @@ Simple grammars compose reusable expand/collapse factories:
 // shorthands/margin.ts
 import { collapseQuad } from "../collapsers.js";
 import { expandQuad } from "../expanders.js";
-import { quad } from "../helpers.js";
 import type { ShorthandModule } from "../types.js";
 
-const longhands = quad("margin");
+const longhands = new Map([
+  ["margin-top", "0"],
+  ["margin-right", "0"],
+  ["margin-bottom", "0"],
+  ["margin-left", "0"],
+] as const);
+
 const expand = expandQuad(longhands);
 const collapse = collapseQuad(longhands);
 
@@ -98,7 +109,7 @@ shorthandCollapseContext = {
 };
 ```
 
-It also exports top-level comma, slash, and whitespace splitting helpers. Transformation modules must not depend on `document`, detached elements, or mutable `CSSStyleDeclaration` objects.
+It also exports top-level comma, slash, and whitespace splitting helpers. The scanner uses named Unicode code-point constants and CSS-defined whitespace characters. Transformation modules must not depend on `document`, detached elements, or mutable `CSSStyleDeclaration` objects.
 
 ## Cascade safety metadata
 
@@ -109,7 +120,7 @@ Set it to `false` when a shorthand has reset/cascade effects beyond the register
 ## Adding a shorthand
 
 1. Add `shorthands/<property>.ts`.
-2. Declare its `longhands` map, pairing each longhand with its initial value.
+2. Declare its `LonghandMap`, pairing every longhand with its CSS initial value.
 3. Implement `expand` and `collapse` in that module.
 4. Reuse `expanders.ts` and `collapsers.ts` factories when the grammar matches.
 5. Keep special parsing/serialization semantics in the shorthand file and validate candidates with `context.matchProperty(...)`.

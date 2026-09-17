@@ -61,16 +61,13 @@ const {
 } = require("@moyarich/css-expand-collapse");
 ```
 
-All registered transformable shorthands use runtime-neutral JavaScript + CSSTree. Complex properties such as `background`, `mask`, `animation`, `transition`, `font`, and `grid` no longer require `document` or a `CSSStyleDeclaration`.
+All registered transformable shorthands use runtime-neutral JavaScript + CSSTree. Complex properties such as `background`, `mask`, `animation`, `transition`, `font`, and `grid` do not require `document` or a `CSSStyleDeclaration`.
 
 ```js
-import {
-  supportsPureTransform,
-} from "@moyarich/css-expand-collapse";
+import { supportsTransform } from "@moyarich/css-expand-collapse";
 
-supportsPureTransform("background");
+supportsTransform("background");
 // true
-
 ```
 
 ## Chrome extensions / Manifest V3
@@ -159,7 +156,7 @@ Collapse is cascade-aware within declaration blocks. Source order, overlapping s
 
 Raw stylesheet collapse is conservative by default. Missing longhands are not invented because that could override values supplied by another matching rule.
 
-For computed/export CSS, missing constituents can explicitly use registered initial values:
+For computed/export CSS, missing constituents can explicitly use module-owned initial values:
 
 ```js
 import { collapseCss } from "@moyarich/css-expand-collapse";
@@ -245,18 +242,17 @@ isLonghand(property)
 getLonghands(shorthand)
 getShorthands(longhand)
 supportsTransform(property)
-supportsPureTransform(property)
 
-expandShorthand(property, value, options?)
+expandShorthand(property, value)
 collapseToShorthand(shorthand, declarations, options?)
 findCollapsibleShorthands(declarations, options?)
 collapseLonghands(declarations, options?)
 
-expandCss(css, options?)
+expandCss(css)
 collapseCss(css, options?)
 transformCss(css, { mode, ...options })
 
-expandDeclarations(css, options?)
+expandDeclarations(css)
 collapseDeclarations(css, options?)
 
 styleToDeclarations(style, properties?)

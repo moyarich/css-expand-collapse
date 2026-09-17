@@ -1,109 +1,98 @@
 import { lexer } from "css-tree";
 import type { ShorthandCollapseContext, ShorthandExpandContext } from "./module.js";
 
-export function splitTopLevel(value: string, separator: string): string[] {
+const TAB = 0x0009;                // U+0009  -  \t
+const LINEFEED = 0x000A;           // U+000A  -  \n
+const FORMFEED = 0x000C;           // U+000C  -  \f
+const CARRIAGERETURN = 0x000D;     // U+000D  -  \r
+const SPACE = 0x0020;              // U+0020  -  space
+const QUOTATIONMARK = 0x0022;      // U+0022  -  "
+const APOSTROPHE = 0x0027;         // U+0027  -  '
+const LEFTPARENTHESIS = 0x0028;    // U+0028  -  (
+const RIGHTPARENTHESIS = 0x0029;   // U+0029  -  )
+const COMMA = 0x002C;              // U+002C  -  ,
+const SOLIDUS = 0x002F;            // U+002F  -  /
+const LEFTSQUAREBRACKET = 0x005B;  // U+005B  -  [
+const REVERSESOLIDUS = 0x005C;     // U+005C  -  \
+const RIGHTSQUAREBRACKET = 0x005D; // U+005D  -  ]
+
+const CSS_WHITESPACE = new Set([TAB, LINEFEED, FORMFEED, CARRIAGERETURN, SPACE]);
+
+function splitTopLevel(
+  value: string,
+  separatorCode: number | null,
+  omitEmpty = false,
+): string[] {
   const parts: string[] = [];
+  const source = value.trim();
   let current = "";
-  let quote: "'" | '"' | null = null;
+  let quoteCode = 0;
   let escaped = false;
   let parenDepth = 0;
   let bracketDepth = 0;
 
-  const push = () => {
-    parts.push(current.trim());
+  const pushCurrent = () => {
+    const part = current.trim();
+    if (!omitEmpty || part) parts.push(part);
     current = "";
   };
 
-  for (const char of value.trim()) {
+  for (let index = 0; index < source.length; index += 1) {
+    const code = source.charCodeAt(index);
+    const char = source[index]!;
+
     if (escaped) {
       current += char;
       escaped = false;
       continue;
     }
-    if (char === "\\") {
+
+    if (code === REVERSESOLIDUS) {
       current += char;
       escaped = true;
       continue;
     }
-    if (quote) {
-      current += char;
-      if (char === quote) quote = null;
-      continue;
-    }
-    if (char === "'" || char === '"') {
-      quote = char;
-      current += char;
-      continue;
-    }
-    if (char === "(") parenDepth += 1;
-    if (char === ")") parenDepth = Math.max(0, parenDepth - 1);
-    if (char === "[") bracketDepth += 1;
-    if (char === "]") bracketDepth = Math.max(0, bracketDepth - 1);
 
-    if (char === separator && parenDepth === 0 && bracketDepth === 0) {
-      push();
+    if (quoteCode) {
+      current += char;
+      if (code === quoteCode) quoteCode = 0;
+      continue;
+    }
+
+    if (code === APOSTROPHE || code === QUOTATIONMARK) {
+      quoteCode = code;
+      current += char;
+      continue;
+    }
+
+    if (code === LEFTPARENTHESIS) parenDepth += 1;
+    if (code === RIGHTPARENTHESIS) parenDepth = Math.max(0, parenDepth - 1);
+    if (code === LEFTSQUAREBRACKET) bracketDepth += 1;
+    if (code === RIGHTSQUAREBRACKET) bracketDepth = Math.max(0, bracketDepth - 1);
+
+    const isSeparator = separatorCode === null
+      ? CSS_WHITESPACE.has(code)
+      : code === separatorCode;
+
+    if (isSeparator && parenDepth === 0 && bracketDepth === 0) {
+      pushCurrent();
     } else {
       current += char;
     }
   }
 
-  push();
+  pushCurrent();
   return parts;
 }
 
-export function splitTopLevelWhitespace(value: string): string[] {
-  const result: string[] = [];
-  let current = "";
-  let quote: "'" | '"' | null = null;
-  let escaped = false;
-  let parenDepth = 0;
-  let bracketDepth = 0;
+export const splitTopLevelWhitespace = (value: string): string[] =>
+  splitTopLevel(value, null, true);
 
-  const push = () => {
-    const token = current.trim();
-    if (token) result.push(token);
-    current = "";
-  };
+export const splitTopLevelSlash = (value: string): string[] =>
+  splitTopLevel(value, SOLIDUS);
 
-  for (const char of value.trim()) {
-    if (escaped) {
-      current += char;
-      escaped = false;
-      continue;
-    }
-    if (char === "\\") {
-      current += char;
-      escaped = true;
-      continue;
-    }
-    if (quote) {
-      current += char;
-      if (char === quote) quote = null;
-      continue;
-    }
-    if (char === "'" || char === '"') {
-      quote = char;
-      current += char;
-      continue;
-    }
-    if (char === "(") parenDepth += 1;
-    if (char === ")") parenDepth = Math.max(0, parenDepth - 1);
-    if (char === "[") bracketDepth += 1;
-    if (char === "]") bracketDepth = Math.max(0, bracketDepth - 1);
-
-    if (/\s/.test(char) && parenDepth === 0 && bracketDepth === 0) {
-      push();
-    } else {
-      current += char;
-    }
-  }
-
-  push();
-  return result;
-}
-
-export const splitTopLevelSlash = (value: string): string[] => splitTopLevel(value, "/");
-export const splitTopLevelComma = (value: string): string[] => splitTopLevel(value, ",");
+export const splitTopLevelComma = (value: string): string[] =>
+  splitTopLevel(value, COMMA);
 
 export function matchProperty(property: string, value: string): boolean {
   try {

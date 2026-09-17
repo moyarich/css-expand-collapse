@@ -4,21 +4,20 @@ import {
   SHORTHAND_PROPERTIES,
   SHORTHAND_SET,
   type DeclarationMap,
-  type ShorthandModule,
-} from "./registry.js";
+} from "./registry/index.js";
 import {
   shorthandCollapseContext,
   shorthandExpandContext,
 } from "./registry/context.js";
 
-export type { DeclarationMap, LonghandMap } from "./registry.js";
+export type { DeclarationMap, LonghandMap } from "./registry/index.js";
 
 export interface TransformOptions {
   /**
    * Controls whether omitted registered longhands may use module-owned initial values.
-   * Object-level collapse APIs use initial values by default when they are available;
-   * pass false to require a complete declaration map. Stylesheet/declaration-text
-   * collapse remains conservative unless "initial" is explicitly requested.
+   * Object-level collapse APIs use initial values by default; pass false to require a
+   * complete declaration map. Stylesheet/declaration-text collapse remains conservative
+   * unless "initial" is explicitly requested.
    */
   fillMissingLonghands?: false | "initial";
 }
@@ -53,14 +52,9 @@ export function supportsTransform(property: string): boolean {
   return Boolean(SHORTHAND_DEFINITIONS[normalizeProperty(property)]);
 }
 
-export function supportsPureTransform(property: string): boolean {
-  return supportsTransform(property);
-}
-
 export function expandShorthand(
   property: string,
   value: string,
-  _options?: TransformOptions,
 ): DeclarationMap | null {
   const shorthand = normalizeProperty(property);
   const definition = SHORTHAND_DEFINITIONS[shorthand];
@@ -78,25 +72,6 @@ export function expandShorthand(
   return definition.expand(normalizedValue, shorthandExpandContext);
 }
 
-function fillMissingInitialLonghands(
-  definition: ShorthandModule,
-  declarations: DeclarationMap,
-  options?: TransformOptions,
-): DeclarationMap {
-  const completed = { ...declarations };
-  const shouldFill = options?.fillMissingLonghands !== false;
-
-  if (!shouldFill) {
-    return completed;
-  }
-
-  for (const [longhand, initialValue] of definition.longhands) {
-    if (Object.hasOwn(completed, longhand)) continue;
-    completed[longhand] = initialValue;
-  }
-  return completed;
-}
-
 export function collapseToShorthand(
   shorthandProperty: string,
   declarations: DeclarationMap,
@@ -112,7 +87,13 @@ export function collapseToShorthand(
   const consumed = [...definition.longhands.keys()].filter((longhand) => Object.hasOwn(normalized, longhand));
   if (!consumed.length) return null;
 
-  const completed = fillMissingInitialLonghands(definition, normalized, options);
+  const completed = { ...normalized };
+  if (options?.fillMissingLonghands !== false) {
+    for (const [longhand, initialValue] of definition.longhands) {
+      if (!Object.hasOwn(completed, longhand)) completed[longhand] = initialValue;
+    }
+  }
+
   const concrete = [...definition.longhands.keys()].map((longhand) => completed[longhand]);
   const first = concrete[0];
   const value = first && concrete.every((entry) => entry === first) && GLOBAL_VALUES.has(first)

@@ -89,7 +89,7 @@ expandShorthand(
 
 ### Collapse
 
-Object-level collapse APIs use module-owned CSS initial values for omitted longhands when those values are registered by the shorthand module.
+Object-level collapse APIs use module-owned CSS initial values from each shorthand's `LonghandMap` when longhands are omitted.
 
 ```ts
 collapseToShorthand("margin", {
@@ -139,7 +139,7 @@ collapseLonghands({
 
 Raw stylesheet collapse is conservative by default. Missing longhands are not invented because doing so could override values supplied by another matching rule.
 
-For object-level APIs such as `collapseToShorthand()`, registered initial values are used by default. For example, this fills the omitted `left` value with the CSS initial value `auto`:
+For object-level APIs such as `collapseToShorthand()`, module-owned initial values are used by default. For example, this fills the omitted `left` value with the CSS initial value `auto`:
 
 ```ts
 collapseToShorthand("inset", {
@@ -252,13 +252,13 @@ The transform APIs do not use `document` or `CSSStyleDeclaration`:
 ```ts
 import {
   expandShorthand,
-  supportsPureTransform,
+  supportsTransform,
 } from "@moyarich/css-expand-collapse";
 
-supportsPureTransform("background"); // true
-supportsPureTransform("animation");  // true
-supportsPureTransform("font");       // true
-supportsPureTransform("grid");       // true
+supportsTransform("background"); // true
+supportsTransform("animation");  // true
+supportsTransform("font");       // true
+supportsTransform("grid");       // true
 
 expandShorthand("transition", "opacity 200ms ease");
 ```
@@ -344,18 +344,17 @@ isLonghand(property)
 getLonghands(shorthand)
 getShorthands(longhand)
 supportsTransform(property)
-supportsPureTransform(property)
 
-expandShorthand(property, value, options?)
+expandShorthand(property, value)
 collapseToShorthand(shorthand, declarations, options?)
 findCollapsibleShorthands(declarations, options?)
 collapseLonghands(declarations, options?)
 
-expandCss(css, options?)
+expandCss(css)
 collapseCss(css, options?)
 transformCss(css, { mode, ...options })
 
-expandDeclarations(css, options?)
+expandDeclarations(css)
 collapseDeclarations(css, options?)
 
 styleToDeclarations(style, properties?)

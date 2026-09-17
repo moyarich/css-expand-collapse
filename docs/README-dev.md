@@ -82,7 +82,7 @@ src/
     ├── context.ts          # CSSTree matching + value splitting
     ├── expanders.ts        # reusable expand factories
     ├── collapsers.ts       # reusable collapse factories
-    ├── helpers.ts          # longhand-name helpers
+    ├── helpers.ts          # longhand-map helpers
     └── shorthands/         # one implementation per shorthand
 ```
 
@@ -118,6 +118,12 @@ export interface ShorthandModule {
 }
 ```
 
+`LonghandMap` is the single source of truth for both constituent property names and CSS initial values:
+
+```ts
+export type LonghandMap = ReadonlyMap<string, string>;
+```
+
 The property name is intentionally not repeated inside the object. The generated registry derives it from the filename.
 
 There is no executable `strategy` field and no central strategy switch. A shorthand module owns both transformation directions.
@@ -142,7 +148,7 @@ export const shorthandCollapseContext = {
 
 `matchProperty()` delegates to CSSTree's lexer and should be used as the grammar authority instead of maintaining duplicate keyword tables where possible.
 
-Top-level splitting preserves commas, slashes, whitespace, strings, brackets, and functions correctly rather than using naive `String.split()` calls.
+Top-level splitting preserves commas, slashes, CSS whitespace, strings, brackets, and functions correctly rather than using naive `String.split()` calls. The scanner compares named Unicode code-point constants instead of repeatedly allocating one-character strings or using a JavaScript whitespace regex whose definition is broader than CSS whitespace.
 
 ## Simple shorthand implementations
 
@@ -152,10 +158,15 @@ Simple grammars should compose reusable helpers from `registry/expanders.ts` and
 // registry/shorthands/margin.ts
 import { collapseQuad } from "../collapsers.js";
 import { expandQuad } from "../expanders.js";
-import { quad } from "../helpers.js";
 import type { ShorthandModule } from "../types.js";
 
-const longhands = quad("margin");
+const longhands = new Map([
+  ["margin-top", "0"],
+  ["margin-right", "0"],
+  ["margin-bottom", "0"],
+  ["margin-left", "0"],
+] as const);
+
 const expand = expandQuad(longhands);
 const collapse = collapseQuad(longhands);
 
@@ -209,15 +220,14 @@ For example, complex reset shorthands such as `background` remain conservative, 
 ## Adding a shorthand
 
 1. Add `packages/css-expand-collapse/src/registry/shorthands/<property>.ts`.
-2. Declare the complete registered longhand list.
-3. Add `initialValues` when partial computed/export collapse should be able to fill omitted values.
-4. Implement `expand` and `collapse` in that module.
-5. Reuse factories from `expanders.ts` and `collapsers.ts` when appropriate.
-6. Keep property-specific parsing and serialization in the module itself.
-7. Use `context.matchProperty(...)` to validate CSS grammar.
-8. Set `safeToDropWhenFullyShadowed: false` only when the registered longhands are not the complete cascade/reset effect.
-9. Run `npm run generate:registry`.
-10. Add expansion, collapse, and round-trip tests.
+2. Declare one `LonghandMap` that pairs every registered longhand with its CSS initial value.
+3. Implement `expand` and `collapse` in that module.
+4. Reuse factories from `expanders.ts` and `collapsers.ts` when appropriate.
+5. Keep property-specific parsing and serialization in the module itself.
+6. Use `context.matchProperty(...)` to validate CSS grammar.
+7. Set `safeToDropWhenFullyShadowed: false` only when the registered longhands are not the complete cascade/reset effect.
+8. Run `npm run generate:registry`.
+9. Add expansion, collapse, and round-trip tests.
 
 Adding a new shorthand should not require editing `core.ts`.
 

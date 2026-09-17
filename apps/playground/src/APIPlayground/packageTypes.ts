@@ -33,13 +33,11 @@ declare module "@moyarich/css-expand-collapse" {
   export function getLonghands(shorthand: string): string[];
   export function getShorthands(longhand: string): string[];
   export function supportsTransform(property: string): boolean;
-  export function supportsPureTransform(property: string): boolean;
   export function splitTopLevelWhitespace(value: string): string[];
 
   export function expandShorthand(
     property: string,
     value: string,
-    options?: TransformOptions,
   ): DeclarationMap | null;
 
   export function collapseToShorthand(
@@ -59,23 +57,28 @@ declare module "@moyarich/css-expand-collapse" {
   ): DeclarationMap;
 
   export function transformCss(css: string, options: TransformCssOptions): string;
-  export function expandCss(css: string, options?: TransformOptions): string;
+  export function expandCss(css: string): string;
   export function collapseCss(css: string, options?: TransformOptions): string;
-  export function expandDeclarations(declarations: string, options?: TransformOptions): string;
+  export function expandDeclarations(declarations: string): string;
   export function collapseDeclarations(declarations: string, options?: TransformOptions): string;
 
-  export function styleToDeclarations(style: ReadonlyStyleDeclaration): DeclarationMap;
+  export function styleToDeclarations(
+    style: ReadonlyStyleDeclaration,
+    properties?: Iterable<string>,
+  ): DeclarationMap;
   export function getComputedLonghands(
     style: ReadonlyStyleDeclaration,
     shorthand: string,
   ): DeclarationMap;
   export function collapseComputedStyle(
     style: ReadonlyStyleDeclaration,
+    shorthand: string,
     options?: TransformOptions,
-  ): DeclarationMap;
+  ): CollapseResult | null;
   export function collapseComputedStyles(
-    styles: Iterable<ReadonlyStyleDeclaration>,
+    style: ReadonlyStyleDeclaration,
+    shorthands?: Iterable<string>,
     options?: TransformOptions,
-  ): DeclarationMap[];
+  ): CollapseResult[];
 }
 `;
