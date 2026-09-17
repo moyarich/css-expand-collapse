@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./monaco";
+import "./components/MonacoEditor/setup";
 import { App } from "./App";
 import "./styles.css";
 import "./components/APIPlayground/styles.css";
