@@ -1,0 +1,259 @@
+name: Apply module-owned shorthand initial values
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/apply-shorthand-initial-values.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build:lib
+      - name: Add initial values to every shorthand module
+        run: |
+          node --input-type=module <<'NODE'
+          import { createRequire } from 'node:module';
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import { getLonghands, SHORTHAND_PROPERTIES } from './packages/css-expand-collapse/dist/index.js';
+
+          const require = createRequire(import.meta.url);
+          const properties = require('mdn-data/css/properties.json');
+          const root = 'packages/css-expand-collapse/src/registry/shorthands';
+
+          const tsLiteral = (values) => `[${values.map((value) => value === null ? 'null' : JSON.stringify(value)).join(', ')}] as const`;
+
+          for (const shorthand of SHORTHAND_PROPERTIES) {
+            const file = path.join(root, `${shorthand}.ts`);
+            if (!fs.existsSync(file)) continue;
+            let text = fs.readFileSync(file, 'utf8');
+            if (!text.includes('satisfies ShorthandModule')) continue;
+
+            if (!text.includes('initialValues')) {
+              const longhands = getLonghands(shorthand);
+              const values = longhands.map((longhand) => {
+                const initial = properties[longhand]?.initial;
+                if (initial == null) throw new Error(`Missing MDN initial value for ${shorthand} -> ${longhand}`);
+                return initial === 'dependsOnUserAgent' ? null : initial;
+              });
+
+              if (shorthand === 'all') {
+                text = text.replace('  longhands: [],\n', '  longhands: [],\n  initialValues: [],\n');
+              } else {
+                const declaration = `const initialValues = ${tsLiteral(values)};\n`;
+                const expandIndex = text.indexOf('const expand');
+                const exportIndex = text.indexOf('export default');
+                const insertIndex = expandIndex >= 0 ? expandIndex : exportIndex;
+                if (insertIndex < 0) throw new Error(`Unable to place initialValues in ${file}`);
+                text = `${text.slice(0, insertIndex)}${declaration}${text.slice(insertIndex)}`;
+
+                if (text.includes('export default { longhands, expand, collapse }')) {
+                  text = text.replace(
+                    'export default { longhands, expand, collapse }',
+                    'export default { longhands, initialValues, expand, collapse }',
+                  );
+                } else if (text.includes('export default {\n  longhands,\n')) {
+                  text = text.replace(
+                    'export default {\n  longhands,\n',
+                    'export default {\n  longhands,\n  initialValues,\n',
+                  );
+                } else {
+                  throw new Error(`Unable to export initialValues from ${file}`);
+                }
+              }
+            }
+
+            // Shared expanders must consume module-owned defaults rather than carrying
+            // border defaults of their own.
+            text = text.replace(/expandTriple\(longhands\)/g, 'expandTriple(longhands, initialValues)');
+            text = text.replace(
+              /expandTriple\(longhands\.slice\(0, 3\)\)/g,
+              'expandTriple(longhands.slice(0, 3), initialValues.slice(0, 3))',
+            );
+            text = text.replace(
+              /expandLogicalBorderAxis\(longhands\)/g,
+              'expandLogicalBorderAxis(longhands, initialValues)',
+            );
+
+            fs.writeFileSync(file, text);
+          }
+
+          const moduleFiles = fs.readdirSync(root).filter((name) => name.endsWith('.ts'));
+          const missing = moduleFiles.filter((name) => {
+            const text = fs.readFileSync(path.join(root, name), 'utf8');
+            return text.includes('satisfies ShorthandModule') && !text.includes('initialValues');
+          });
+          if (missing.length) throw new Error(`Modules still missing initialValues: ${missing.join(', ')}`);
+          NODE
+
+      - name: Require initial values in the module contract
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          module = Path('packages/css-expand-collapse/src/registry/module.ts')
+          text = module.read_text()
+          old = '  readonly initialValues?: readonly string[];'
+          new = '  readonly initialValues: readonly (string | null)[];'
+          if old not in text:
+              raise SystemExit('Expected optional initialValues contract not found')
+          module.write_text(text.replace(old, new))
+
+          core = Path('packages/css-expand-collapse/src/core.ts')
+          text = core.read_text()
+          text = text.replace(
+              '  if (!shouldFill || !definition.initialValues) {\n    return completed;\n  }',
+              '  if (!shouldFill) {\n    return completed;\n  }',
+          )
+          text = text.replace(
+              '    const initialValue = definition.initialValues?.[index];\n    if (initialValue !== undefined) completed[longhand] = initialValue;',
+              '    const initialValue = definition.initialValues[index];\n    if (typeof initialValue === "string") completed[longhand] = initialValue;',
+          )
+          core.write_text(text)
+
+          css = Path('packages/css-expand-collapse/src/css.ts')
+          text = css.read_text().replace(
+              '      definition.initialValues?.length === definition.longhands.length;',
+              '      definition.initialValues.length === definition.longhands.length;',
+          )
+          css.write_text(text)
+          PY
+
+      - name: Remove shared initial-value defaults
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          path = Path('packages/css-expand-collapse/src/registry/expanders.ts')
+          text = path.read_text()
+          old = '''export function expandTriple(
+  longhands: readonly string[],
+  defaults: readonly [string, string, string] = ["medium", "none", "currentcolor"],
+): ShorthandExpander {
+  return (value, context) => {
+    const tokens = context.splitWhitespace(value);
+    if (!tokens.length) return null;
+
+    const result: DeclarationMap = {
+      [longhands[0]!]: defaults[0],
+      [longhands[1]!]: defaults[1],
+      [longhands[2]!]: defaults[2],
+    };'''
+          new = '''export function expandTriple(
+  longhands: readonly string[],
+  initialValues: readonly string[],
+): ShorthandExpander {
+  return (value, context) => {
+    const tokens = context.splitWhitespace(value);
+    if (!tokens.length || longhands.length !== 3 || initialValues.length !== 3) return null;
+
+    const result: DeclarationMap = {
+      [longhands[0]!]: initialValues[0]!,
+      [longhands[1]!]: initialValues[1]!,
+      [longhands[2]!]: initialValues[2]!,
+    };'''
+          if old not in text:
+              raise SystemExit('Expected expandTriple implementation not found')
+          text = text.replace(old, new)
+
+          old = '''export function expandLogicalBorderAxis(longhands: readonly string[]): ShorthandExpander {
+  const expandSide = expandTriple(longhands.slice(0, 3));
+
+  return (value, context) => {
+    if (longhands.length !== 6) return null;'''
+          new = '''export function expandLogicalBorderAxis(
+  longhands: readonly string[],
+  initialValues: readonly string[],
+): ShorthandExpander {
+  const expandSide = expandTriple(longhands.slice(0, 3), initialValues.slice(0, 3));
+
+  return (value, context) => {
+    if (longhands.length !== 6 || initialValues.length !== 6) return null;'''
+          if old not in text:
+              raise SystemExit('Expected expandLogicalBorderAxis implementation not found')
+          path.write_text(text.replace(old, new))
+          PY
+
+      - name: Enforce module-owned initial values in tests and docs
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          test = Path('packages/css-expand-collapse/tests/registry-modules.test.ts')
+          text = test.read_text()
+          old = '''      expect(Array.isArray(module.longhands)).toBe(true);
+      expect(typeof module.expand).toBe("function");'''
+          new = '''      expect(Array.isArray(module.longhands)).toBe(true);
+      expect(Array.isArray(module.initialValues)).toBe(true);
+      expect(module.initialValues).toHaveLength(module.longhands.length);
+      expect(module.initialValues.every((value) => value === null || typeof value === "string")).toBe(true);
+      expect(typeof module.expand).toBe("function");'''
+          if old not in text:
+              raise SystemExit('Expected registry module assertion block not found')
+          text = text.replace(old, new)
+          text = text.replace(
+              '    expect(SHORTHAND_MODULES.all.longhands).toEqual([]);',
+              '    expect(SHORTHAND_MODULES.all.longhands).toEqual([]);\n    expect(SHORTHAND_MODULES.all.initialValues).toEqual([]);',
+          )
+          test.write_text(text)
+
+          for name in ['docs/README-dev.md', 'packages/css-expand-collapse/src/registry/README.md']:
+              path = Path(name)
+              text = path.read_text()
+              text = text.replace(
+                  'readonly initialValues?: readonly string[];',
+                  'readonly initialValues: readonly (string | null)[];',
+              )
+              text = text.replace(
+                  'Declare its `longhands` and optional `initialValues`.',
+                  'Declare its `longhands` and required `initialValues`.',
+              )
+              path.write_text(text)
+          PY
+
+      - name: Verify ownership invariant
+        run: |
+          if grep -R "initialValues?:" packages/css-expand-collapse/src docs; then
+            echo "Optional initialValues remain"
+            exit 1
+          fi
+          python <<'PY'
+          from pathlib import Path
+          root = Path('packages/css-expand-collapse/src/registry/shorthands')
+          for path in sorted(root.glob('*.ts')):
+              text = path.read_text()
+              if 'satisfies ShorthandModule' not in text:
+                  continue
+              if 'initialValues' not in text:
+                  raise SystemExit(f'{path} does not own initialValues')
+          PY
+
+      - name: Test
+        run: npm test
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build
+        run: npm run build
+
+      - name: Remove temporary audit workflows
+        run: |
+          rm -f .github/workflows/report-shorthand-initial-values.yml
+          rm -f .github/workflows/derive-shorthand-initial-values.yml
+          rm -f .github/workflows/apply-shorthand-initial-values.yml
+
+      - name: Commit validated refactor
+        run: |
+          git config user.name "moyarich"
+          git config user.email "moyarich@hotmail.com"
+          git add packages/css-expand-collapse/src packages/css-expand-collapse/tests docs/README-dev.md .github/workflows
+          git commit -m "refactor: make shorthand modules own initial values"
+          git push
