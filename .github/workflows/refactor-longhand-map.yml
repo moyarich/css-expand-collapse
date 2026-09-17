@@ -35,8 +35,18 @@ jobs:
 
           # Rewrite array methods even when formatting puts the dot on another line.
           text = text.replace(
+              'const arrayMethods = ["map", "filter", "some", "every", "includes", "indexOf", "slice", "find", "findIndex", "at", "join"];',
+              'const arrayMethods = ["map", "flatMap", "filter", "some", "every", "includes", "indexOf", "slice", "find", "findIndex", "at", "join"];',
+          )
+          text = text.replace(
               'new RegExp(`\\\\blonghands\\\\.${method}\\\\b`, "g")',
               'new RegExp(`\\\\blonghands\\\\s*\\\\.\\\\s*${method}\\\\b`, "g")',
+          )
+
+          # Shared helpers now read defaults directly from the LonghandMap.
+          text = text.replace(
+              '.replace(/expandTriple\\(longhands,\\s*initialValues\\)/g, "expandTriple(longhands)")',
+              '.replace(/expandTriple\\(longhands,\\s*initialValues\\)/g, "expandTriple(longhands)")\n    .replace(/expandTriple\\(longhands,\\s*\\[[^\\]]*\\]\\)/g, "expandTriple(longhands)")',
           )
 
           # Avoid nested template literals inside generated source strings.
