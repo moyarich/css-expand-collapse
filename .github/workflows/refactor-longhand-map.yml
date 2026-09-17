@@ -20,6 +20,17 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run build:lib
+      - name: Fix generator literals
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          path = Path('scripts/refactor-longhand-map.mjs')
+          text = path.read_text()
+          text = text.replace('return `${top} ${right}`;', 'return top + " " + right;')
+          text = text.replace('return `${top} ${right} ${bottom}`;', 'return top + " " + right + " " + bottom;')
+          text = text.replace('return second === longhands.get(properties[1]!) ? first! : `${first} / ${second}`;', 'return second === longhands.get(properties[1]!) ? first! : first + " / " + second;')
+          path.write_text(text)
+          PY
       - name: Apply LonghandMap refactor
         run: node scripts/refactor-longhand-map.mjs
       - name: Verify no independent module initialValues metadata remains
