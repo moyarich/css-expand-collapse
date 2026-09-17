@@ -202,7 +202,7 @@ export function App() {
   }, [source, mode, inputKind, fillMissingLonghands]);
 
   const loadExample = (selection: string) => {
-    const example = CSS_CONVERTER_EXAMPLES.find((item) => item.id === selection);
+    const example = CSS_CONVERTER_EXAMPLES.find((item) => item.key === selection);
     if (!example) return;
 
     setMode(example.mode);
@@ -297,7 +297,7 @@ export function App() {
                       {CSS_CONVERTER_EXAMPLES
                         .filter((example) => example.group === group)
                         .map((example) => (
-                          <option key={example.id} value={example.id}>
+                          <option key={example.key} value={example.key}>
                             {example.label}
                           </option>
                         ))}

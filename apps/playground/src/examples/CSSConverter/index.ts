@@ -7,31 +7,40 @@ export interface CSSConverterExampleMeta {
   group: string;
   groupOrder: number;
   order: number;
-  mode: CSSConverterMode;
   fillMissingLonghands: boolean;
 }
 
 export interface CSSConverterExample extends CSSConverterExampleMeta {
+  key: string;
+  mode: CSSConverterMode;
   source: string;
 }
 
-const sourceModules = import.meta.glob("./*/source.tsx", {
+const sourceModules = import.meta.glob("./*/*/source.tsx", {
   import: "default",
   eager: true,
 }) as Record<string, string>;
 
-const metadataModules = import.meta.glob("./*/meta.json", {
+const metadataModules = import.meta.glob("./*/*/meta.json", {
   import: "default",
   eager: true,
 }) as Record<string, CSSConverterExampleMeta>;
 
 export const CSS_CONVERTER_EXAMPLES: readonly CSSConverterExample[] = Object.entries(metadataModules)
   .map(([path, metadata]) => {
-    const id = path.split("/").at(-2)!;
-    const source = sourceModules[`./${id}/source.tsx`];
-    if (!source) throw new Error(`Missing source.tsx for CSS converter example: ${id}`);
-    if (metadata.id !== id) throw new Error(`CSS converter metadata id mismatch: ${id}`);
-    return { ...metadata, source };
+    const parts = path.split("/");
+    const mode = parts.at(-3) as CSSConverterMode;
+    const id = parts.at(-2)!;
+    const key = `${mode}/${id}`;
+    const source = sourceModules[`./${mode}/${id}/source.tsx`];
+
+    if (mode !== "expand" && mode !== "collapse") {
+      throw new Error(`Invalid CSS converter example mode: ${mode}`);
+    }
+    if (!source) throw new Error(`Missing source.tsx for CSS converter example: ${key}`);
+    if (metadata.id !== id) throw new Error(`CSS converter metadata id mismatch: ${key}`);
+
+    return { ...metadata, key, mode, source };
   })
   .sort((a, b) => a.order - b.order);
 
@@ -48,5 +57,5 @@ export const CSS_CONVERTER_GROUPS = [...groupOrder]
   .map(([group]) => group);
 
 export const DEFAULT_CSS_CONVERTER_EXAMPLE = CSS_CONVERTER_EXAMPLES.find(
-  (example) => example.id === "text-decoration",
+  (example) => example.key === "expand/text-decoration",
 )!;
