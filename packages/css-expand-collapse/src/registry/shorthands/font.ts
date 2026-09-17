@@ -1,18 +1,17 @@
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "font-family",
-  "font-size",
-  "font-width",
-  "font-style",
-  "font-variant",
-  "font-weight",
-  "line-height",
-] as const;
+const longhands = new Map([
+  ["font-family", "initial"],
+  ["font-size", "medium"],
+  ["font-width", "normal"],
+  ["font-style", "normal"],
+  ["font-variant", "normal"],
+  ["font-weight", "normal"],
+  ["line-height", "normal"],
+] as const);
 
 const SYSTEM_FONTS = new Set(["caption", "icon", "menu", "message-box", "small-caption", "status-bar"]);
 
-const initialValues = [null, "medium", "normal", "normal", "normal", "normal", "normal"] as const;
 const expand: ShorthandExpander = (value, context) => {
   if (SYSTEM_FONTS.has(value)) return null;
   if (!context.matchProperty("font", value)) return null;
@@ -83,7 +82,6 @@ const expand: ShorthandExpander = (value, context) => {
 
 export default {
   longhands,
-  initialValues,
   safeToDropWhenFullyShadowed: false,
   expand,
   collapse(declarations, context) {

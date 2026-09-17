@@ -1,7 +1,10 @@
 import type { ShorthandCollapser, ShorthandExpander, ShorthandModule } from "../types.js";
 
-const longhands = ["flex-grow", "flex-shrink", "flex-basis"] as const;
-const initialValues = ["0", "1", "auto"] as const;
+const longhands = new Map([
+  ["flex-grow", "0"],
+  ["flex-shrink", "1"],
+  ["flex-basis", "auto"],
+] as const);
 
 const expand: ShorthandExpander = (value, context) => {
   if (value === "none") return { "flex-grow": "0", "flex-shrink": "0", "flex-basis": "auto" };
@@ -41,4 +44,4 @@ const collapse: ShorthandCollapser = (declarations, context) => {
   return context.matchProperty("flex", candidate) ? candidate : null;
 };
 
-export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;
+export default { longhands, expand, collapse } satisfies ShorthandModule;

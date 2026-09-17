@@ -1,31 +1,31 @@
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "font-variant-alternates",
-  "font-variant-caps",
-  "font-variant-east-asian",
-  "font-variant-emoji",
-  "font-variant-ligatures",
-  "font-variant-numeric",
-  "font-variant-position",
-] as const;
-const initialValues = longhands.map(() => "normal") as readonly string[];
+const longhands = new Map([
+  ["font-variant-alternates", "normal"],
+  ["font-variant-caps", "normal"],
+  ["font-variant-east-asian", "normal"],
+  ["font-variant-emoji", "normal"],
+  ["font-variant-ligatures", "normal"],
+  ["font-variant-numeric", "normal"],
+  ["font-variant-position", "normal"],
+] as const);
+const longhandNames = [...longhands.keys()];
 
 const expand: ShorthandExpander = (value, context) => {
   if (value === "normal") {
-    return Object.fromEntries(longhands.map((longhand) => [longhand, "normal"]));
+    return Object.fromEntries(longhandNames.map((longhand) => [longhand, "normal"]));
   }
   if (value === "none") {
     return Object.fromEntries(
-      longhands.map((longhand) => [longhand, longhand === "font-variant-ligatures" ? "none" : "normal"]),
+      longhandNames.map((longhand) => [longhand, longhand === "font-variant-ligatures" ? "none" : "normal"]),
     );
   }
 
-  const result = Object.fromEntries(longhands.map((longhand) => [longhand, "normal"])) as DeclarationMap;
+  const result = Object.fromEntries(longhandNames.map((longhand) => [longhand, "normal"])) as DeclarationMap;
   const assigned = new Set<string>();
 
   for (const token of context.splitWhitespace(value)) {
-    const candidates = longhands.flatMap((longhand) => {
+    const candidates = longhandNames.flatMap((longhand) => {
       const candidate = assigned.has(longhand) ? `${result[longhand]} ${token}` : token;
       return context.matchProperty(longhand, candidate) ? [{ longhand, candidate }] : [];
     });
@@ -42,15 +42,14 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const values = longhands.map((longhand) => declarations[longhand]);
+    const values = longhandNames.map((longhand) => declarations[longhand]);
     if (values.some((value) => !value)) return null;
     if (values.every((value) => value === "normal")) return "normal";
     if (
       declarations["font-variant-ligatures"] === "none" &&
-      longhands.filter((longhand) => longhand !== "font-variant-ligatures")
+      longhandNames.filter((longhand) => longhand !== "font-variant-ligatures")
         .every((longhand) => declarations[longhand] === "normal")
     ) return "none";
 

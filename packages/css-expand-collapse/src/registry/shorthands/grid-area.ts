@@ -1,7 +1,12 @@
 import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = ["grid-row-start", "grid-column-start", "grid-row-end", "grid-column-end"] as const;
-const initialValues = ["auto", "auto", "auto", "auto"] as const;
+const longhands = new Map([
+  ["grid-row-start", "auto"],
+  ["grid-column-start", "auto"],
+  ["grid-row-end", "auto"],
+  ["grid-column-end", "auto"],
+] as const);
+const longhandNames = [...longhands.keys()];
 
 function omittedValue(start: string): string {
   return /^-?[_a-zA-Z][-_a-zA-Z0-9]*$/.test(start) && start !== "auto" && start !== "span"
@@ -19,20 +24,19 @@ const expand: ShorthandExpander = (value, context) => {
   const columnEnd = parts[3] ?? omittedValue(columnStart);
   const values = [rowStart, columnStart, rowEnd, columnEnd] as const;
 
-  if (values.some((candidate, index) => !context.matchProperty(longhands[index]!, candidate))) {
+  if (values.some((candidate, index) => !context.matchProperty(longhandNames[index]!, candidate))) {
     return null;
   }
 
-  return Object.fromEntries(longhands.map((longhand, index) => [longhand, values[index]!])) as Record<string, string>;
+  return Object.fromEntries(longhandNames.map((longhand, index) => [longhand, values[index]!])) as Record<string, string>;
 };
 
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const values = longhands.map((longhand) => declarations[longhand]);
+    const values = longhandNames.map((longhand) => declarations[longhand]);
     if (values.some((value) => !value)) return null;
     const candidate = values.join(" / ");
     return context.matchProperty("grid-area", candidate) ? candidate : null;

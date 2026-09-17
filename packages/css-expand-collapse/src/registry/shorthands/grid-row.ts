@@ -2,10 +2,12 @@ import { collapseSlashPair } from "../collapsers.js";
 import { expandSlashPair } from "../expanders.js";
 import type { ShorthandModule } from "../types.js";
 
-const longhands = ["grid-row-start", "grid-row-end"] as const;
-const initialValues = ["auto", "auto"] as const;
-const expand = expandSlashPair(longhands, initialValues);
+const longhands = new Map([
+  ["grid-row-start", "auto"],
+  ["grid-row-end", "auto"],
+] as const);
+const expand = expandSlashPair(longhands);
 
-const collapse = collapseSlashPair(longhands, initialValues);
+const collapse = collapseSlashPair(longhands);
 
-export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;
+export default { longhands, expand, collapse } satisfies ShorthandModule;

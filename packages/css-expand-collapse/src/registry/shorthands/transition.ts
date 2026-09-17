@@ -1,14 +1,15 @@
 import { splitTopLevelComma } from "../context.js";
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "transition-property",
-  "transition-duration",
-  "transition-timing-function",
-  "transition-delay",
-  "transition-behavior",
-] as const;
-const initialValues = ["all", "0s", "ease", "0s", "normal"] as const;
+const longhands = new Map([
+  ["transition-property", "all"],
+  ["transition-duration", "0s"],
+  ["transition-timing-function", "ease"],
+  ["transition-delay", "0s"],
+  ["transition-behavior", "normal"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 const expand: ShorthandExpander = (value, context) => {
   const layers = splitTopLevelComma(value);
@@ -17,7 +18,7 @@ const expand: ShorthandExpander = (value, context) => {
 
   for (const layer of layers) {
     const result: DeclarationMap = Object.fromEntries(
-      longhands.map((longhand, index) => [longhand, initialValues[index]!]),
+      longhandNames.map((longhand, index) => [longhand, initialValues[index]!]),
     );
     let propertyAssigned = false;
     let timingAssigned = false;
@@ -54,17 +55,16 @@ const expand: ShorthandExpander = (value, context) => {
   }
 
   return Object.fromEntries(
-    longhands.map((longhand) => [longhand, expanded.map((layer) => layer[longhand]).join(", ")]),
+    longhandNames.map((longhand) => [longhand, expanded.map((layer) => layer[longhand]).join(", ")]),
   );
 };
 
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const values = longhands.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
+    const values = longhandNames.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
     const count = values[0]?.length ?? 0;
     if (!count || values.some((layers) => layers.length !== count)) return null;
 

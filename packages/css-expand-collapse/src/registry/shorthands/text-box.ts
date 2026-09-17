@@ -1,22 +1,26 @@
 import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = ["text-box-trim", "text-box-edge"] as const;
-const initialValues = ["none", "auto"] as const;
+const longhands = new Map([
+  ["text-box-trim", "none"],
+  ["text-box-edge", "auto"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 const expand: ShorthandExpander = (value, context) => {
-  if (context.matchProperty(longhands[0], value)) {
-    return { [longhands[0]]: value, [longhands[1]]: initialValues[1] };
+  if (context.matchProperty(longhandNames[0], value)) {
+    return { [longhandNames[0]]: value, [longhandNames[1]]: initialValues[1] };
   }
-  if (context.matchProperty(longhands[1], value)) {
-    return { [longhands[0]]: initialValues[0], [longhands[1]]: value };
+  if (context.matchProperty(longhandNames[1], value)) {
+    return { [longhandNames[0]]: initialValues[0], [longhandNames[1]]: value };
   }
 
   const tokens = context.splitWhitespace(value);
   for (let split = 1; split < tokens.length; split += 1) {
     const trim = tokens.slice(0, split).join(" ");
     const edge = tokens.slice(split).join(" ");
-    if (context.matchProperty(longhands[0], trim) && context.matchProperty(longhands[1], edge)) {
-      return { [longhands[0]]: trim, [longhands[1]]: edge };
+    if (context.matchProperty(longhandNames[0], trim) && context.matchProperty(longhandNames[1], edge)) {
+      return { [longhandNames[0]]: trim, [longhandNames[1]]: edge };
     }
   }
   return null;
@@ -25,11 +29,10 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const trim = declarations[longhands[0]];
-    const edge = declarations[longhands[1]];
+    const trim = declarations[longhandNames[0]];
+    const edge = declarations[longhandNames[1]];
     if (!trim || !edge) return null;
     const candidates = [
       `${trim} ${edge}`,

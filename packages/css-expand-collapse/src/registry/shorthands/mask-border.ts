@@ -1,14 +1,15 @@
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "mask-border-mode",
-  "mask-border-outset",
-  "mask-border-repeat",
-  "mask-border-slice",
-  "mask-border-source",
-  "mask-border-width",
-] as const;
-const initialValues = ["alpha", "0", "stretch", "0", "none", "auto"] as const;
+const longhands = new Map([
+  ["mask-border-mode", "alpha"],
+  ["mask-border-outset", "0"],
+  ["mask-border-repeat", "stretch"],
+  ["mask-border-slice", "0"],
+  ["mask-border-source", "none"],
+  ["mask-border-width", "auto"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 const expand: ShorthandExpander = (value, context) => {
   if (!context.matchProperty("mask-border", value)) return null;
@@ -16,7 +17,7 @@ const expand: ShorthandExpander = (value, context) => {
   if (!parts.length || parts.length > 3 || parts.some((part) => !part)) return null;
 
   const result: DeclarationMap = Object.fromEntries(
-    longhands.map((longhand, index) => [longhand, initialValues[index]!]),
+    longhandNames.map((longhand, index) => [longhand, initialValues[index]!]),
   );
   const repeatTokens: string[] = [];
   let modeAssigned = false;
@@ -79,7 +80,6 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
     const mode = declarations["mask-border-mode"];

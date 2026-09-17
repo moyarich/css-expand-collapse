@@ -1,6 +1,7 @@
 export const CSS_EXPAND_COLLAPSE_TYPES = `
 declare module "@moyarich/css-expand-collapse" {
   export type DeclarationMap = Record<string, string>;
+  export type LonghandMap = ReadonlyMap<string, string>;
 
   export interface TransformOptions {
     fillMissingLonghands?: false | "initial";

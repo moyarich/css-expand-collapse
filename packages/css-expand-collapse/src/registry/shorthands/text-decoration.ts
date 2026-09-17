@@ -1,12 +1,12 @@
 import type { DeclarationMap, ShorthandCollapser, ShorthandExpander, ShorthandModule } from "../types.js";
 
-const longhands = [
-  "text-decoration-line",
-  "text-decoration-style",
-  "text-decoration-color",
-  "text-decoration-thickness",
-] as const;
-const initialValues = ["none", "solid", "currentcolor", "auto"] as const;
+const longhands = new Map([
+  ["text-decoration-line", "none"],
+  ["text-decoration-style", "solid"],
+  ["text-decoration-color", "currentcolor"],
+  ["text-decoration-thickness", "auto"],
+] as const);
+const longhandNames = [...longhands.keys()];
 
 const expand: ShorthandExpander = (value, context) => {
   const tokens = context.splitWhitespace(value);
@@ -24,8 +24,7 @@ const expand: ShorthandExpander = (value, context) => {
       lineTokens.push(token);
       continue;
     }
-    const candidates = longhands
-      .filter((property) => property !== "text-decoration-line" && !assigned.has(property))
+    const candidates = longhandNames.filter((property) => property !== "text-decoration-line" && !assigned.has(property))
       .filter((property) => context.matchProperty(property, token));
     if (candidates.length !== 1) return null;
     result[candidates[0]!] = token;
@@ -53,4 +52,4 @@ const collapse: ShorthandCollapser = (declarations, context) => {
   return context.matchProperty("text-decoration", candidate) ? candidate : null;
 };
 
-export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;
+export default { longhands, expand, collapse } satisfies ShorthandModule;

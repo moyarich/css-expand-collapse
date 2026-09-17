@@ -1,7 +1,12 @@
 import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = ["grid-template-rows", "grid-template-columns", "grid-template-areas"] as const;
-const initialValues = ["none", "none", "none"] as const;
+const longhands = new Map([
+  ["grid-template-rows", "none"],
+  ["grid-template-columns", "none"],
+  ["grid-template-areas", "none"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 function isStringToken(token: string): boolean {
   return (token.startsWith('"') && token.endsWith('"')) || (token.startsWith("'") && token.endsWith("'"));
@@ -9,7 +14,7 @@ function isStringToken(token: string): boolean {
 
 const expand: ShorthandExpander = (value, context) => {
   if (value === "none") {
-    return Object.fromEntries(longhands.map((longhand, index) => [longhand, initialValues[index]!])) as Record<string, string>;
+    return Object.fromEntries(longhandNames.map((longhand, index) => [longhand, initialValues[index]!])) as Record<string, string>;
   }
   if (!context.matchProperty("grid-template", value)) return null;
 
@@ -45,7 +50,6 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
     const rows = declarations["grid-template-rows"];

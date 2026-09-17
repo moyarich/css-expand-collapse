@@ -1,4 +1,5 @@
 export type DeclarationMap = Record<string, string>;
+export type LonghandMap = ReadonlyMap<string, string>;
 
 export interface ShorthandExpandContext {
   matchProperty(property: string, value: string): boolean;
@@ -23,10 +24,10 @@ export type ShorthandCollapser = (
 /**
  * Common contract implemented by every shorthand property module.
  * The CSS property name comes from the module filename.
+ * Each map entry pairs a longhand with its CSS initial value.
  */
 export interface ShorthandModule {
-  readonly longhands: readonly string[];
-  readonly initialValues: readonly (string | null)[];
+  readonly longhands: LonghandMap;
   readonly expand: ShorthandExpander;
   readonly collapse: ShorthandCollapser;
   /** False when a shorthand has cascade/reset effects beyond its registered longhands. */

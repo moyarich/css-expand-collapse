@@ -11,7 +11,7 @@ import {
   shorthandExpandContext,
 } from "./registry/context.js";
 
-export type { DeclarationMap } from "./registry.js";
+export type { DeclarationMap, LonghandMap } from "./registry.js";
 
 export interface TransformOptions {
   /**
@@ -42,7 +42,7 @@ export function isLonghand(property: string): boolean {
 }
 
 export function getLonghands(shorthand: string): string[] {
-  return [...(SHORTHAND_DEFINITIONS[normalizeProperty(shorthand)]?.longhands ?? [])];
+  return [...(SHORTHAND_DEFINITIONS[normalizeProperty(shorthand)]?.longhands.keys() ?? [])];
 }
 
 export function getShorthands(longhand: string): string[] {
@@ -71,7 +71,7 @@ export function expandShorthand(
 
   if (GLOBAL_VALUES.has(normalizedValue)) {
     return Object.fromEntries(
-      definition.longhands.map((longhand) => [longhand, normalizedValue]),
+      [...definition.longhands.keys()].map((longhand) => [longhand, normalizedValue]),
     );
   }
 
@@ -90,11 +90,10 @@ function fillMissingInitialLonghands(
     return completed;
   }
 
-  definition.longhands.forEach((longhand, index) => {
-    if (Object.hasOwn(completed, longhand)) return;
-    const initialValue = definition.initialValues[index];
-    if (typeof initialValue === "string") completed[longhand] = initialValue;
-  });
+  for (const [longhand, initialValue] of definition.longhands) {
+    if (Object.hasOwn(completed, longhand)) continue;
+    completed[longhand] = initialValue;
+  }
   return completed;
 }
 
@@ -110,11 +109,11 @@ export function collapseToShorthand(
   const normalized = Object.fromEntries(
     Object.entries(declarations).map(([key, value]) => [normalizeProperty(key), value.trim()]),
   );
-  const consumed = definition.longhands.filter((longhand) => Object.hasOwn(normalized, longhand));
+  const consumed = [...definition.longhands.keys()].filter((longhand) => Object.hasOwn(normalized, longhand));
   if (!consumed.length) return null;
 
   const completed = fillMissingInitialLonghands(definition, normalized, options);
-  const concrete = definition.longhands.map((longhand) => completed[longhand]);
+  const concrete = [...definition.longhands.keys()].map((longhand) => completed[longhand]);
   const first = concrete[0];
   const value = first && concrete.every((entry) => entry === first) && GLOBAL_VALUES.has(first)
     ? first
@@ -126,7 +125,7 @@ export function collapseToShorthand(
     value,
     consumed,
     declarations: Object.fromEntries(
-      definition.longhands.map((longhand) => [longhand, completed[longhand]!]),
+      [...definition.longhands.keys()].map((longhand) => [longhand, completed[longhand]!]),
     ),
   };
 }
@@ -136,7 +135,7 @@ export function findCollapsibleShorthands(
   options?: TransformOptions,
 ): CollapseResult[] {
   return Object.entries(SHORTHAND_DEFINITIONS)
-    .sort(([, a], [, b]) => b.longhands.length - a.longhands.length)
+    .sort(([, a], [, b]) => b.longhands.size - a.longhands.size)
     .map(([shorthand]) => collapseToShorthand(shorthand, declarations, options))
     .filter((result): result is CollapseResult => Boolean(result));
 }

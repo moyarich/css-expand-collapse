@@ -1,7 +1,12 @@
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = ["list-style-position", "list-style-image", "list-style-type"] as const;
-const initialValues = ["outside", "none", "disc"] as const;
+const longhands = new Map([
+  ["list-style-position", "outside"],
+  ["list-style-image", "none"],
+  ["list-style-type", "disc"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 const expand: ShorthandExpander = (value, context) => {
   if (value === "none") {
@@ -22,7 +27,7 @@ const expand: ShorthandExpander = (value, context) => {
   const assigned = new Set<string>();
 
   for (const token of tokens) {
-    const priority = [longhands[0], longhands[1], longhands[2]];
+    const priority = [longhandNames[0], longhandNames[1], longhandNames[2]];
     const candidates = priority.filter(
       (property) => !assigned.has(property) && context.matchProperty(property, token),
     );
@@ -38,12 +43,11 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const position = declarations[longhands[0]];
-    const image = declarations[longhands[1]];
-    const type = declarations[longhands[2]];
+    const position = declarations[longhandNames[0]];
+    const image = declarations[longhandNames[1]];
+    const type = declarations[longhandNames[2]];
     if (!position || !image || !type) return null;
 
     if (image === "none" && type === "none" && position === initialValues[0]) return "none";

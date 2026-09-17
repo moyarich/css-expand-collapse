@@ -2,10 +2,12 @@ import { collapsePair } from "../collapsers.js";
 import { expandPair } from "../expanders.js";
 import type { ShorthandModule } from "../types.js";
 
-const longhands = ["align-content", "justify-content"] as const;
-const initialValues = ["normal", "normal"] as const;
+const longhands = new Map([
+  ["align-content", "normal"],
+  ["justify-content", "normal"],
+] as const);
 const expand = expandPair(longhands);
 
 const collapse = collapsePair(longhands);
 
-export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;
+export default { longhands, expand, collapse } satisfies ShorthandModule;

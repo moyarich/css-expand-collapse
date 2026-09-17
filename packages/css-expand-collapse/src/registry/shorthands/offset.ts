@@ -1,13 +1,14 @@
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "offset-anchor",
-  "offset-distance",
-  "offset-path",
-  "offset-position",
-  "offset-rotate",
-] as const;
-const initialValues = ["auto", "0", "none", "normal", "auto"] as const;
+const longhands = new Map([
+  ["offset-anchor", "auto"],
+  ["offset-distance", "0"],
+  ["offset-path", "none"],
+  ["offset-position", "normal"],
+  ["offset-rotate", "auto"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 function parseTail(tokens: string[], context: Parameters<ShorthandExpander>[1], result: DeclarationMap): boolean {
   if (!tokens.length) return true;
@@ -44,7 +45,7 @@ const expand: ShorthandExpander = (value, context) => {
   if (slash.length > 2 || slash.some((part) => !part)) return null;
 
   const result: DeclarationMap = Object.fromEntries(
-    longhands.map((longhand, index) => [longhand, initialValues[index]!]),
+    longhandNames.map((longhand, index) => [longhand, initialValues[index]!]),
   );
 
   if (slash[1]) {
@@ -85,7 +86,6 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
     const anchor = declarations["offset-anchor"];

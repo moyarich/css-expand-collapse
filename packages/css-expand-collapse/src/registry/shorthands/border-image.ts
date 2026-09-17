@@ -1,13 +1,14 @@
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "border-image-source",
-  "border-image-slice",
-  "border-image-width",
-  "border-image-outset",
-  "border-image-repeat",
-] as const;
-const initialValues = ["none", "100%", "1", "0", "stretch"] as const;
+const longhands = new Map([
+  ["border-image-source", "none"],
+  ["border-image-slice", "100%"],
+  ["border-image-width", "1"],
+  ["border-image-outset", "0"],
+  ["border-image-repeat", "stretch"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 const expand: ShorthandExpander = (value, context) => {
   if (!context.matchProperty("border-image", value)) return null;
@@ -15,7 +16,7 @@ const expand: ShorthandExpander = (value, context) => {
   if (!parts.length || parts.length > 3 || parts.some((part) => !part)) return null;
 
   const result: DeclarationMap = Object.fromEntries(
-    longhands.map((longhand, index) => [longhand, initialValues[index]!]),
+    longhandNames.map((longhand, index) => [longhand, initialValues[index]!]),
   );
   const repeatTokens: string[] = [];
 
@@ -72,10 +73,9 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const values = longhands.map((longhand) => declarations[longhand]);
+    const values = longhandNames.map((longhand) => declarations[longhand]);
     if (values.some((value) => !value)) return null;
     const candidate = `${values[0]} ${values[1]} / ${values[2]} / ${values[3]} ${values[4]}`;
     return context.matchProperty("border-image", candidate) ? candidate : null;

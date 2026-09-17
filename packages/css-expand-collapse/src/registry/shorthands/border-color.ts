@@ -1,12 +1,15 @@
 import { collapseQuad } from "../collapsers.js";
 import { expandQuad } from "../expanders.js";
-import { quad } from "../helpers.js";
 import type { ShorthandModule } from "../types.js";
 
-const longhands = quad("border").map((property) => `${property}-color`);
-const initialValues = ["currentcolor", "currentcolor", "currentcolor", "currentcolor"] as const;
+const longhands = new Map([
+  ["border-top-color", "currentcolor"],
+  ["border-right-color", "currentcolor"],
+  ["border-bottom-color", "currentcolor"],
+  ["border-left-color", "currentcolor"],
+] as const);
 const expand = expandQuad(longhands);
 
 const collapse = collapseQuad(longhands);
 
-export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;
+export default { longhands, expand, collapse } satisfies ShorthandModule;

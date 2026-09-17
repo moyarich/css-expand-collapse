@@ -1,8 +1,13 @@
 import { splitTopLevelComma } from "../context.js";
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = ["view-timeline-name", "view-timeline-axis", "view-timeline-inset"] as const;
-const initialValues = ["none", "block", "auto"] as const;
+const longhands = new Map([
+  ["view-timeline-name", "none"],
+  ["view-timeline-axis", "block"],
+  ["view-timeline-inset", "auto"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 const expand: ShorthandExpander = (value, context) => {
   const layers = splitTopLevelComma(value);
@@ -12,19 +17,19 @@ const expand: ShorthandExpander = (value, context) => {
   for (const layer of layers) {
     const tokens = context.splitWhitespace(layer);
     const result: DeclarationMap = {
-      [longhands[0]]: initialValues[0],
-      [longhands[1]]: initialValues[1],
-      [longhands[2]]: initialValues[2],
+      [longhandNames[0]]: initialValues[0],
+      [longhandNames[1]]: initialValues[1],
+      [longhandNames[2]]: initialValues[2],
     };
     const leftovers: string[] = [];
 
     for (const token of tokens) {
-      if (result[longhands[1]] === initialValues[1] && context.matchProperty(longhands[1], token)) {
-        result[longhands[1]] = token;
+      if (result[longhandNames[1]] === initialValues[1] && context.matchProperty(longhandNames[1], token)) {
+        result[longhandNames[1]] = token;
         continue;
       }
-      if (result[longhands[0]] === initialValues[0] && context.matchProperty(longhands[0], token)) {
-        result[longhands[0]] = token;
+      if (result[longhandNames[0]] === initialValues[0] && context.matchProperty(longhandNames[0], token)) {
+        result[longhandNames[0]] = token;
         continue;
       }
       leftovers.push(token);
@@ -32,24 +37,23 @@ const expand: ShorthandExpander = (value, context) => {
 
     if (leftovers.length) {
       const inset = leftovers.join(" ");
-      if (!context.matchProperty(longhands[2], inset)) return null;
-      result[longhands[2]] = inset;
+      if (!context.matchProperty(longhandNames[2], inset)) return null;
+      result[longhandNames[2]] = inset;
     }
     results.push(result);
   }
 
   return Object.fromEntries(
-    longhands.map((longhand) => [longhand, results.map((result) => result[longhand]).join(", ")]),
+    longhandNames.map((longhand) => [longhand, results.map((result) => result[longhand]).join(", ")]),
   );
 };
 
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const values = longhands.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
+    const values = longhandNames.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
     const layerCount = values[0]?.length ?? 0;
     if (!layerCount || values.some((layers) => layers.length !== layerCount)) return null;
     const candidate = Array.from({ length: layerCount }, (_, index) =>

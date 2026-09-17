@@ -4,8 +4,7 @@ Each CSS shorthand lives in its own module under `shorthands/`. The **filename i
 
 ```ts
 export interface ShorthandModule {
-  readonly longhands: readonly string[];
-  readonly initialValues: readonly (string | null)[];
+  readonly longhands: LonghandMap;
   readonly expand: ShorthandExpander;
   readonly collapse: ShorthandCollapser;
   readonly safeToDropWhenFullyShadowed?: boolean;
@@ -76,7 +75,6 @@ const collapse: ShorthandCollapser = (declarations, context) => {
 
 export default {
   longhands,
-  initialValues,
   expand,
   collapse,
 } satisfies ShorthandModule;
@@ -111,7 +109,7 @@ Set it to `false` when a shorthand has reset/cascade effects beyond the register
 ## Adding a shorthand
 
 1. Add `shorthands/<property>.ts`.
-2. Declare its `longhands` and required `initialValues`.
+2. Declare its `longhands` map, pairing each longhand with its initial value.
 3. Implement `expand` and `collapse` in that module.
 4. Reuse `expanders.ts` and `collapsers.ts` factories when the grammar matches.
 5. Keep special parsing/serialization semantics in the shorthand file and validate candidates with `context.matchProperty(...)`.

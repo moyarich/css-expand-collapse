@@ -1,31 +1,34 @@
 import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = ["position-try-order", "position-try-fallbacks"] as const;
-const initialValues = ["normal", "none"] as const;
+const longhands = new Map([
+  ["position-try-order", "normal"],
+  ["position-try-fallbacks", "none"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 const expand: ShorthandExpander = (value, context) => {
-  if (context.matchProperty(longhands[1], value)) {
-    return { [longhands[0]]: initialValues[0], [longhands[1]]: value };
+  if (context.matchProperty(longhandNames[1], value)) {
+    return { [longhandNames[0]]: initialValues[0], [longhandNames[1]]: value };
   }
 
   const tokens = context.splitWhitespace(value);
   if (tokens.length < 2) return null;
   const order = tokens[0]!;
   const fallbacks = tokens.slice(1).join(" ");
-  if (!context.matchProperty(longhands[0], order) || !context.matchProperty(longhands[1], fallbacks)) {
+  if (!context.matchProperty(longhandNames[0], order) || !context.matchProperty(longhandNames[1], fallbacks)) {
     return null;
   }
-  return { [longhands[0]]: order, [longhands[1]]: fallbacks };
+  return { [longhandNames[0]]: order, [longhandNames[1]]: fallbacks };
 };
 
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const order = declarations[longhands[0]];
-    const fallbacks = declarations[longhands[1]];
+    const order = declarations[longhandNames[0]];
+    const fallbacks = declarations[longhandNames[1]];
     if (!order || !fallbacks) return null;
     const candidates = order === initialValues[0]
       ? [fallbacks, `${order} ${fallbacks}`]

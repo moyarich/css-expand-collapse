@@ -94,8 +94,8 @@ function expandBlock(children: any[], options?: TransformOptions): any[] {
 }
 
 const COLLAPSE_CANDIDATES = Object.entries(SHORTHAND_DEFINITIONS)
-  .filter(([, definition]) => definition.longhands.length > 0)
-  .sort(([, a], [, b]) => b.longhands.length - a.longhands.length);
+  .filter(([, definition]) => definition.longhands.size > 0)
+  .sort(([, a], [, b]) => b.longhands.size - a.longhands.size);
 
 function declarationWouldApply(
   current: EffectiveDeclaration | undefined,
@@ -158,7 +158,7 @@ function removeRedundantDeclarations(children: any[], options?: TransformOptions
 
       // We know which longhands the shorthand affects, but not their resulting values.
       // Invalidate only values this declaration can actually override.
-      for (const longhand of definition.longhands) {
+      for (const longhand of definition.longhands.keys()) {
         const current = effective.get(longhand);
         if (declarationWouldApply(current, important)) effective.delete(longhand);
       }
@@ -184,7 +184,7 @@ function removeRedundantDeclarations(children: any[], options?: TransformOptions
 
 function overlapsCandidate(property: string, expected: Set<string>): boolean {
   const definition = SHORTHAND_DEFINITIONS[property];
-  return Boolean(definition?.longhands.some((longhand) => expected.has(longhand)));
+  return Boolean(definition && [...definition.longhands.keys()].some((longhand) => expected.has(longhand)));
 }
 
 function hasEarlierOverlappingShorthand(
@@ -232,7 +232,7 @@ function findFullyShadowedEarlierShorthands(
     if (!definition || !canDropWhenFullyShadowed(property)) continue;
 
     // The later shorthand must replace every constituent affected by the earlier one.
-    if (!definition.longhands.every((longhand) => expected.has(longhand))) continue;
+    if (![...definition.longhands.keys()].every((longhand) => expected.has(longhand))) continue;
 
     const earlierImportant = Boolean(node.important);
     // Later normal declarations cannot override an earlier !important shorthand.
@@ -266,14 +266,12 @@ function tryCollapseAt(
   const firstProperty = normalizeProperty(first.property);
 
   for (const [shorthand, definition] of COLLAPSE_CANDIDATES) {
-    if (!definition.longhands.includes(firstProperty)) continue;
+    if (!definition.longhands.has(firstProperty)) continue;
 
-    const expected = new Set(definition.longhands);
+    const expected = new Set(definition.longhands.keys());
     const matches = new Map<string, { node: any; index: number }>();
     const important = Boolean(first.important);
-    const canFillMissing =
-      options?.fillMissingLonghands === "initial" &&
-      definition.initialValues.length === definition.longhands.length;
+    const canFillMissing = options?.fillMissingLonghands === "initial";
     let blocked = false;
 
     for (let cursor = index; cursor < children.length; cursor += 1) {

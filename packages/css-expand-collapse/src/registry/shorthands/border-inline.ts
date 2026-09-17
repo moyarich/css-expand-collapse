@@ -2,13 +2,16 @@ import { collapseLogicalBorderAxis } from "../collapsers.js";
 import { expandLogicalBorderAxis } from "../expanders.js";
 import type { ShorthandModule } from "../types.js";
 
-const longhands = [
-  "border-inline-start-width", "border-inline-start-style", "border-inline-start-color",
-  "border-inline-end-width", "border-inline-end-style", "border-inline-end-color",
-] as const;
-const initialValues = ["medium", "none", "currentcolor", "medium", "none", "currentcolor"] as const;
-const expand = expandLogicalBorderAxis(longhands, initialValues);
+const longhands = new Map([
+  ["border-inline-start-width", "medium"],
+  ["border-inline-start-style", "none"],
+  ["border-inline-start-color", "currentcolor"],
+  ["border-inline-end-width", "medium"],
+  ["border-inline-end-style", "none"],
+  ["border-inline-end-color", "currentcolor"],
+] as const);
+const expand = expandLogicalBorderAxis(longhands);
 
 const collapse = collapseLogicalBorderAxis(longhands);
 
-export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;
+export default { longhands, expand, collapse } satisfies ShorthandModule;

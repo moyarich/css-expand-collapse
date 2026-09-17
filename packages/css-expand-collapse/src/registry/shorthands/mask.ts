@@ -1,33 +1,25 @@
 import { splitTopLevelComma } from "../context.js";
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "mask-clip",
-  "mask-composite",
-  "mask-image",
-  "mask-mode",
-  "mask-origin",
-  "mask-position",
-  "mask-repeat",
-  "mask-size",
-] as const;
-const initialValues = [
-  "border-box",
-  "add",
-  "none",
-  "match-source",
-  "border-box",
-  "0% 0%",
-  "repeat",
-  "auto",
-] as const;
+const longhands = new Map([
+  ["mask-clip", "border-box"],
+  ["mask-composite", "add"],
+  ["mask-image", "none"],
+  ["mask-mode", "match-source"],
+  ["mask-origin", "border-box"],
+  ["mask-position", "0% 0%"],
+  ["mask-repeat", "repeat"],
+  ["mask-size", "auto"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 function parseLayer(layer: string, context: Parameters<ShorthandExpander>[1]): DeclarationMap | null {
   const slash = context.splitSlash(layer);
   if (slash.length > 2 || slash.some((part) => !part)) return null;
 
   const result: DeclarationMap = Object.fromEntries(
-    longhands.map((longhand, index) => [longhand, initialValues[index]!]),
+    longhandNames.map((longhand, index) => [longhand, initialValues[index]!]),
   );
 
   let after = slash[1] ? context.splitWhitespace(slash[1]) : [];
@@ -119,17 +111,16 @@ const expand: ShorthandExpander = (value, context) => {
   if (!layers.length || parsed.some((layer) => !layer)) return null;
   const concrete = parsed as DeclarationMap[];
   return Object.fromEntries(
-    longhands.map((longhand) => [longhand, concrete.map((layer) => layer[longhand]).join(", ")]),
+    longhandNames.map((longhand) => [longhand, concrete.map((layer) => layer[longhand]).join(", ")]),
   );
 };
 
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const values = longhands.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
+    const values = longhandNames.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
     const count = values[0]?.length ?? 0;
     if (!count || values.some((layers) => layers.length !== count)) return null;
 

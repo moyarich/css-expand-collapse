@@ -1,18 +1,19 @@
 import { splitTopLevelComma } from "../context.js";
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "animation-name",
-  "animation-duration",
-  "animation-timing-function",
-  "animation-delay",
-  "animation-iteration-count",
-  "animation-direction",
-  "animation-fill-mode",
-  "animation-play-state",
-  "animation-timeline",
-] as const;
-const initialValues = ["none", "0s", "ease", "0s", "1", "normal", "none", "running", "auto"] as const;
+const longhands = new Map([
+  ["animation-name", "none"],
+  ["animation-duration", "0s"],
+  ["animation-timing-function", "ease"],
+  ["animation-delay", "0s"],
+  ["animation-iteration-count", "1"],
+  ["animation-direction", "normal"],
+  ["animation-fill-mode", "none"],
+  ["animation-play-state", "running"],
+  ["animation-timeline", "auto"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 const expand: ShorthandExpander = (value, context) => {
   const layers = splitTopLevelComma(value);
@@ -21,7 +22,7 @@ const expand: ShorthandExpander = (value, context) => {
 
   for (const layer of layers) {
     const result: DeclarationMap = Object.fromEntries(
-      longhands.map((longhand, index) => [longhand, initialValues[index]!]),
+      longhandNames.map((longhand, index) => [longhand, initialValues[index]!]),
     );
     const assigned = new Set<string>();
     let timeCount = 0;
@@ -58,17 +59,16 @@ const expand: ShorthandExpander = (value, context) => {
   }
 
   return Object.fromEntries(
-    longhands.map((longhand) => [longhand, expanded.map((layer) => layer[longhand]).join(", ")]),
+    longhandNames.map((longhand) => [longhand, expanded.map((layer) => layer[longhand]).join(", ")]),
   );
 };
 
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const values = longhands.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
+    const values = longhandNames.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
     const count = values[0]?.length ?? 0;
     if (!count || values.some((layers) => layers.length !== count)) return null;
     if (values[8]!.some((timeline) => timeline !== "auto")) return null;

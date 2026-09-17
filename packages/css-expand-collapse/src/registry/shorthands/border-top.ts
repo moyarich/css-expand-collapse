@@ -1,12 +1,14 @@
 import { collapseTriple } from "../collapsers.js";
 import { expandTriple } from "../expanders.js";
-import { sideBorder } from "../helpers.js";
 import type { ShorthandModule } from "../types.js";
 
-const longhands = sideBorder("top");
-const initialValues = ["medium", "none", "currentcolor"] as const;
-const expand = expandTriple(longhands, initialValues);
+const longhands = new Map([
+  ["border-top-width", "medium"],
+  ["border-top-style", "none"],
+  ["border-top-color", "currentcolor"],
+] as const);
+const expand = expandTriple(longhands);
 
 const collapse = collapseTriple(longhands);
 
-export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;
+export default { longhands, expand, collapse } satisfies ShorthandModule;

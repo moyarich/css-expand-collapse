@@ -1,18 +1,19 @@
 import { expandCsstreeComponents } from "../expanders.js";
 import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "font-synthesis-weight",
-  "font-synthesis-style",
-  "font-synthesis-small-caps",
-  "font-synthesis-position",
-] as const;
-const initialValues = ["auto", "auto", "auto", "auto"] as const;
-const expandComponents = expandCsstreeComponents(longhands, { initialValues });
+const longhands = new Map([
+  ["font-synthesis-weight", "auto"],
+  ["font-synthesis-style", "auto"],
+  ["font-synthesis-small-caps", "auto"],
+  ["font-synthesis-position", "none"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
+const expandComponents = expandCsstreeComponents(longhands);
 
 const expand: ShorthandExpander = (value, context) => {
   if (value === "none") {
-    return Object.fromEntries(longhands.map((longhand) => [longhand, "none"]));
+    return Object.fromEntries(longhandNames.map((longhand) => [longhand, "none"]));
   }
   return expandComponents(value, context);
 };
@@ -20,10 +21,9 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const values = longhands.map((longhand) => declarations[longhand]);
+    const values = longhandNames.map((longhand) => declarations[longhand]);
     if (values.some((value) => !value)) return null;
     if (values.every((value) => value === "none")) return "none";
     const candidate = values

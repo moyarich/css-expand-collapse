@@ -1,26 +1,18 @@
 import { splitTopLevelComma } from "../context.js";
 import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "background-image",
-  "background-position",
-  "background-size",
-  "background-repeat",
-  "background-origin",
-  "background-clip",
-  "background-attachment",
-  "background-color",
-] as const;
-const initialValues = [
-  "none",
-  "0% 0%",
-  "auto auto",
-  "repeat",
-  "padding-box",
-  "border-box",
-  "scroll",
-  "transparent",
-] as const;
+const longhands = new Map([
+  ["background-image", "none"],
+  ["background-position", "0% 0%"],
+  ["background-size", "auto auto"],
+  ["background-repeat", "repeat"],
+  ["background-origin", "padding-box"],
+  ["background-clip", "border-box"],
+  ["background-attachment", "scroll"],
+  ["background-color", "transparent"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
 
 function parseLayer(
   layer: string,
@@ -31,7 +23,7 @@ function parseLayer(
   if (slash.length > 2 || slash.some((part) => !part)) return null;
 
   const result: DeclarationMap = Object.fromEntries(
-    longhands.map((longhand, index) => [longhand, initialValues[index]!]),
+    longhandNames.map((longhand, index) => [longhand, initialValues[index]!]),
   );
 
   let before = context.splitWhitespace(slash[0]!);
@@ -136,10 +128,9 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const layered = longhands.slice(0, 7).map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
+    const layered = longhandNames.slice(0, 7).map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
     const count = layered[0]?.length ?? 0;
     if (!count || layered.some((values) => values.length !== count)) return null;
     const color = declarations["background-color"];

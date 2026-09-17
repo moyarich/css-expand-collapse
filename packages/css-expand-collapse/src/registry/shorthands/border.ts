@@ -1,14 +1,21 @@
 import { expandTriple } from "../expanders.js";
 import type { DeclarationMap, ShorthandCollapser, ShorthandExpander, ShorthandModule } from "../types.js";
 
-const longhands = [
-  "border-top-width", "border-top-style", "border-top-color",
-  "border-right-width", "border-right-style", "border-right-color",
-  "border-bottom-width", "border-bottom-style", "border-bottom-color",
-  "border-left-width", "border-left-style", "border-left-color",
-] as const;
-const initialValues = ["medium", "none", "currentcolor", "medium", "none", "currentcolor", "medium", "none", "currentcolor", "medium", "none", "currentcolor"] as const;
-const expandTop = expandTriple(longhands.slice(0, 3), initialValues.slice(0, 3));
+const longhands = new Map([
+  ["border-top-width", "medium"],
+  ["border-top-style", "none"],
+  ["border-top-color", "currentcolor"],
+  ["border-right-width", "medium"],
+  ["border-right-style", "none"],
+  ["border-right-color", "currentcolor"],
+  ["border-bottom-width", "medium"],
+  ["border-bottom-style", "none"],
+  ["border-bottom-color", "currentcolor"],
+  ["border-left-width", "medium"],
+  ["border-left-style", "none"],
+  ["border-left-color", "currentcolor"],
+] as const);
+const expandTop = expandTriple(new Map([...longhands].slice(0, 3)));
 
 const expand: ShorthandExpander = (value, context) => {
   const top = expandTop(value, context);
@@ -36,7 +43,6 @@ const collapse: ShorthandCollapser = (declarations, context) => {
 
 export default {
   longhands,
-  initialValues,
   expand,
   collapse,
   safeToDropWhenFullyShadowed: false,

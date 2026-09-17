@@ -1,15 +1,15 @@
 import gridTemplate from "./grid-template.js";
 import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "grid-auto-columns",
-  "grid-auto-flow",
-  "grid-auto-rows",
-  "grid-template-areas",
-  "grid-template-columns",
-  "grid-template-rows",
-] as const;
-const initialValues = ["auto", "row", "auto", "none", "none", "none"] as const;
+const longhands = new Map([
+  ["grid-auto-columns", "auto"],
+  ["grid-auto-flow", "row"],
+  ["grid-auto-rows", "auto"],
+  ["grid-template-areas", "none"],
+  ["grid-template-columns", "none"],
+  ["grid-template-rows", "none"],
+] as const);
+const initialValues = [...longhands.values()];
 
 const expand: ShorthandExpander = (value, context) => {
   if (!context.matchProperty("grid", value)) return null;
@@ -72,7 +72,6 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
     const autoColumns = declarations["grid-auto-columns"];

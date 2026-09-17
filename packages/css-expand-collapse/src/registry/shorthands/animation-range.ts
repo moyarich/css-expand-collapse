@@ -1,18 +1,21 @@
 import { expandOrderedPair } from "../expanders.js";
 import type { ShorthandModule } from "../types.js";
 
-const longhands = ["animation-range-start", "animation-range-end"] as const;
-const initialValues = ["normal", "normal"] as const;
-const expand = expandOrderedPair(longhands, initialValues);
+const longhands = new Map([
+  ["animation-range-start", "normal"],
+  ["animation-range-end", "normal"],
+] as const);
+const longhandNames = [...longhands.keys()];
+const initialValues = [...longhands.values()];
+const expand = expandOrderedPair(longhands);
 
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
-  initialValues,
   expand,
   collapse(declarations, context) {
-    const start = declarations[longhands[0]];
-    const end = declarations[longhands[1]];
+    const start = declarations[longhandNames[0]];
+    const end = declarations[longhandNames[1]];
     if (!start || !end) return null;
     const candidates = end === initialValues[1]
       ? [start, `${start} ${end}`]

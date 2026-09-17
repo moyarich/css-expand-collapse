@@ -1,12 +1,13 @@
-import type { DeclarationMap, ShorthandCollapser } from "./module.js";
+import { longhandNames } from "./helpers.js";
+import type { DeclarationMap, LonghandMap, ShorthandCollapser } from "./module.js";
 
 const GLOBAL_VALUES = new Set(["inherit", "initial", "unset", "revert", "revert-layer"]);
 
 function concreteValues(
-  longhands: readonly string[],
+  longhands: LonghandMap,
   declarations: DeclarationMap,
 ): string[] | null {
-  const values = longhands.map((property) => declarations[property]?.trim());
+  const values = longhandNames(longhands).map((property) => declarations[property]?.trim());
   return values.some((value) => !value) ? null : values as string[];
 }
 
@@ -17,7 +18,7 @@ function globalValue(values: readonly string[]): string | null {
     : null;
 }
 
-export function collapseQuad(longhands: readonly string[]): ShorthandCollapser {
+export function collapseQuad(longhands: LonghandMap): ShorthandCollapser {
   return (declarations) => {
     const values = concreteValues(longhands, declarations);
     if (!values || values.length !== 4) return null;
@@ -25,13 +26,13 @@ export function collapseQuad(longhands: readonly string[]): ShorthandCollapser {
     if (global) return global;
     const [top, right, bottom, left] = values;
     if (top === right && top === bottom && top === left) return top!;
-    if (top === bottom && right === left) return `${top} ${right}`;
-    if (right === left) return `${top} ${right} ${bottom}`;
+    if (top === bottom && right === left) return top + " " + right;
+    if (right === left) return top + " " + right + " " + bottom;
     return values.join(" ");
   };
 }
 
-export function collapsePair(longhands: readonly string[]): ShorthandCollapser {
+export function collapsePair(longhands: LonghandMap): ShorthandCollapser {
   return (declarations) => {
     const values = concreteValues(longhands, declarations);
     if (!values || values.length !== 2) return null;
@@ -41,7 +42,7 @@ export function collapsePair(longhands: readonly string[]): ShorthandCollapser {
   };
 }
 
-export function collapseTriple(longhands: readonly string[]): ShorthandCollapser {
+export function collapseTriple(longhands: LonghandMap): ShorthandCollapser {
   return (declarations) => {
     const values = concreteValues(longhands, declarations);
     if (!values || values.length !== 3) return null;
@@ -49,7 +50,7 @@ export function collapseTriple(longhands: readonly string[]): ShorthandCollapser
   };
 }
 
-export function collapseComponents(longhands: readonly string[]): ShorthandCollapser {
+export function collapseComponents(longhands: LonghandMap): ShorthandCollapser {
   return (declarations) => {
     const values = concreteValues(longhands, declarations);
     if (!values) return null;
@@ -57,21 +58,19 @@ export function collapseComponents(longhands: readonly string[]): ShorthandColla
   };
 }
 
-export function collapseSlashPair(
-  longhands: readonly [string, string],
-  initialValues: readonly [string, string],
-): ShorthandCollapser {
+export function collapseSlashPair(longhands: LonghandMap): ShorthandCollapser {
+  const properties = longhandNames(longhands);
   return (declarations) => {
     const values = concreteValues(longhands, declarations);
-    if (!values || values.length !== 2) return null;
+    if (!values || values.length !== 2 || properties.length !== 2) return null;
     const global = globalValue(values);
     if (global) return global;
     const [first, second] = values;
-    return second === initialValues[1] ? first! : `${first} / ${second}`;
+    return second === longhands.get(properties[1]!) ? first! : first + " / " + second;
   };
 }
 
-export function collapseLogicalBorderAxis(longhands: readonly string[]): ShorthandCollapser {
+export function collapseLogicalBorderAxis(longhands: LonghandMap): ShorthandCollapser {
   return (declarations) => {
     const values = concreteValues(longhands, declarations);
     if (!values || values.length !== 6) return null;

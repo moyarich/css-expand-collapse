@@ -15,6 +15,7 @@ export {
 export type {
   CollapseResult,
   DeclarationMap,
+  LonghandMap,
   TransformOptions,
 } from "./core.js";
 

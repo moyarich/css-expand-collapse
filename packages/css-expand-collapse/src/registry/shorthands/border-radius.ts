@@ -1,11 +1,12 @@
 import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
-const longhands = [
-  "border-top-left-radius",
-  "border-top-right-radius",
-  "border-bottom-right-radius",
-  "border-bottom-left-radius",
-] as const;
+const longhands = new Map([
+  ["border-top-left-radius", "0"],
+  ["border-top-right-radius", "0"],
+  ["border-bottom-right-radius", "0"],
+  ["border-bottom-left-radius", "0"],
+] as const);
+const longhandNames = [...longhands.keys()];
 
 function expandQuadValues(tokens: string[]): string[] | null {
   if (tokens.length < 1 || tokens.length > 4) return null;
@@ -21,7 +22,6 @@ function compressQuad(values: readonly string[]): string {
   return values.join(" ");
 }
 
-const initialValues = ["0", "0", "0", "0"] as const;
 const expand: ShorthandExpander = (value, context) => {
   if (!context.matchProperty("border-radius", value)) return null;
   const parts = context.splitSlash(value);
@@ -31,7 +31,7 @@ const expand: ShorthandExpander = (value, context) => {
   if (!horizontal || !vertical) return null;
 
   return Object.fromEntries(
-    longhands.map((longhand, index) => [
+    longhandNames.map((longhand, index) => [
       longhand,
       horizontal[index] === vertical[index]
         ? horizontal[index]!
@@ -42,13 +42,12 @@ const expand: ShorthandExpander = (value, context) => {
 
 export default {
   longhands,
-  initialValues,
   safeToDropWhenFullyShadowed: true,
   expand,
   collapse(declarations, context) {
     const horizontal: string[] = [];
     const vertical: string[] = [];
-    for (const longhand of longhands) {
+    for (const longhand of longhandNames) {
       const value = declarations[longhand];
       if (!value) return null;
       const tokens = context.matchProperty(longhand, value) ? value.trim().split(/\s+/) : [];

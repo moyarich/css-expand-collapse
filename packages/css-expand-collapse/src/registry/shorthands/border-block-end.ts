@@ -1,12 +1,14 @@
 import { collapseTriple } from "../collapsers.js";
 import { expandTriple } from "../expanders.js";
-import { logicalBorderSide } from "../helpers.js";
 import type { ShorthandModule } from "../types.js";
 
-const longhands = logicalBorderSide("block-end");
-const initialValues = ["medium", "none", "currentcolor"] as const;
-const expand = expandTriple(longhands, initialValues);
+const longhands = new Map([
+  ["border-block-end-width", "medium"],
+  ["border-block-end-style", "none"],
+  ["border-block-end-color", "currentcolor"],
+] as const);
+const expand = expandTriple(longhands);
 
 const collapse = collapseTriple(longhands);
 
-export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;
+export default { longhands, expand, collapse } satisfies ShorthandModule;

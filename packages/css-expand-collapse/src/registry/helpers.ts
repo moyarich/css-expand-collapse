@@ -1,26 +1,17 @@
-export const quad = (prefix: string): readonly string[] => [
-  `${prefix}-top`,
-  `${prefix}-right`,
-  `${prefix}-bottom`,
-  `${prefix}-left`,
-];
+import type { LonghandMap } from "./module.js";
 
-export const logicalPair = (
-  prefix: string,
-  axis: "block" | "inline",
-): readonly string[] => [
-  `${prefix}-${axis}-start`,
-  `${prefix}-${axis}-end`,
-];
+export function longhandNames(longhands: LonghandMap): string[] {
+  return [...longhands.keys()];
+}
 
-export const sideBorder = (side: string): readonly string[] => [
-  `border-${side}-width`,
-  `border-${side}-style`,
-  `border-${side}-color`,
-];
+export function longhandInitialValues(longhands: LonghandMap): string[] {
+  return [...longhands.values()];
+}
 
-export const logicalBorderSide = (side: string): readonly string[] => [
-  `border-${side}-width`,
-  `border-${side}-style`,
-  `border-${side}-color`,
-];
+export function sliceLonghands(
+  longhands: LonghandMap,
+  start: number,
+  end?: number,
+): LonghandMap {
+  return new Map([...longhands].slice(start, end));
+}
