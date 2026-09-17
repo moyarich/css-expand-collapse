@@ -19,7 +19,8 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run build:lib
-      - name: Add initial values to every shorthand module
+
+      - name: Apply module-owned initial values
         run: |
           node --input-type=module <<'NODE'
           import { createRequire } from 'node:module';
@@ -30,27 +31,28 @@ jobs:
           const require = createRequire(import.meta.url);
           const properties = require('mdn-data/css/properties.json');
           const root = 'packages/css-expand-collapse/src/registry/shorthands';
-
-          const tsLiteral = (values) => `[${values.map((value) => value === null ? 'null' : JSON.stringify(value)).join(', ')}] as const`;
+          const read = (file) => fs.readFileSync(file, 'utf8');
+          const write = (file, text) => fs.writeFileSync(file, text);
+          const literal = (values) => `[${values.map((value) => value === null ? 'null' : JSON.stringify(value)).join(', ')}] as const`;
 
           for (const shorthand of SHORTHAND_PROPERTIES) {
             const file = path.join(root, `${shorthand}.ts`);
             if (!fs.existsSync(file)) continue;
-            let text = fs.readFileSync(file, 'utf8');
+            let text = read(file);
             if (!text.includes('satisfies ShorthandModule')) continue;
 
             if (!text.includes('initialValues')) {
               const longhands = getLonghands(shorthand);
               const values = longhands.map((longhand) => {
                 const initial = properties[longhand]?.initial;
-                if (initial == null) throw new Error(`Missing MDN initial value for ${shorthand} -> ${longhand}`);
+                if (initial == null) throw new Error(`Missing initial value for ${shorthand} -> ${longhand}`);
                 return initial === 'dependsOnUserAgent' ? null : initial;
               });
 
               if (shorthand === 'all') {
                 text = text.replace('  longhands: [],\n', '  longhands: [],\n  initialValues: [],\n');
               } else {
-                const declaration = `const initialValues = ${tsLiteral(values)};\n`;
+                const declaration = `const initialValues = ${literal(values)};\n`;
                 const expandIndex = text.indexOf('const expand');
                 const exportIndex = text.indexOf('export default');
                 const insertIndex = expandIndex >= 0 ? expandIndex : exportIndex;
@@ -58,167 +60,112 @@ jobs:
                 text = `${text.slice(0, insertIndex)}${declaration}${text.slice(insertIndex)}`;
 
                 if (text.includes('export default { longhands, expand, collapse }')) {
-                  text = text.replace(
-                    'export default { longhands, expand, collapse }',
-                    'export default { longhands, initialValues, expand, collapse }',
-                  );
+                  text = text.replace('export default { longhands, expand, collapse }', 'export default { longhands, initialValues, expand, collapse }');
                 } else if (text.includes('export default {\n  longhands,\n')) {
-                  text = text.replace(
-                    'export default {\n  longhands,\n',
-                    'export default {\n  longhands,\n  initialValues,\n',
-                  );
+                  text = text.replace('export default {\n  longhands,\n', 'export default {\n  longhands,\n  initialValues,\n');
                 } else {
                   throw new Error(`Unable to export initialValues from ${file}`);
                 }
               }
             }
 
-            // Shared expanders must consume module-owned defaults rather than carrying
-            // border defaults of their own.
             text = text.replace(/expandTriple\(longhands\)/g, 'expandTriple(longhands, initialValues)');
-            text = text.replace(
-              /expandTriple\(longhands\.slice\(0, 3\)\)/g,
-              'expandTriple(longhands.slice(0, 3), initialValues.slice(0, 3))',
-            );
-            text = text.replace(
-              /expandLogicalBorderAxis\(longhands\)/g,
-              'expandLogicalBorderAxis(longhands, initialValues)',
-            );
-
-            fs.writeFileSync(file, text);
+            text = text.replace(/expandTriple\(longhands\.slice\(0, 3\)\)/g, 'expandTriple(longhands.slice(0, 3), initialValues.slice(0, 3))');
+            text = text.replace(/expandLogicalBorderAxis\(longhands\)/g, 'expandLogicalBorderAxis(longhands, initialValues)');
+            write(file, text);
           }
 
-          const moduleFiles = fs.readdirSync(root).filter((name) => name.endsWith('.ts'));
-          const missing = moduleFiles.filter((name) => {
-            const text = fs.readFileSync(path.join(root, name), 'utf8');
+          const modulePath = 'packages/css-expand-collapse/src/registry/module.ts';
+          let moduleText = read(modulePath);
+          moduleText = moduleText.replace('  readonly initialValues?: readonly string[];', '  readonly initialValues: readonly (string | null)[];');
+          write(modulePath, moduleText);
+
+          const corePath = 'packages/css-expand-collapse/src/core.ts';
+          let core = read(corePath);
+          core = core.replace('  if (!shouldFill || !definition.initialValues) {\n    return completed;\n  }', '  if (!shouldFill) {\n    return completed;\n  }');
+          core = core.replace('    const initialValue = definition.initialValues?.[index];\n    if (initialValue !== undefined) completed[longhand] = initialValue;', '    const initialValue = definition.initialValues[index];\n    if (typeof initialValue === "string") completed[longhand] = initialValue;');
+          write(corePath, core);
+
+          const cssPath = 'packages/css-expand-collapse/src/css.ts';
+          write(cssPath, read(cssPath).replace('      definition.initialValues?.length === definition.longhands.length;', '      definition.initialValues.length === definition.longhands.length;'));
+
+          const expandersPath = 'packages/css-expand-collapse/src/registry/expanders.ts';
+          let expanders = read(expandersPath);
+          const oldTriple = [
+            'export function expandTriple(',
+            '  longhands: readonly string[],',
+            '  defaults: readonly [string, string, string] = ["medium", "none", "currentcolor"],',
+            '): ShorthandExpander {',
+            '  return (value, context) => {',
+            '    const tokens = context.splitWhitespace(value);',
+            '    if (!tokens.length) return null;',
+            '',
+            '    const result: DeclarationMap = {',
+            '      [longhands[0]!]: defaults[0],',
+            '      [longhands[1]!]: defaults[1],',
+            '      [longhands[2]!]: defaults[2],',
+            '    };',
+          ].join('\n');
+          const newTriple = [
+            'export function expandTriple(',
+            '  longhands: readonly string[],',
+            '  initialValues: readonly string[],',
+            '): ShorthandExpander {',
+            '  return (value, context) => {',
+            '    const tokens = context.splitWhitespace(value);',
+            '    if (!tokens.length || longhands.length !== 3 || initialValues.length !== 3) return null;',
+            '',
+            '    const result: DeclarationMap = {',
+            '      [longhands[0]!]: initialValues[0]!,',
+            '      [longhands[1]!]: initialValues[1]!,',
+            '      [longhands[2]!]: initialValues[2]!,',
+            '    };',
+          ].join('\n');
+          if (!expanders.includes(oldTriple)) throw new Error('expandTriple source did not match');
+          expanders = expanders.replace(oldTriple, newTriple);
+
+          const oldLogical = [
+            'export function expandLogicalBorderAxis(longhands: readonly string[]): ShorthandExpander {',
+            '  const expandSide = expandTriple(longhands.slice(0, 3));',
+            '',
+            '  return (value, context) => {',
+            '    if (longhands.length !== 6) return null;',
+          ].join('\n');
+          const newLogical = [
+            'export function expandLogicalBorderAxis(',
+            '  longhands: readonly string[],',
+            '  initialValues: readonly string[],',
+            '): ShorthandExpander {',
+            '  const expandSide = expandTriple(longhands.slice(0, 3), initialValues.slice(0, 3));',
+            '',
+            '  return (value, context) => {',
+            '    if (longhands.length !== 6 || initialValues.length !== 6) return null;',
+          ].join('\n');
+          if (!expanders.includes(oldLogical)) throw new Error('expandLogicalBorderAxis source did not match');
+          write(expandersPath, expanders.replace(oldLogical, newLogical));
+
+          const testPath = 'packages/css-expand-collapse/tests/registry-modules.test.ts';
+          let test = read(testPath);
+          test = test.replace(
+            '      expect(Array.isArray(module.longhands)).toBe(true);\n      expect(typeof module.expand).toBe("function");',
+            '      expect(Array.isArray(module.longhands)).toBe(true);\n      expect(Array.isArray(module.initialValues)).toBe(true);\n      expect(module.initialValues).toHaveLength(module.longhands.length);\n      expect(module.initialValues.every((value) => value === null || typeof value === "string")).toBe(true);\n      expect(typeof module.expand).toBe("function");',
+          );
+          test = test.replace('    expect(SHORTHAND_MODULES.all.longhands).toEqual([]);', '    expect(SHORTHAND_MODULES.all.longhands).toEqual([]);\n    expect(SHORTHAND_MODULES.all.initialValues).toEqual([]);');
+          write(testPath, test);
+
+          for (const file of ['docs/README-dev.md', 'packages/css-expand-collapse/src/registry/README.md']) {
+            let text = read(file);
+            text = text.replace('readonly initialValues?: readonly string[];', 'readonly initialValues: readonly (string | null)[];');
+            text = text.replace('Declare its `longhands` and optional `initialValues`.', 'Declare its `longhands` and required `initialValues`.');
+            write(file, text);
+          }
+
+          const missing = fs.readdirSync(root).filter((name) => name.endsWith('.ts')).filter((name) => {
+            const text = read(path.join(root, name));
             return text.includes('satisfies ShorthandModule') && !text.includes('initialValues');
           });
           if (missing.length) throw new Error(`Modules still missing initialValues: ${missing.join(', ')}`);
           NODE
-
-      - name: Require initial values in the module contract
-        run: |
-          python <<'PY'
-          from pathlib import Path
-
-          module = Path('packages/css-expand-collapse/src/registry/module.ts')
-          text = module.read_text()
-          old = '  readonly initialValues?: readonly string[];'
-          new = '  readonly initialValues: readonly (string | null)[];'
-          if old not in text:
-              raise SystemExit('Expected optional initialValues contract not found')
-          module.write_text(text.replace(old, new))
-
-          core = Path('packages/css-expand-collapse/src/core.ts')
-          text = core.read_text()
-          text = text.replace(
-              '  if (!shouldFill || !definition.initialValues) {\n    return completed;\n  }',
-              '  if (!shouldFill) {\n    return completed;\n  }',
-          )
-          text = text.replace(
-              '    const initialValue = definition.initialValues?.[index];\n    if (initialValue !== undefined) completed[longhand] = initialValue;',
-              '    const initialValue = definition.initialValues[index];\n    if (typeof initialValue === "string") completed[longhand] = initialValue;',
-          )
-          core.write_text(text)
-
-          css = Path('packages/css-expand-collapse/src/css.ts')
-          text = css.read_text().replace(
-              '      definition.initialValues?.length === definition.longhands.length;',
-              '      definition.initialValues.length === definition.longhands.length;',
-          )
-          css.write_text(text)
-          PY
-
-      - name: Remove shared initial-value defaults
-        run: |
-          python <<'PY'
-          from pathlib import Path
-          path = Path('packages/css-expand-collapse/src/registry/expanders.ts')
-          text = path.read_text()
-          old = '''export function expandTriple(
-  longhands: readonly string[],
-  defaults: readonly [string, string, string] = ["medium", "none", "currentcolor"],
-): ShorthandExpander {
-  return (value, context) => {
-    const tokens = context.splitWhitespace(value);
-    if (!tokens.length) return null;
-
-    const result: DeclarationMap = {
-      [longhands[0]!]: defaults[0],
-      [longhands[1]!]: defaults[1],
-      [longhands[2]!]: defaults[2],
-    };'''
-          new = '''export function expandTriple(
-  longhands: readonly string[],
-  initialValues: readonly string[],
-): ShorthandExpander {
-  return (value, context) => {
-    const tokens = context.splitWhitespace(value);
-    if (!tokens.length || longhands.length !== 3 || initialValues.length !== 3) return null;
-
-    const result: DeclarationMap = {
-      [longhands[0]!]: initialValues[0]!,
-      [longhands[1]!]: initialValues[1]!,
-      [longhands[2]!]: initialValues[2]!,
-    };'''
-          if old not in text:
-              raise SystemExit('Expected expandTriple implementation not found')
-          text = text.replace(old, new)
-
-          old = '''export function expandLogicalBorderAxis(longhands: readonly string[]): ShorthandExpander {
-  const expandSide = expandTriple(longhands.slice(0, 3));
-
-  return (value, context) => {
-    if (longhands.length !== 6) return null;'''
-          new = '''export function expandLogicalBorderAxis(
-  longhands: readonly string[],
-  initialValues: readonly string[],
-): ShorthandExpander {
-  const expandSide = expandTriple(longhands.slice(0, 3), initialValues.slice(0, 3));
-
-  return (value, context) => {
-    if (longhands.length !== 6 || initialValues.length !== 6) return null;'''
-          if old not in text:
-              raise SystemExit('Expected expandLogicalBorderAxis implementation not found')
-          path.write_text(text.replace(old, new))
-          PY
-
-      - name: Enforce module-owned initial values in tests and docs
-        run: |
-          python <<'PY'
-          from pathlib import Path
-
-          test = Path('packages/css-expand-collapse/tests/registry-modules.test.ts')
-          text = test.read_text()
-          old = '''      expect(Array.isArray(module.longhands)).toBe(true);
-      expect(typeof module.expand).toBe("function");'''
-          new = '''      expect(Array.isArray(module.longhands)).toBe(true);
-      expect(Array.isArray(module.initialValues)).toBe(true);
-      expect(module.initialValues).toHaveLength(module.longhands.length);
-      expect(module.initialValues.every((value) => value === null || typeof value === "string")).toBe(true);
-      expect(typeof module.expand).toBe("function");'''
-          if old not in text:
-              raise SystemExit('Expected registry module assertion block not found')
-          text = text.replace(old, new)
-          text = text.replace(
-              '    expect(SHORTHAND_MODULES.all.longhands).toEqual([]);',
-              '    expect(SHORTHAND_MODULES.all.longhands).toEqual([]);\n    expect(SHORTHAND_MODULES.all.initialValues).toEqual([]);',
-          )
-          test.write_text(text)
-
-          for name in ['docs/README-dev.md', 'packages/css-expand-collapse/src/registry/README.md']:
-              path = Path(name)
-              text = path.read_text()
-              text = text.replace(
-                  'readonly initialValues?: readonly string[];',
-                  'readonly initialValues: readonly (string | null)[];',
-              )
-              text = text.replace(
-                  'Declare its `longhands` and optional `initialValues`.',
-                  'Declare its `longhands` and required `initialValues`.',
-              )
-              path.write_text(text)
-          PY
 
       - name: Verify ownership invariant
         run: |
@@ -226,25 +173,16 @@ jobs:
             echo "Optional initialValues remain"
             exit 1
           fi
-          python <<'PY'
-          from pathlib import Path
-          root = Path('packages/css-expand-collapse/src/registry/shorthands')
-          for path in sorted(root.glob('*.ts')):
-              text = path.read_text()
-              if 'satisfies ShorthandModule' not in text:
-                  continue
-              if 'initialValues' not in text:
-                  raise SystemExit(f'{path} does not own initialValues')
-          PY
+          if grep -R 'expandTriple(longhands)' packages/css-expand-collapse/src/registry/shorthands; then
+            echo "Shared triple defaults are still being used"
+            exit 1
+          fi
 
-      - name: Test
-        run: npm test
-      - name: Typecheck
-        run: npm run typecheck
-      - name: Build
-        run: npm run build
+      - run: npm test
+      - run: npm run typecheck
+      - run: npm run build
 
-      - name: Remove temporary audit workflows
+      - name: Remove temporary workflows
         run: |
           rm -f .github/workflows/report-shorthand-initial-values.yml
           rm -f .github/workflows/derive-shorthand-initial-values.yml
