@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { DEFAULT_FUNCTION_EXAMPLE, FUNCTION_EXAMPLES } from "./examples";
+import { DEFAULT_FUNCTION_EXAMPLE, FUNCTION_EXAMPLES } from "../examples/APIPlayground";
 import { APIRunner } from "./APIRunner";
 
 export function APIPlayground() {

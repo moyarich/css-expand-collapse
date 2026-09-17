@@ -13,7 +13,7 @@ import {
   SHORTHAND_EXAMPLES,
   getShorthandExample,
   type ExampleProperty,
-} from "./examples";
+} from "./examples/CSSConverter";
 import { APIPlayground } from "./APIPlayground";
 
 type Mode = "expand" | "collapse";
