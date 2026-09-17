@@ -172,6 +172,16 @@ export function App() {
   const [copied, setCopied] = useState(false);
 
   const meta = MODE_META[mode];
+  const modeExamples = useMemo(
+    () => CSS_CONVERTER_EXAMPLES.filter((example) => example.mode === mode),
+    [mode],
+  );
+  const modeGroups = useMemo(
+    () => CSS_CONVERTER_GROUPS.filter((group) =>
+      modeExamples.some((example) => example.group === group),
+    ),
+    [modeExamples],
+  );
   const inputKind = useMemo<InputKind>(
     () => source.indexOf(String.fromCharCode(LEFTCURLYBRACKET)) === -1
       ? "declarations"
@@ -289,12 +299,12 @@ export function App() {
                   }}
                 >
                   <option value="" disabled>Choose an example…</option>
-                  {CSS_CONVERTER_GROUPS.map((group) => (
+                  {modeGroups.map((group) => (
                     <optgroup
                       key={group}
                       label={group === "Real-world CSS" ? group : `MDN · ${group}`}
                     >
-                      {CSS_CONVERTER_EXAMPLES
+                      {modeExamples
                         .filter((example) => example.group === group)
                         .map((example) => (
                           <option key={example.key} value={example.key}>
