@@ -1,0 +1,10 @@
+{
+  "id": "flex",
+  "label": "flex",
+  "description": "Expand the flex shorthand into its longhand declarations.",
+  "group": "Layout & alignment",
+  "groupOrder": 2,
+  "order": 28,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

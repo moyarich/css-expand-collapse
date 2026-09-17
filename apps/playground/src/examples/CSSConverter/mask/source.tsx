@@ -1,0 +1,3 @@
+export default `.example {
+  mask: linear-gradient(#000 0 0) center / cover no-repeat;
+}`;

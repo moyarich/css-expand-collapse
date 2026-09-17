@@ -1,0 +1,3 @@
+export default `.example {
+  font: italic 700 1rem/1.5 system-ui;
+}`;

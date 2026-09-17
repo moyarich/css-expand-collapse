@@ -1,0 +1,10 @@
+{
+  "id": "grid-template",
+  "label": "grid-template",
+  "description": "Expand the grid-template shorthand into its longhand declarations.",
+  "group": "Layout & alignment",
+  "groupOrder": 2,
+  "order": 36,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

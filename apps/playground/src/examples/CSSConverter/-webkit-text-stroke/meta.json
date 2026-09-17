@@ -1,0 +1,10 @@
+{
+  "id": "-webkit-text-stroke",
+  "label": "-webkit-text-stroke",
+  "description": "Expand the -webkit-text-stroke shorthand into its longhand declarations.",
+  "group": "Vendor prefixed",
+  "groupOrder": 6,
+  "order": 3,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

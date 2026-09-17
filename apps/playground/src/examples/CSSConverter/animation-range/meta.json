@@ -1,0 +1,10 @@
+{
+  "id": "animation-range",
+  "label": "animation-range",
+  "description": "Expand the animation-range shorthand into its longhand declarations.",
+  "group": "Animation & scrolling",
+  "groupOrder": 4,
+  "order": 4,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

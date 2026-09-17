@@ -7,12 +7,9 @@ import {
   expandDeclarations,
 } from "@moyarich/css-expand-collapse";
 import {
-  COMPUTED_EXPORT_EXAMPLE,
-  COMPUTED_EXPORT_EXAMPLE_ID,
-  EXAMPLE_GROUPS,
-  SHORTHAND_EXAMPLES,
-  getShorthandExample,
-  type ExampleProperty,
+  CSS_CONVERTER_EXAMPLES,
+  CSS_CONVERTER_GROUPS,
+  DEFAULT_CSS_CONVERTER_EXAMPLE,
 } from "./examples/CSSConverter";
 import { APIPlayground } from "./APIPlayground";
 
@@ -54,7 +51,7 @@ const MODE_META: Record<Mode, {
   },
 };
 
-const DEFAULT_EXAMPLE = getShorthandExample("text-decoration")!;
+const DEFAULT_EXAMPLE = DEFAULT_CSS_CONVERTER_EXAMPLE;
 
 function formatCss(css: string, inputKind: InputKind): string {
   const source = css.trim();
@@ -205,18 +202,11 @@ export function App() {
   }, [source, mode, inputKind, fillMissingLonghands]);
 
   const loadExample = (selection: string) => {
-    if (selection === COMPUTED_EXPORT_EXAMPLE_ID) {
-      setMode("collapse");
-      setFillMissingLonghands(true);
-      setSource(COMPUTED_EXPORT_EXAMPLE);
-      setCopied(false);
-      return;
-    }
-
-    const example = getShorthandExample(selection as ExampleProperty);
+    const example = CSS_CONVERTER_EXAMPLES.find((item) => item.id === selection);
     if (!example) return;
-    setMode("expand");
-    setFillMissingLonghands(false);
+
+    setMode(example.mode);
+    setFillMissingLonghands(example.fillMissingLonghands);
     setSource(example.source);
     setCopied(false);
   };
@@ -299,18 +289,16 @@ export function App() {
                   }}
                 >
                   <option value="" disabled>Choose an example…</option>
-                  <optgroup label="Real-world CSS">
-                    <option value={COMPUTED_EXPORT_EXAMPLE_ID}>
-                      Computed/export CSS → compact shorthands
-                    </option>
-                  </optgroup>
-                  {EXAMPLE_GROUPS.map((group) => (
-                    <optgroup key={group} label={`MDN · ${group}`}>
-                      {SHORTHAND_EXAMPLES
+                  {CSS_CONVERTER_GROUPS.map((group) => (
+                    <optgroup
+                      key={group}
+                      label={group === "Real-world CSS" ? group : `MDN · ${group}`}
+                    >
+                      {CSS_CONVERTER_EXAMPLES
                         .filter((example) => example.group === group)
                         .map((example) => (
-                          <option key={example.property} value={example.property}>
-                            {example.property}
+                          <option key={example.id} value={example.id}>
+                            {example.label}
                           </option>
                         ))}
                     </optgroup>

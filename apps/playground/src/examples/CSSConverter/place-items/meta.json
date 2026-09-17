@@ -1,0 +1,10 @@
+{
+  "id": "place-items",
+  "label": "place-items",
+  "description": "Expand the place-items shorthand into its longhand declarations.",
+  "group": "Layout & alignment",
+  "groupOrder": 2,
+  "order": 55,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

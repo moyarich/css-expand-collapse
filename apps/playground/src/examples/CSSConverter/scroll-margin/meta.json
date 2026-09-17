@@ -1,0 +1,10 @@
+{
+  "id": "scroll-margin",
+  "label": "scroll-margin",
+  "description": "Expand the scroll-margin shorthand into its longhand declarations.",
+  "group": "Animation & scrolling",
+  "groupOrder": 4,
+  "order": 60,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

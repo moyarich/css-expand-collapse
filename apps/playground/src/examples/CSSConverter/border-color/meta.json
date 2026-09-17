@@ -1,0 +1,10 @@
+{
+  "id": "border-color",
+  "label": "border-color",
+  "description": "Expand the border-color shorthand into its longhand declarations.",
+  "group": "Box model & borders",
+  "groupOrder": 1,
+  "order": 11,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

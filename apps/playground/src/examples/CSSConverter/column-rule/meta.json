@@ -1,0 +1,10 @@
+{
+  "id": "column-rule",
+  "label": "column-rule",
+  "description": "Expand the column-rule shorthand into its longhand declarations.",
+  "group": "Layout & alignment",
+  "groupOrder": 2,
+  "order": 23,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

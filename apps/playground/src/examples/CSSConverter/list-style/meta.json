@@ -1,0 +1,10 @@
+{
+  "id": "list-style",
+  "label": "list-style",
+  "description": "Expand the list-style shorthand into its longhand declarations.",
+  "group": "Typography & text",
+  "groupOrder": 3,
+  "order": 41,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

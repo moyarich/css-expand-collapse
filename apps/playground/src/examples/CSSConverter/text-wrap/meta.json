@@ -1,0 +1,10 @@
+{
+  "id": "text-wrap",
+  "label": "text-wrap",
+  "description": "Expand the text-wrap shorthand into its longhand declarations.",
+  "group": "Typography & text",
+  "groupOrder": 3,
+  "order": 68,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

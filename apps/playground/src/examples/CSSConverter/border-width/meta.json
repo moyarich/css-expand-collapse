@@ -1,0 +1,10 @@
+{
+  "id": "border-width",
+  "label": "border-width",
+  "description": "Expand the border-width shorthand into its longhand declarations.",
+  "group": "Box model & borders",
+  "groupOrder": 1,
+  "order": 21,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

@@ -1,0 +1,10 @@
+{
+  "id": "scroll-padding-block",
+  "label": "scroll-padding-block",
+  "description": "Expand the scroll-padding-block shorthand into its longhand declarations.",
+  "group": "Animation & scrolling",
+  "groupOrder": 4,
+  "order": 61,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

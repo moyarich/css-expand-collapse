@@ -1,0 +1,10 @@
+{
+  "id": "grid-row",
+  "label": "grid-row",
+  "description": "Expand the grid-row shorthand into its longhand declarations.",
+  "group": "Layout & alignment",
+  "groupOrder": 2,
+  "order": 35,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

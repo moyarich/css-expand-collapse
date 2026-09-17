@@ -1,0 +1,10 @@
+{
+  "id": "-webkit-border-before",
+  "label": "-webkit-border-before",
+  "description": "Expand the -webkit-border-before shorthand into its longhand declarations.",
+  "group": "Vendor prefixed",
+  "groupOrder": 6,
+  "order": 1,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

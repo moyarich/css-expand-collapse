@@ -1,0 +1,10 @@
+{
+  "id": "text-box",
+  "label": "text-box",
+  "description": "Expand the text-box shorthand into its longhand declarations.",
+  "group": "Typography & text",
+  "groupOrder": 3,
+  "order": 65,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

@@ -1,0 +1,10 @@
+{
+  "id": "font",
+  "label": "font",
+  "description": "Expand the font shorthand into its longhand declarations.",
+  "group": "Typography & text",
+  "groupOrder": 3,
+  "order": 31,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

@@ -1,0 +1,3 @@
+export default `.example {
+  border-width: 1px 2px 3px 4px;
+}`;

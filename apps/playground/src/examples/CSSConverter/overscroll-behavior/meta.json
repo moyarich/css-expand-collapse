@@ -1,0 +1,10 @@
+{
+  "id": "overscroll-behavior",
+  "label": "overscroll-behavior",
+  "description": "Expand the overscroll-behavior shorthand into its longhand declarations.",
+  "group": "Layout & alignment",
+  "groupOrder": 2,
+  "order": 50,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

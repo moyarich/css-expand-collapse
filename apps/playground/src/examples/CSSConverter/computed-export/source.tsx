@@ -1,10 +1,4 @@
-export const COMPUTED_EXPORT_EXAMPLE_ID = "computed-export" as const;
-
-/**
- * Representative of CSS copied from a computed-style/export workflow: a shorthand
- * is emitted together with the longhands that resolve to the same final values.
- */
-export const COMPUTED_EXPORT_EXAMPLE = `[data-pb-export-id="0"] {
+export default `[data-pb-export-id="0"] {
   position: relative;
   inset: auto;
   top: 0px;

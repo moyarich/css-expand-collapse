@@ -1,0 +1,10 @@
+{
+  "id": "margin-block",
+  "label": "margin-block",
+  "description": "Expand the margin-block shorthand into its longhand declarations.",
+  "group": "Box model & borders",
+  "groupOrder": 1,
+  "order": 42,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

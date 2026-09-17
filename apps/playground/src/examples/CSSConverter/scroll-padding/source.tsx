@@ -1,0 +1,3 @@
+export default `.example {
+  scroll-padding: 8px 16px 24px 32px;
+}`;

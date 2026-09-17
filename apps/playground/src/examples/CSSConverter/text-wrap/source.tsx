@@ -1,0 +1,3 @@
+export default `.example {
+  text-wrap: wrap balance;
+}`;

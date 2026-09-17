@@ -1,0 +1,10 @@
+{
+  "id": "position-try",
+  "label": "position-try",
+  "description": "Expand the position-try shorthand into its longhand declarations.",
+  "group": "Animation & scrolling",
+  "groupOrder": 4,
+  "order": 57,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

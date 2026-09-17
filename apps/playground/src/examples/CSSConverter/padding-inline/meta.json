@@ -1,0 +1,10 @@
+{
+  "id": "padding-inline",
+  "label": "padding-inline",
+  "description": "Expand the padding-inline shorthand into its longhand declarations.",
+  "group": "Box model & borders",
+  "groupOrder": 1,
+  "order": 52,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

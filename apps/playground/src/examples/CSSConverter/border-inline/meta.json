@@ -1,0 +1,10 @@
+{
+  "id": "border-inline",
+  "label": "border-inline",
+  "description": "Expand the border-inline shorthand into its longhand declarations.",
+  "group": "Box model & borders",
+  "groupOrder": 1,
+  "order": 15,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

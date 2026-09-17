@@ -1,0 +1,10 @@
+{
+  "id": "animation",
+  "label": "animation",
+  "description": "Expand the animation shorthand into its longhand declarations.",
+  "group": "Animation & scrolling",
+  "groupOrder": 4,
+  "order": 5,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

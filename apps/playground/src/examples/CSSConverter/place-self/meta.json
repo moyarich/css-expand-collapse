@@ -1,0 +1,10 @@
+{
+  "id": "place-self",
+  "label": "place-self",
+  "description": "Expand the place-self shorthand into its longhand declarations.",
+  "group": "Layout & alignment",
+  "groupOrder": 2,
+  "order": 56,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

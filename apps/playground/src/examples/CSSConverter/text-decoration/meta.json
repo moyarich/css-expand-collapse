@@ -1,0 +1,10 @@
+{
+  "id": "text-decoration",
+  "label": "text-decoration",
+  "description": "Expand the text-decoration shorthand into its longhand declarations.",
+  "group": "Typography & text",
+  "groupOrder": 3,
+  "order": 66,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

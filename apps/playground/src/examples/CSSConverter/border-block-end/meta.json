@@ -1,0 +1,10 @@
+{
+  "id": "border-block-end",
+  "label": "border-block-end",
+  "description": "Expand the border-block-end shorthand into its longhand declarations.",
+  "group": "Box model & borders",
+  "groupOrder": 1,
+  "order": 7,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

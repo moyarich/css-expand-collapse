@@ -1,0 +1,10 @@
+{
+  "id": "inset-block",
+  "label": "inset-block",
+  "description": "Expand the inset-block shorthand into its longhand declarations.",
+  "group": "Box model & borders",
+  "groupOrder": 1,
+  "order": 38,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

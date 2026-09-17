@@ -1,0 +1,10 @@
+{
+  "id": "font-synthesis",
+  "label": "font-synthesis",
+  "description": "Expand the font-synthesis shorthand into its longhand declarations.",
+  "group": "Typography & text",
+  "groupOrder": 3,
+  "order": 29,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

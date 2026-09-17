@@ -1,0 +1,10 @@
+{
+  "id": "border-right",
+  "label": "border-right",
+  "description": "Expand the border-right shorthand into its longhand declarations.",
+  "group": "Box model & borders",
+  "groupOrder": 1,
+  "order": 18,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

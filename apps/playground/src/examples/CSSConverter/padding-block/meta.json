@@ -1,0 +1,10 @@
+{
+  "id": "padding-block",
+  "label": "padding-block",
+  "description": "Expand the padding-block shorthand into its longhand declarations.",
+  "group": "Box model & borders",
+  "groupOrder": 1,
+  "order": 51,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

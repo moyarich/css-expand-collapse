@@ -1,0 +1,10 @@
+{
+  "id": "-webkit-mask-box-image",
+  "label": "-webkit-mask-box-image",
+  "description": "Expand the -webkit-mask-box-image shorthand into its longhand declarations.",
+  "group": "Vendor prefixed",
+  "groupOrder": 6,
+  "order": 2,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

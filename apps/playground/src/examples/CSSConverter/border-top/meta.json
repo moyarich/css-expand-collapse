@@ -1,0 +1,10 @@
+{
+  "id": "border-top",
+  "label": "border-top",
+  "description": "Expand the border-top shorthand into its longhand declarations.",
+  "group": "Box model & borders",
+  "groupOrder": 1,
+  "order": 20,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}

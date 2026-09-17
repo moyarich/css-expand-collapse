@@ -1,0 +1,10 @@
+{
+  "id": "overflow",
+  "label": "overflow",
+  "description": "Expand the overflow shorthand into its longhand declarations.",
+  "group": "Layout & alignment",
+  "groupOrder": 2,
+  "order": 49,
+  "mode": "expand",
+  "fillMissingLonghands": false
+}
