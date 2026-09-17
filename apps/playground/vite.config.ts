@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: process.env.GITHUB_PAGES === "true" ? "/css-expand-collapse/" : "/",
+  base: process.env.PLAYGROUND_BASE_PATH || "/",
   plugins: [react()],
   resolve: {
     alias: {

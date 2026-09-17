@@ -15,7 +15,9 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspace @moyarich/css-expand-collapse",
     "test:watch": "npm run test:watch --workspace @moyarich/css-expand-collapse",
-    "pack:lib": "npm pack --workspace @moyarich/css-expand-collapse --dry-run"
+    "pack:lib": "npm pack --workspace @moyarich/css-expand-collapse --dry-run",
+    "release:check": "node scripts/publish.mjs --dry-run",
+    "publish:lib": "node scripts/publish.mjs --publish"
   },
   "engines": {
     "node": ">=22.12.0"
