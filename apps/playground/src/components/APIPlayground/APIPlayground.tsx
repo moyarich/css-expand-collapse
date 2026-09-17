@@ -31,14 +31,6 @@ export function APIPlayground() {
         </section>
 
         <section className="sidebar-section">
-          <span className="sidebar-section-label">About</span>
-          <p className="sidebar-help">
-            Write TypeScript using the real package API. Imports from
-            <code>@moyarich/css-expand-collapse</code> resolve directly to the bundled library.
-          </p>
-        </section>
-
-        <section className="sidebar-section">
           <span className="sidebar-section-label">Run</span>
           <p className="sidebar-help">
             Press <kbd>⌘ Enter</kbd> on macOS or <kbd>Ctrl Enter</kbd> on Windows/Linux.
