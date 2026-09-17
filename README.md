@@ -234,32 +234,31 @@ getShorthands("margin-top");
 
 System-font keywords such as `font: menu` are user-agent dependent and cannot be deterministically decomposed in a runtime-neutral way. Explicit `font` shorthand values are supported.
 
-## API
+## Public API
 
-```text
-isShorthand(property)
-isLonghand(property)
-getLonghands(shorthand)
-getShorthands(longhand)
-supportsTransform(property)
+| Category | Function | Purpose |
+| --- | --- | --- |
+| Registry | `isShorthand(property)` | Returns whether a property is a recognized CSS shorthand. |
+| Registry | `isLonghand(property)` | Returns whether a property is registered as a longhand of one or more shorthands. |
+| Registry | `getLonghands(shorthand)` | Returns the registered longhand property names for a shorthand. |
+| Registry | `getShorthands(longhand)` | Returns shorthands that include the supplied longhand. |
+| Registry | `supportsTransform(property)` | Returns whether the package implements expansion/collapse for the shorthand. |
+| Property | `expandShorthand(property, value)` | Expands one shorthand value into a longhand declaration object. |
+| Property | `collapseToShorthand(shorthand, declarations, options?)` | Collapses a declaration object into one requested shorthand. |
+| Property | `findCollapsibleShorthands(declarations, options?)` | Finds every shorthand that can be produced from a declaration object. |
+| Property | `collapseLonghands(declarations, options?)` | Collapses compatible longhand groups across a declaration object. |
+| Stylesheet | `expandCss(css)` | Expands supported shorthand declarations in a stylesheet. |
+| Stylesheet | `collapseCss(css, options?)` | Collapses compatible longhands in a stylesheet while preserving cascade semantics. |
+| Stylesheet | `transformCss(css, { mode, ...options })` | Runs the generic stylesheet transformer in `expand` or `collapse` mode. |
+| Declarations | `expandDeclarations(css)` | Expands shorthand declarations in declaration-only CSS text. |
+| Declarations | `collapseDeclarations(css, options?)` | Collapses longhands in declaration-only CSS text. |
+| Computed style | `styleToDeclarations(style, properties?)` | Converts a read-only style declaration into a plain declaration object. |
+| Computed style | `getComputedLonghands(style, shorthand)` | Reads the computed longhands registered for one shorthand. |
+| Computed style | `collapseComputedStyle(style, shorthand, options?)` | Collapses one shorthand from a computed/read-only style declaration. |
+| Computed style | `collapseComputedStyles(style, shorthands?, options?)` | Collapses multiple shorthands from a computed/read-only style declaration. |
+| Utility | `splitTopLevelWhitespace(value)` | Splits a CSS value on top-level whitespace while preserving strings, functions, brackets, commas, and slashes. |
 
-expandShorthand(property, value)
-collapseToShorthand(shorthand, declarations, options?)
-findCollapsibleShorthands(declarations, options?)
-collapseLonghands(declarations, options?)
-
-expandCss(css)
-collapseCss(css, options?)
-transformCss(css, { mode, ...options })
-
-expandDeclarations(css)
-collapseDeclarations(css, options?)
-
-styleToDeclarations(style, properties?)
-getComputedLonghands(style, shorthand)
-collapseComputedStyle(style, shorthand, options?)
-collapseComputedStyles(style, shorthands?, options?)
-```
+The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `TransformOptions`, `TransformCssOptions`, `CollapseResult`, `TransformMode`, and `ReadonlyStyleDeclaration`.
 
 ## Playground
 
