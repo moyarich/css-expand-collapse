@@ -1,0 +1,51 @@
+name: Refactor shorthand longhands to maps
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/refactor-longhand-map.mjs
+      - .github/workflows/refactor-longhand-map.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refactor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build:lib
+      - name: Apply LonghandMap refactor
+        run: node scripts/refactor-longhand-map.mjs
+      - name: Verify no independent module initialValues metadata remains
+        run: |
+          if grep -R "readonly initialValues" packages/css-expand-collapse/src/registry; then
+            echo "ShorthandModule still exposes initialValues"
+            exit 1
+          fi
+          if grep -R "initialValues," packages/css-expand-collapse/src/registry/shorthands; then
+            echo "A shorthand still exports initialValues"
+            exit 1
+          fi
+      - name: Test
+        run: npm test
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build
+        run: npm run build
+      - name: Remove temporary refactor files
+        run: |
+          rm scripts/refactor-longhand-map.mjs
+          rm .github/workflows/refactor-longhand-map.yml
+      - name: Commit validated refactor
+        run: |
+          git config user.name "moyarich"
+          git config user.email "moyarich@hotmail.com"
+          git add -A
+          git commit -m "refactor: pair longhands with initial values in maps"
+          git push
