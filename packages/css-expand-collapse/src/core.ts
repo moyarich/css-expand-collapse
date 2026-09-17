@@ -14,7 +14,12 @@ import {
 export type { DeclarationMap } from "./registry.js";
 
 export interface TransformOptions {
-  /** Fill omitted registered longhands with their module-owned initial values while collapsing. */
+  /**
+   * Controls whether omitted registered longhands may use module-owned initial values.
+   * Object-level collapse APIs use initial values by default when they are available;
+   * pass false to require a complete declaration map. Stylesheet/declaration-text
+   * collapse remains conservative unless "initial" is explicitly requested.
+   */
   fillMissingLonghands?: false | "initial";
 }
 
@@ -79,14 +84,16 @@ function fillMissingInitialLonghands(
   options?: TransformOptions,
 ): DeclarationMap {
   const completed = { ...declarations };
-  if (options?.fillMissingLonghands !== "initial" || !definition.initialValues) {
+  const shouldFill = options?.fillMissingLonghands !== false;
+
+  if (!shouldFill || !definition.initialValues) {
     return completed;
   }
 
   definition.longhands.forEach((longhand, index) => {
-    if (completed[longhand]) return;
+    if (Object.hasOwn(completed, longhand)) return;
     const initialValue = definition.initialValues?.[index];
-    if (initialValue) completed[longhand] = initialValue;
+    if (initialValue !== undefined) completed[longhand] = initialValue;
   });
   return completed;
 }
