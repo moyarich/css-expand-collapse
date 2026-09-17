@@ -50,4 +50,34 @@ describe("computed export shorthand collapse", () => {
     expect(css).not.toContain("transition-duration");
     expect(css).not.toContain("transition-timing-function");
   });
+
+  it("replaces an earlier border-radius shorthand with the collapsed computed corner set", () => {
+    const css = collapseCss(`
+      .bubble {
+        border-radius: 9999px;
+        border-top-left-radius: 9999px;
+        border-top-right-radius: 9999px;
+        border-bottom-right-radius: 9999px;
+        border-bottom-left-radius: 9999px;
+      }
+    `);
+
+    expect(css).toBe(".bubble{border-radius:9999px}");
+    expect(css.match(/border-radius:/g)).toHaveLength(1);
+  });
+
+  it("keeps only the final border-radius when computed corner longhands override it", () => {
+    const css = collapseCss(`
+      .bubble {
+        border-radius: 12px;
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+        border-bottom-right-radius: 0px;
+        border-bottom-left-radius: 0px;
+      }
+    `);
+
+    expect(css).toBe(".bubble{border-radius:0px}");
+    expect(css.match(/border-radius:/g)).toHaveLength(1);
+  });
 });
