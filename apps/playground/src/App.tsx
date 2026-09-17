@@ -421,7 +421,16 @@ export function App() {
           </div>
         </article>
 
-        <div className="conversion-arrow" aria-hidden="true">→</div>
+        <button
+          type="button"
+          className="conversion-arrow"
+          disabled={!result.css}
+          onClick={useResultAsInput}
+          aria-label="Use result as input"
+          title="Use result as input"
+        >
+          →
+        </button>
 
         <article className="panel result-panel">
           <div className="panel-header">
