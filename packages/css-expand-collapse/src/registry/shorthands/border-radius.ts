@@ -42,6 +42,7 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   strategy: "csstree",
+  safeToDropWhenFullyShadowed: true,
   expand,
   collapse(declarations, context) {
     const horizontal: string[] = [];
