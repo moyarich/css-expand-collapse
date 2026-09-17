@@ -89,33 +89,35 @@ expandShorthand(
 
 ### Collapse
 
+Object-level collapse APIs use module-owned CSS initial values for omitted longhands when those values are registered by the shorthand module.
+
 ```ts
 collapseToShorthand("margin", {
-  "margin-top": "10px",
-  "margin-right": "20px",
-  "margin-bottom": "10px",
-  "margin-left": "20px",
+  "margin-right": "24px",
+  "margin-bottom": "12px",
+  "margin-left": "67px",
 });
 ```
 
 ```ts
 {
   property: "margin",
-  value: "10px 20px",
+  value: "0 24px 12px 67px",
   consumed: [
-    "margin-top",
     "margin-right",
     "margin-bottom",
     "margin-left"
   ],
   declarations: {
-    "margin-top": "10px",
-    "margin-right": "20px",
-    "margin-bottom": "10px",
-    "margin-left": "20px"
+    "margin-top": "0",
+    "margin-right": "24px",
+    "margin-bottom": "12px",
+    "margin-left": "67px"
   }
 }
 ```
+
+Pass `{ fillMissingLonghands: false }` when a complete declaration map is required.
 
 To collapse every safe group in a plain object:
 
@@ -137,18 +139,14 @@ collapseLonghands({
 
 Raw stylesheet collapse is conservative by default. Missing longhands are not invented because doing so could override values supplied by another matching rule.
 
-For computed/export CSS, you can explicitly allow registered initial values to fill missing constituents:
+For object-level APIs such as `collapseToShorthand()`, registered initial values are used by default. For example, this fills the omitted `left` value with the CSS initial value `auto`:
 
 ```ts
-collapseToShorthand(
-  "inset",
-  {
-    top: "0",
-    right: "0",
-    bottom: "0",
-  },
-  { fillMissingLonghands: "initial" },
-);
+collapseToShorthand("inset", {
+  top: "0",
+  right: "0",
+  bottom: "0",
+});
 ```
 
 Returns:
@@ -167,7 +165,12 @@ Returns:
 }
 ```
 
-The same option works with `collapseCss()`, `collapseDeclarations()`, and `collapseLonghands()`.
+For stylesheet/declaration-text transforms, opt in explicitly when omitted longhands should use their registered initial values:
+
+```ts
+collapseCss(css, { fillMissingLonghands: "initial" });
+collapseDeclarations(css, { fillMissingLonghands: "initial" });
+```
 
 ## Real CSS
 
