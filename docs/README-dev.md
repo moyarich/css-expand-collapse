@@ -112,7 +112,7 @@ Every module satisfies the same contract:
 ```ts
 export interface ShorthandModule {
   readonly longhands: readonly string[];
-  readonly initialValues?: readonly string[];
+  readonly initialValues: readonly (string | null)[];
   readonly expand: ShorthandExpander;
   readonly collapse: ShorthandCollapser;
   readonly safeToDropWhenFullyShadowed?: boolean;

@@ -18,6 +18,9 @@ describe("per-shorthand registry", () => {
   it("requires every shorthand file to own expand and collapse behavior", () => {
     for (const module of Object.values(SHORTHAND_MODULES)) {
       expect(Array.isArray(module.longhands)).toBe(true);
+      expect(Array.isArray(module.initialValues)).toBe(true);
+      expect(module.initialValues).toHaveLength(module.longhands.length);
+      expect(module.initialValues.every((value) => value === null || typeof value === "string")).toBe(true);
       expect(typeof module.expand).toBe("function");
       expect(typeof module.collapse).toBe("function");
       expect("strategy" in module).toBe(false);
@@ -26,6 +29,7 @@ describe("per-shorthand registry", () => {
 
   it("keeps all recognized but non-transformable", () => {
     expect(SHORTHAND_MODULES.all.longhands).toEqual([]);
+    expect(SHORTHAND_MODULES.all.initialValues).toEqual([]);
     expect(typeof SHORTHAND_MODULES.all.expand).toBe("function");
     expect(typeof SHORTHAND_MODULES.all.collapse).toBe("function");
     expect(isShorthand("all")).toBe(true);

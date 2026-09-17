@@ -12,6 +12,7 @@ const longhands = [
 
 const SYSTEM_FONTS = new Set(["caption", "icon", "menu", "message-box", "small-caption", "status-bar"]);
 
+const initialValues = [null, "medium", "normal", "normal", "normal", "normal", "normal"] as const;
 const expand: ShorthandExpander = (value, context) => {
   if (SYSTEM_FONTS.has(value)) return null;
   if (!context.matchProperty("font", value)) return null;
@@ -82,6 +83,7 @@ const expand: ShorthandExpander = (value, context) => {
 
 export default {
   longhands,
+  initialValues,
   safeToDropWhenFullyShadowed: false,
   expand,
   collapse(declarations, context) {

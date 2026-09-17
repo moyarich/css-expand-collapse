@@ -110,16 +110,16 @@ export function expandPair(longhands: readonly string[]): ShorthandExpander {
 
 export function expandTriple(
   longhands: readonly string[],
-  defaults: readonly [string, string, string] = ["medium", "none", "currentcolor"],
+  initialValues: readonly string[],
 ): ShorthandExpander {
   return (value, context) => {
     const tokens = context.splitWhitespace(value);
-    if (!tokens.length) return null;
+    if (!tokens.length || longhands.length !== 3 || initialValues.length !== 3) return null;
 
     const result: DeclarationMap = {
-      [longhands[0]!]: defaults[0],
-      [longhands[1]!]: defaults[1],
-      [longhands[2]!]: defaults[2],
+      [longhands[0]!]: initialValues[0]!,
+      [longhands[1]!]: initialValues[1]!,
+      [longhands[2]!]: initialValues[2]!,
     };
     const assigned = new Set<string>();
 
@@ -136,11 +136,14 @@ export function expandTriple(
   };
 }
 
-export function expandLogicalBorderAxis(longhands: readonly string[]): ShorthandExpander {
-  const expandSide = expandTriple(longhands.slice(0, 3));
+export function expandLogicalBorderAxis(
+  longhands: readonly string[],
+  initialValues: readonly string[],
+): ShorthandExpander {
+  const expandSide = expandTriple(longhands.slice(0, 3), initialValues.slice(0, 3));
 
   return (value, context) => {
-    if (longhands.length !== 6) return null;
+    if (longhands.length !== 6 || initialValues.length !== 6) return null;
     const firstSide = expandSide(value, context);
     if (!firstSide) return null;
 

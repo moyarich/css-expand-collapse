@@ -4,6 +4,7 @@ import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../type
 
 const longhands = ["flex-direction", "flex-wrap"] as const;
 
+const initialValues = ["row", "nowrap"] as const;
 const expandPure: ShorthandExpander = (value, context) => {
   const tokens = context.splitWhitespace(value);
   if (tokens.length < 1 || tokens.length > 2) return null;
@@ -22,4 +23,4 @@ const expand = expandPure;
 
 const collapse = collapseComponents(longhands);
 
-export default { longhands, expand, collapse } satisfies ShorthandModule;
+export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;

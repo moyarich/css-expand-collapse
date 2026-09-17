@@ -7,8 +7,9 @@ const longhands = [
   "-webkit-border-before-style",
   "-webkit-border-before-color",
 ] as const;
-const expand = expandTriple(longhands);
+const initialValues = ["medium", "none", "currentcolor"] as const;
+const expand = expandTriple(longhands, initialValues);
 
 const collapse = collapseTriple(longhands);
 
-export default { longhands, expand, collapse } satisfies ShorthandModule;
+export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;

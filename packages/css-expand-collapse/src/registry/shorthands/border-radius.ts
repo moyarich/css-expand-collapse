@@ -21,6 +21,7 @@ function compressQuad(values: readonly string[]): string {
   return values.join(" ");
 }
 
+const initialValues = ["0", "0", "0", "0"] as const;
 const expand: ShorthandExpander = (value, context) => {
   if (!context.matchProperty("border-radius", value)) return null;
   const parts = context.splitSlash(value);
@@ -41,6 +42,7 @@ const expand: ShorthandExpander = (value, context) => {
 
 export default {
   longhands,
+  initialValues,
   safeToDropWhenFullyShadowed: true,
   expand,
   collapse(declarations, context) {

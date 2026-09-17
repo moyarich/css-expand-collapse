@@ -86,14 +86,14 @@ function fillMissingInitialLonghands(
   const completed = { ...declarations };
   const shouldFill = options?.fillMissingLonghands !== false;
 
-  if (!shouldFill || !definition.initialValues) {
+  if (!shouldFill) {
     return completed;
   }
 
   definition.longhands.forEach((longhand, index) => {
     if (Object.hasOwn(completed, longhand)) return;
-    const initialValue = definition.initialValues?.[index];
-    if (initialValue !== undefined) completed[longhand] = initialValue;
+    const initialValue = definition.initialValues[index];
+    if (typeof initialValue === "string") completed[longhand] = initialValue;
   });
   return completed;
 }

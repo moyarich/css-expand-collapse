@@ -26,7 +26,7 @@ export type ShorthandCollapser = (
  */
 export interface ShorthandModule {
   readonly longhands: readonly string[];
-  readonly initialValues?: readonly string[];
+  readonly initialValues: readonly (string | null)[];
   readonly expand: ShorthandExpander;
   readonly collapse: ShorthandCollapser;
   /** False when a shorthand has cascade/reset effects beyond its registered longhands. */

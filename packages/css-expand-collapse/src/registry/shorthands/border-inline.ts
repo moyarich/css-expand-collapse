@@ -6,8 +6,9 @@ const longhands = [
   "border-inline-start-width", "border-inline-start-style", "border-inline-start-color",
   "border-inline-end-width", "border-inline-end-style", "border-inline-end-color",
 ] as const;
-const expand = expandLogicalBorderAxis(longhands);
+const initialValues = ["medium", "none", "currentcolor", "medium", "none", "currentcolor"] as const;
+const expand = expandLogicalBorderAxis(longhands, initialValues);
 
 const collapse = collapseLogicalBorderAxis(longhands);
 
-export default { longhands, expand, collapse } satisfies ShorthandModule;
+export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;

@@ -4,8 +4,9 @@ import { logicalPair } from "../helpers.js";
 import type { ShorthandModule } from "../types.js";
 
 const longhands = logicalPair("padding", "inline");
+const initialValues = ["0", "0"] as const;
 const expand = expandPair(longhands);
 
 const collapse = collapsePair(longhands);
 
-export default { longhands, expand, collapse } satisfies ShorthandModule;
+export default { longhands, initialValues, expand, collapse } satisfies ShorthandModule;

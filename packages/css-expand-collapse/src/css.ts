@@ -273,7 +273,7 @@ function tryCollapseAt(
     const important = Boolean(first.important);
     const canFillMissing =
       options?.fillMissingLonghands === "initial" &&
-      definition.initialValues?.length === definition.longhands.length;
+      definition.initialValues.length === definition.longhands.length;
     let blocked = false;
 
     for (let cursor = index; cursor < children.length; cursor += 1) {

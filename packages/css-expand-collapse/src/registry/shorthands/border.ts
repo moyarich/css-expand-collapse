@@ -7,7 +7,8 @@ const longhands = [
   "border-bottom-width", "border-bottom-style", "border-bottom-color",
   "border-left-width", "border-left-style", "border-left-color",
 ] as const;
-const expandTop = expandTriple(longhands.slice(0, 3));
+const initialValues = ["medium", "none", "currentcolor", "medium", "none", "currentcolor", "medium", "none", "currentcolor", "medium", "none", "currentcolor"] as const;
+const expandTop = expandTriple(longhands.slice(0, 3), initialValues.slice(0, 3));
 
 const expand: ShorthandExpander = (value, context) => {
   const top = expandTop(value, context);
@@ -35,6 +36,7 @@ const collapse: ShorthandCollapser = (declarations, context) => {
 
 export default {
   longhands,
+  initialValues,
   expand,
   collapse,
   safeToDropWhenFullyShadowed: false,
