@@ -3,7 +3,7 @@ import * as monaco from "monaco-editor";
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import CssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
 import TypeScriptWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
-import { CSS_EXPAND_COLLAPSE_TYPES } from "./APIPlayground/packageTypes";
+import { CSS_EXPAND_COLLAPSE_TYPES } from "./components/APIPlayground/packageTypes";
 
 type MonacoEnvironment = {
   getWorker(moduleId: string, label: string): Worker;
