@@ -14,7 +14,7 @@ import {
   getShorthandExample,
   type ExampleProperty,
 } from "./examples";
-import { FunctionPlayground } from "./functionPlayground/FunctionPlayground";
+import { APIPlayground } from "./APIPlayground";
 
 type Mode = "expand" | "collapse";
 type InputKind = "stylesheet" | "declarations";
@@ -275,7 +275,7 @@ export function App() {
       </nav>
 
       {isApiView ? (
-        <FunctionPlayground />
+        <APIPlayground />
       ) : (
         <>
           <div className="playground-layout">
