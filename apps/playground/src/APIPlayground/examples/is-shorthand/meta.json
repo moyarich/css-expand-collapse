@@ -1,0 +1,6 @@
+{
+  "id": "is-shorthand",
+  "label": "isShorthand()",
+  "description": "Check whether a property is a registered CSS shorthand.",
+  "order": 0
+}

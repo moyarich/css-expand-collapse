@@ -1,0 +1,6 @@
+{
+  "id": "collapse-declarations",
+  "label": "collapseDeclarations()",
+  "description": "Collapse a longhand declaration fragment to compact shorthands.",
+  "order": 13
+}

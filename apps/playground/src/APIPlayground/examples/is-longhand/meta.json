@@ -1,0 +1,6 @@
+{
+  "id": "is-longhand",
+  "label": "isLonghand()",
+  "description": "Check whether a property is registered as a shorthand constituent.",
+  "order": 1
+}

@@ -1,0 +1,6 @@
+{
+  "id": "style-to-declarations",
+  "label": "styleToDeclarations()",
+  "description": "Convert a read-only style declaration to a plain declaration map.",
+  "order": 14
+}

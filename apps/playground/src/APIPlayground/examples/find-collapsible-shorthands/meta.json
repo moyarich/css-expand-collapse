@@ -1,0 +1,6 @@
+{
+  "id": "find-collapsible-shorthands",
+  "label": "findCollapsibleShorthands()",
+  "description": "Find every shorthand that can be reconstructed from a declaration map.",
+  "order": 7
+}

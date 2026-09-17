@@ -1,0 +1,6 @@
+{
+  "id": "get-longhands",
+  "label": "getLonghands()",
+  "description": "Get the longhand properties owned by a shorthand.",
+  "order": 2
+}

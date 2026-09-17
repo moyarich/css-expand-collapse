@@ -1,0 +1,6 @@
+{
+  "id": "collapse-longhands",
+  "label": "collapseLonghands()",
+  "description": "Collapse every safe longhand group in a declaration object.",
+  "order": 8
+}

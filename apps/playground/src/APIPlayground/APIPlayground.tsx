@@ -1,15 +1,11 @@
 import { useMemo, useState } from "react";
-import {
-  DEFAULT_FUNCTION_EXAMPLE,
-  FUNCTION_EXAMPLES,
-  getFunctionExample,
-} from "../examples";
+import { DEFAULT_FUNCTION_EXAMPLE, FUNCTION_EXAMPLES } from "./examples";
 import { APIRunner } from "./APIRunner";
 
 export function APIPlayground() {
   const [selectedExample, setSelectedExample] = useState(DEFAULT_FUNCTION_EXAMPLE.id);
   const example = useMemo(
-    () => getFunctionExample(selectedExample) ?? DEFAULT_FUNCTION_EXAMPLE,
+    () => FUNCTION_EXAMPLES.find((item) => item.id === selectedExample) ?? DEFAULT_FUNCTION_EXAMPLE,
     [selectedExample],
   );
 

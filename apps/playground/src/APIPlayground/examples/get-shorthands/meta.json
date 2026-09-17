@@ -1,0 +1,6 @@
+{
+  "id": "get-shorthands",
+  "label": "getShorthands()",
+  "description": "Get the shorthands that can include a longhand property.",
+  "order": 3
+}

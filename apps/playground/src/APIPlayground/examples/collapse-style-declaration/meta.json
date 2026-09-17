@@ -1,0 +1,6 @@
+{
+  "id": "collapse-style-declaration",
+  "label": "collapseStyleDeclaration()",
+  "description": "Collapse one shorthand from a read-only style declaration.",
+  "order": 16
+}

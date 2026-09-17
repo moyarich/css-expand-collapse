@@ -1,0 +1,6 @@
+{
+  "id": "expand-css",
+  "label": "expandCss()",
+  "description": "Expand shorthand declarations in a complete stylesheet.",
+  "order": 9
+}

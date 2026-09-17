@@ -1,0 +1,6 @@
+{
+  "id": "collapse-css",
+  "label": "collapseCss()",
+  "description": "Collapse compatible longhands in a complete stylesheet.",
+  "order": 10
+}

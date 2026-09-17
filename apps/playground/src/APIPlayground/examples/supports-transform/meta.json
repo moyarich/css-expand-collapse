@@ -1,0 +1,6 @@
+{
+  "id": "supports-transform",
+  "label": "supportsTransform()",
+  "description": "Check whether the package implements a shorthand transform.",
+  "order": 4
+}

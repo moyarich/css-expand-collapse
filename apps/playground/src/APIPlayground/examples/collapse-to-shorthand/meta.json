@@ -1,0 +1,6 @@
+{
+  "id": "collapse-to-shorthand",
+  "label": "collapseToShorthand()",
+  "description": "Collapse a declaration map into one requested shorthand.",
+  "order": 6
+}
