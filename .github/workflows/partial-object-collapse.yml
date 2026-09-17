@@ -1,0 +1,205 @@
+name: Validate partial object collapse
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/partial-object-collapse.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Update tests and examples
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          test_path = Path('packages/css-expand-collapse/tests/index.test.ts')
+          text = test_path.read_text()
+          old = '''  it("keeps partial inset longhands uncollapsed by default", () => {
+    expect(collapseToShorthand("inset", {
+      top: "0",
+      right: "0",
+      bottom: "0",
+    })).toBeNull();
+  });
+
+  it("can fill a missing inset side with its initial value when opted in", () => {
+    expect(collapseToShorthand("inset", {
+      top: "0",
+      right: "0",
+      bottom: "0",
+    }, {
+      fillMissingLonghands: "initial",
+    })).toEqual({
+      property: "inset",
+      value: "0 0 0 auto",
+      consumed: ["top", "right", "bottom"],
+      declarations: {
+        top: "0",
+        right: "0",
+        bottom: "0",
+        left: "auto",
+      },
+    });
+  });
+'''
+          new = '''  it("fills omitted object longhands with module-owned initial values by default", () => {
+    expect(collapseToShorthand("inset", {
+      top: "0",
+      right: "0",
+      bottom: "0",
+    })).toEqual({
+      property: "inset",
+      value: "0 0 0 auto",
+      consumed: ["top", "right", "bottom"],
+      declarations: {
+        top: "0",
+        right: "0",
+        bottom: "0",
+        left: "auto",
+      },
+    });
+  });
+
+  it("can require a complete object declaration map", () => {
+    expect(collapseToShorthand("inset", {
+      top: "0",
+      right: "0",
+      bottom: "0",
+    }, {
+      fillMissingLonghands: false,
+    })).toBeNull();
+  });
+
+  it("collapses a partial margin object using margin-top's initial value", () => {
+    expect(collapseToShorthand("margin", {
+      "margin-right": "24px",
+      "margin-bottom": "12px",
+      "margin-left": "67px",
+    })).toEqual({
+      property: "margin",
+      value: "0 24px 12px 67px",
+      consumed: ["margin-right", "margin-bottom", "margin-left"],
+      declarations: {
+        "margin-top": "0",
+        "margin-right": "24px",
+        "margin-bottom": "12px",
+        "margin-left": "67px",
+      },
+    });
+  });
+'''
+          if old not in text:
+            raise SystemExit('Expected collapse test block not found')
+          test_path.write_text(text.replace(old, new))
+
+          functions_path = Path('apps/playground/src/examples/functions.ts')
+          text = functions_path.read_text()
+          old = '''const result = collapseToShorthand("margin", {
+  "margin-top": "12px",
+  "margin-right": "24px",
+  "margin-bottom": "12px",
+  "margin-left": "24px",
+});'''
+          new = '''const result = collapseToShorthand("margin", {
+  "margin-right": "24px",
+  "margin-bottom": "12px",
+  "margin-left": "67px",
+});'''
+          if old not in text:
+            raise SystemExit('Expected API playground example not found')
+          functions_path.write_text(text.replace(old, new))
+
+          package_readme = Path('packages/css-expand-collapse/README.md')
+          text = package_readme.read_text()
+          old = '''collapseToShorthand("margin", {
+  "margin-top": "10px",
+  "margin-right": "20px",
+  "margin-bottom": "10px",
+  "margin-left": "20px",
+});'''
+          new = '''collapseToShorthand("margin", {
+  "margin-right": "24px",
+  "margin-bottom": "12px",
+  "margin-left": "67px",
+});'''
+          if old not in text:
+            raise SystemExit('Expected package README collapse example not found')
+          text = text.replace(old, new, 1)
+          old_result = '''  value: "10px 20px",
+  consumed: [
+    "margin-top",
+    "margin-right",
+    "margin-bottom",
+    "margin-left"
+  ],
+  declarations: {
+    "margin-top": "10px",
+    "margin-right": "20px",
+    "margin-bottom": "10px",
+    "margin-left": "20px"
+  }'''
+          new_result = '''  value: "0 24px 12px 67px",
+  consumed: [
+    "margin-right",
+    "margin-bottom",
+    "margin-left"
+  ],
+  declarations: {
+    "margin-top": "0",
+    "margin-right": "24px",
+    "margin-bottom": "12px",
+    "margin-left": "67px"
+  }'''
+          if old_result not in text:
+            raise SystemExit('Expected package README collapse result not found')
+          text = text.replace(old_result, new_result, 1)
+          marker = '### Partial longhands with initial values\n\n'
+          note = ('Object-level collapse APIs such as `collapseToShorthand()` use module-owned initial values '
+                  'for omitted longhands by default. Pass `{ fillMissingLonghands: false }` when a complete '
+                  'declaration map is required.\n\n')
+          if marker not in text:
+            raise SystemExit('Expected partial longhands heading not found')
+          text = text.replace(marker, marker + note, 1)
+          package_readme.write_text(text)
+
+          root_readme = Path('README.md')
+          text = root_readme.read_text()
+          marker = '## Partial longhands\n\n'
+          note = ('Object-level collapse APIs use module-owned initial values for omitted longhands by default. '
+                  'Use `{ fillMissingLonghands: false }` to require all longhands to be present.\n\n')
+          if marker not in text:
+            raise SystemExit('Expected root README partial longhands heading not found')
+          root_readme.write_text(text.replace(marker, marker + note, 1))
+          PY
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Test
+        run: npm test
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit validated changes
+        run: |
+          git config user.name "moyarich"
+          git config user.email "moyarich@hotmail.com"
+          git add README.md packages/css-expand-collapse/README.md packages/css-expand-collapse/tests/index.test.ts apps/playground/src/examples/functions.ts
+          git commit -m "fix: support partial object shorthand collapse"
+          git push
