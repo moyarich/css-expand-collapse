@@ -1,4 +1,4 @@
-import type { ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = ["text-emphasis-style", "text-emphasis-color"] as const;
 const initialValues = ["none", "currentcolor"] as const;
@@ -44,4 +44,4 @@ export default {
     ].filter(Boolean);
     return candidates.find((candidate) => context.matchProperty("text-emphasis", candidate)) ?? null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

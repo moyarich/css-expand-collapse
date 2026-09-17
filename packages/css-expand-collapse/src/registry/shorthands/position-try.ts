@@ -1,4 +1,4 @@
-import type { ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = ["position-try-order", "position-try-fallbacks"] as const;
 const initialValues = ["normal", "none"] as const;
@@ -32,4 +32,4 @@ export default {
       : [`${order} ${fallbacks}`];
     return candidates.find((candidate) => context.matchProperty("position-try", candidate)) ?? null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

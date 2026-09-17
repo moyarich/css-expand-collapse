@@ -109,10 +109,10 @@ A service worker can use the transform APIs on CSS strings or declaration object
 ```ts
 import {
   expandShorthand,
-  supportsRuntimeTransform,
+  supportsTransform,
 } from "@moyarich/css-expand-collapse";
 
-supportsRuntimeTransform("background");
+supportsTransform("background");
 // true
 
 expandShorthand("transition", "opacity 200ms ease");
@@ -249,7 +249,7 @@ getLonghands(shorthand)
 getShorthands(longhand)
 supportsTransform(property)
 supportsPureTransform(property)
-supportsRuntimeTransform(property)
+supportsTransform(property)
 getShorthandStrategy(property)
 
 expandShorthand(property, value, options?)

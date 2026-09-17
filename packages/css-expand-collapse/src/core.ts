@@ -5,7 +5,7 @@ import {
   SHORTHAND_PROPERTIES,
   SHORTHAND_SET,
   type DeclarationMap,
-  type ShorthandDefinition,
+  type TransformableShorthandModule,
   type ShorthandExpandContext,
   type ShorthandStrategy,
 } from "./registry.js";
@@ -20,12 +20,6 @@ export interface TransformOptions {
    * properties that were previously omitted.
    */
   fillMissingLonghands?: false | "initial";
-}
-
-/** @deprecated Use `TransformOptions`. */
-export interface CssomOptions extends TransformOptions {
-  /** @deprecated Transform logic no longer depends on CSSOM and this field is ignored. */
-  style?: CSSStyleDeclaration | null;
 }
 
 export interface CollapseResult {
@@ -186,7 +180,7 @@ function matchProperty(property: string, value: string): boolean {
 export function expandShorthand(
   property: string,
   value: string,
-  _options?: CssomOptions,
+  _options?: TransformOptions,
 ): DeclarationMap | null {
   const shorthand = normalizeProperty(property);
   const definition = SHORTHAND_DEFINITIONS[shorthand];
@@ -234,7 +228,7 @@ function collapseLogicalBorderAxis(concrete: readonly string[]): string | null {
 }
 
 function collapseSlashPair(
-  definition: ShorthandDefinition,
+  definition: TransformableShorthandModule,
   concrete: readonly string[],
 ): string | null {
   if (concrete.length !== 2) return null;
@@ -244,7 +238,7 @@ function collapseSlashPair(
 }
 
 function collapsePure(
-  definition: ShorthandDefinition,
+  definition: TransformableShorthandModule,
   declarations: DeclarationMap,
 ): string | null {
   const values = definition.longhands.map((property) => declarations[property]?.trim());
@@ -288,7 +282,7 @@ function collapsePure(
 }
 
 function fillMissingInitialLonghands(
-  definition: ShorthandDefinition,
+  definition: TransformableShorthandModule,
   declarations: DeclarationMap,
   options?: TransformOptions,
 ): DeclarationMap {

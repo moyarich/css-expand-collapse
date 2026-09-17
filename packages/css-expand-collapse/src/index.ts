@@ -15,9 +15,7 @@ export {
 } from "./core.js";
 
 export type {
-  CollapseResult,
-  CssomOptions,
-  DeclarationMap,
+  CollapseResult,  DeclarationMap,
   TransformOptions,
 } from "./core.js";
 
@@ -43,10 +41,3 @@ export {
 
 export type { ReadonlyStyleDeclaration } from "./computed.js";
 
-// Deprecated compatibility helpers. Transform support no longer depends on CSSOM.
-export {
-  hasCssomSupport,
-  supportsRuntimeTransform,
-} from "./runtime.js";
-
-export type { RuntimeCssomOptions } from "./runtime.js";

@@ -1,5 +1,5 @@
-import { withCssomFallback } from "../expanders.js";
-import type { ShorthandDefinition, ShorthandExpander } from "../types.js";
+
+import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = ["flex-grow", "flex-shrink", "flex-basis"] as const;
 const initialValues = ["0", "1", "auto"] as const;
@@ -38,6 +38,6 @@ const expandPure: ShorthandExpander = (value, context) => {
   return { "flex-grow": first!, "flex-shrink": second!, "flex-basis": third! };
 };
 
-const expand = withCssomFallback(expandPure);
+const expand = expandPure;
 
-export default { longhands, strategy: "flex", initialValues, expand } satisfies ShorthandDefinition;
+export default { longhands, strategy: "flex", initialValues, expand } satisfies ShorthandModule;

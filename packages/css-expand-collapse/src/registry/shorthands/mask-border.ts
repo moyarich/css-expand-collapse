@@ -1,4 +1,4 @@
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "mask-border-mode",
@@ -92,4 +92,4 @@ export default {
     const candidate = `${source} ${slice} / ${width} / ${outset} ${repeat} ${mode}`;
     return context.matchProperty("mask-border", candidate) ? candidate : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

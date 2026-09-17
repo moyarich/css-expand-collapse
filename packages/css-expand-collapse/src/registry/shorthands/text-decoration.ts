@@ -1,5 +1,5 @@
-import { withCssomFallback } from "../expanders.js";
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "text-decoration-line",
@@ -44,6 +44,6 @@ const expandPure: ShorthandExpander = (value, context) => {
   return result;
 };
 
-const expand = withCssomFallback(expandPure);
+const expand = expandPure;
 
-export default { longhands, strategy: "text-decoration", expand } satisfies ShorthandDefinition;
+export default { longhands, strategy: "text-decoration", expand } satisfies ShorthandModule;

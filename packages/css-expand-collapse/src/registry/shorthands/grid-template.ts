@@ -1,4 +1,4 @@
-import type { ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = ["grid-template-rows", "grid-template-columns", "grid-template-areas"] as const;
 const initialValues = ["none", "none", "none"] as const;
@@ -63,4 +63,4 @@ export default {
     // three computed longhands without additional source-order information.
     return null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

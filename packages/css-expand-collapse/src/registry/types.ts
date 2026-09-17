@@ -1,8 +1,3 @@
-import type {
-  TransformableShorthandModule,
-  TransformableShorthandModuleMap,
-} from "./module.js";
-
 export type {
   DeclarationMap,
   ShorthandCollapseContext,
@@ -15,9 +10,3 @@ export type {
   TransformableShorthandModule,
   TransformableShorthandModuleMap,
 } from "./module.js";
-
-/** @deprecated Use `TransformableShorthandModule`. */
-export type ShorthandDefinition = TransformableShorthandModule;
-
-/** @deprecated Use `TransformableShorthandModuleMap`. */
-export type ShorthandDefinitionMap = TransformableShorthandModuleMap;

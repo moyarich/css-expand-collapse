@@ -77,4 +77,3 @@ The transform path must not depend on `document` or `CSSStyleDeclaration`. The s
 
 `all.ts` also satisfies `ShorthandModule`; it uses `strategy: null`, an empty longhand list, and an expander that returns `null` because `all` does not expose a finite longhand set that this package can enumerate safely.
 
-`ShorthandDefinition` remains only as a compatibility alias for `TransformableShorthandModule`. New shorthand modules should use `ShorthandModule` directly.

@@ -5,7 +5,6 @@ import type {
   TransformableShorthandModule,
   TransformableShorthandModuleMap,
 } from "./module.js";
-import type { ShorthandDefinition, ShorthandDefinitionMap } from "./types.js";
 
 export type {
   ShorthandModule,
@@ -17,8 +16,6 @@ export type {
   DeclarationMap,
   ShorthandCollapseContext,
   ShorthandCollapser,
-  ShorthandDefinition,
-  ShorthandDefinitionMap,
   ShorthandExpandContext,
   ShorthandExpander,
   ShorthandStrategy,
@@ -32,8 +29,8 @@ function isTransformable(
   return module.strategy !== null;
 }
 
-function buildDefinitions(): ShorthandDefinitionMap {
-  const definitions: Record<string, ShorthandDefinition> = {};
+function buildDefinitions(): TransformableShorthandModuleMap {
+  const definitions: Record<string, TransformableShorthandModule> = {};
 
   for (const [property, module] of shorthandEntries) {
     if (!isTransformable(module)) continue;

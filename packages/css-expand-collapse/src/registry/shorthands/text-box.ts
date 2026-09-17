@@ -1,4 +1,4 @@
-import type { ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = ["text-box-trim", "text-box-edge"] as const;
 const initialValues = ["none", "auto"] as const;
@@ -38,4 +38,4 @@ export default {
     ].filter(Boolean);
     return candidates.find((candidate) => context.matchProperty("text-box", candidate)) ?? null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

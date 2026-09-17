@@ -1,5 +1,5 @@
 import gridTemplate from "./grid-template.js";
-import type { ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "grid-auto-columns",
@@ -110,4 +110,4 @@ export default {
 
     return null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

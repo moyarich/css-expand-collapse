@@ -307,15 +307,15 @@ A Manifest V3 service worker can transform CSS strings or declaration objects wi
 ```ts
 import {
   expandDeclarations,
-  supportsRuntimeTransform,
+  supportsTransform,
 } from "@moyarich/css-expand-collapse";
 
-supportsRuntimeTransform("background"); // true
+supportsTransform("background"); // true
 
 expandDeclarations("text-decoration: underline;");
 ```
 
-`supportsRuntimeTransform()` remains available for compatibility and now reflects whether the package implements the shorthand, not whether a DOM is present.
+`supportsTransform()` remains available for compatibility and now reflects whether the package implements the shorthand, not whether a DOM is present.
 
 ## Runtime-neutral complex shorthands
 
@@ -342,7 +342,7 @@ getLonghands(shorthand)
 getShorthands(longhand)
 supportsTransform(property)
 supportsPureTransform(property)
-supportsRuntimeTransform(property)
+supportsTransform(property)
 getShorthandStrategy(property)
 
 expandShorthand(property, value, options?)

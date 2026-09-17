@@ -1,5 +1,5 @@
-import { expandTriple, withCssomFallback } from "../expanders.js";
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+import { expandTriple } from "../expanders.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "border-top-width", "border-top-style", "border-top-color",
@@ -22,6 +22,6 @@ const expandPure: ShorthandExpander = (value, context) => {
   return result;
 };
 
-const expand = withCssomFallback(expandPure);
+const expand = expandPure;
 
-export default { longhands, strategy: "border-all", expand } satisfies ShorthandDefinition;
+export default { longhands, strategy: "border-all", expand } satisfies ShorthandModule;

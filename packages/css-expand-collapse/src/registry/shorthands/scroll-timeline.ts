@@ -1,5 +1,5 @@
 import { splitTopLevelComma } from "../expanders.js";
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = ["scroll-timeline-name", "scroll-timeline-axis"] as const;
 const initialValues = ["none", "block"] as const;
@@ -49,4 +49,4 @@ export default {
     const candidate = names.map((name, index) => `${name} ${axes[index]}`).join(", ");
     return context.matchProperty("scroll-timeline", candidate) ? candidate : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

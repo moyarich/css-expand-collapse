@@ -117,7 +117,6 @@ export type TransformableShorthandModule = ShorthandModule & {
 };
 ```
 
-`ShorthandDefinition` remains only as a compatibility alias for `TransformableShorthandModule`. New shorthand modules should use `ShorthandModule` directly.
 
 ## Expansion belongs to the shorthand module
 

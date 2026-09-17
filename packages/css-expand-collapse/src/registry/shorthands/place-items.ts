@@ -1,7 +1,7 @@
-import { expandPair, withCssomFallback } from "../expanders.js";
-import type { ShorthandDefinition } from "../types.js";
+import { expandPair } from "../expanders.js";
+import type { ShorthandModule } from "../types.js";
 
 const longhands = ["align-items", "justify-items"] as const;
-const expand = withCssomFallback(expandPair(longhands));
+const expand = expandPair(longhands);
 
-export default { longhands, strategy: "pair", expand } satisfies ShorthandDefinition;
+export default { longhands, strategy: "pair", expand } satisfies ShorthandModule;

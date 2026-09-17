@@ -1,8 +1,8 @@
-import { expandQuad, withCssomFallback } from "../expanders.js";
+import { expandQuad } from "../expanders.js";
 import { quad } from "../helpers.js";
-import type { ShorthandDefinition } from "../types.js";
+import type { ShorthandModule } from "../types.js";
 
 const longhands = quad("margin");
-const expand = withCssomFallback(expandQuad(longhands));
+const expand = expandQuad(longhands);
 
-export default { longhands, strategy: "quad", expand } satisfies ShorthandDefinition;
+export default { longhands, strategy: "quad", expand } satisfies ShorthandModule;

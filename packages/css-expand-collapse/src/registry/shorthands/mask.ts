@@ -1,5 +1,5 @@
 import { splitTopLevelComma } from "../expanders.js";
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "mask-clip",
@@ -147,4 +147,4 @@ export default {
 
     return context.matchProperty("mask", candidate) ? candidate : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

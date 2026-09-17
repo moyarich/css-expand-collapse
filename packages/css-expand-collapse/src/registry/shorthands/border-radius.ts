@@ -1,4 +1,4 @@
-import type { ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "border-top-left-radius",
@@ -59,4 +59,4 @@ export default {
     const candidate = h === v ? h : `${h} / ${v}`;
     return context.matchProperty("border-radius", candidate) ? candidate : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

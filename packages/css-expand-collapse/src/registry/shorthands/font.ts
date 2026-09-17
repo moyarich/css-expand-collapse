@@ -1,4 +1,4 @@
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "font-family",
@@ -98,4 +98,4 @@ export default {
     const candidate = `${prefix ? `${prefix} ` : ""}${size}/${lineHeight} ${family}`;
     return context.matchProperty("font", candidate) ? candidate : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

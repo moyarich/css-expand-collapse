@@ -1,5 +1,5 @@
 import { splitTopLevelComma } from "../expanders.js";
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "background-image",
@@ -152,4 +152,4 @@ export default {
 
     return context.matchProperty("background", candidate) ? candidate : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

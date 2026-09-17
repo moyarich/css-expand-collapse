@@ -1,5 +1,5 @@
 import { expandCsstreeComponents } from "../expanders.js";
-import type { ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "font-synthesis-weight",
@@ -33,4 +33,4 @@ export default {
     const full = values.join(" ");
     return context.matchProperty("font-synthesis", full) ? full : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

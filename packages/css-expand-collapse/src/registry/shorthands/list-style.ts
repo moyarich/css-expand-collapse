@@ -1,4 +1,4 @@
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = ["list-style-position", "list-style-image", "list-style-type"] as const;
 const initialValues = ["outside", "none", "disc"] as const;
@@ -58,4 +58,4 @@ export default {
     ].filter(Boolean).join(" ");
     return compact && context.matchProperty("list-style", compact) ? compact : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

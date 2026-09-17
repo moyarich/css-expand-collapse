@@ -1,4 +1,4 @@
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "border-image-source",
@@ -80,4 +80,4 @@ export default {
     const candidate = `${values[0]} ${values[1]} / ${values[2]} / ${values[3]} ${values[4]}`;
     return context.matchProperty("border-image", candidate) ? candidate : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

@@ -1,5 +1,5 @@
 import { expandOrderedPair } from "../expanders.js";
-import type { ShorthandDefinition } from "../types.js";
+import type { ShorthandModule } from "../types.js";
 
 const longhands = ["animation-range-start", "animation-range-end"] as const;
 const initialValues = ["normal", "normal"] as const;
@@ -19,4 +19,4 @@ export default {
       : [`${start} ${end}`];
     return candidates.find((candidate) => context.matchProperty("animation-range", candidate)) ?? null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

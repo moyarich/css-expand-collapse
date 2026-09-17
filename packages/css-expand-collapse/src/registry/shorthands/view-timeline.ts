@@ -1,5 +1,5 @@
 import { splitTopLevelComma } from "../expanders.js";
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = ["view-timeline-name", "view-timeline-axis", "view-timeline-inset"] as const;
 const initialValues = ["none", "block", "auto"] as const;
@@ -57,4 +57,4 @@ export default {
     ).join(", ");
     return context.matchProperty("view-timeline", candidate) ? candidate : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

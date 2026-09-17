@@ -1,5 +1,5 @@
 import { splitTopLevelComma } from "../expanders.js";
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "transition-property",
@@ -73,4 +73,4 @@ export default {
     ).join(", ");
     return context.matchProperty("transition", candidate) ? candidate : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

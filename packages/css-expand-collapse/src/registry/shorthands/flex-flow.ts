@@ -1,5 +1,5 @@
-import { withCssomFallback } from "../expanders.js";
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = ["flex-direction", "flex-wrap"] as const;
 
@@ -17,6 +17,6 @@ const expandPure: ShorthandExpander = (value, context) => {
   return result;
 };
 
-const expand = withCssomFallback(expandPure);
+const expand = expandPure;
 
-export default { longhands, strategy: "flex-flow", expand } satisfies ShorthandDefinition;
+export default { longhands, strategy: "flex-flow", expand } satisfies ShorthandModule;

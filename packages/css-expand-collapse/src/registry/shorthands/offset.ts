@@ -1,4 +1,4 @@
-import type { DeclarationMap, ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = [
   "offset-anchor",
@@ -97,4 +97,4 @@ export default {
     const candidate = `${position} ${path} ${distance} ${rotate} / ${anchor}`;
     return context.matchProperty("offset", candidate) ? candidate : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;

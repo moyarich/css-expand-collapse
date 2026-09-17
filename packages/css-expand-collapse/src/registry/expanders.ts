@@ -3,16 +3,6 @@ import type {
   ShorthandExpander,
 } from "./types.js";
 
-/**
- * Kept as an internal compatibility alias while shorthand modules migrate away
- * from the old browser CSSOM fallback. Expansion is now pure JavaScript.
- */
-export function withCssomFallback(expand: ShorthandExpander): ShorthandExpander {
-  return expand;
-}
-
-/** @deprecated Implement expansion in the shorthand module with CSSTree matching. */
-export const expandCssom: ShorthandExpander = () => null;
 
 export function splitTopLevel(value: string, separator: string): string[] {
   const parts: string[] = [];

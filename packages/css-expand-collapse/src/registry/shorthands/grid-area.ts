@@ -1,4 +1,4 @@
-import type { ShorthandDefinition, ShorthandExpander } from "../types.js";
+import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = ["grid-row-start", "grid-column-start", "grid-row-end", "grid-column-end"] as const;
 const initialValues = ["auto", "auto", "auto", "auto"] as const;
@@ -37,4 +37,4 @@ export default {
     const candidate = values.join(" / ");
     return context.matchProperty("grid-area", candidate) ? candidate : null;
   },
-} satisfies ShorthandDefinition;
+} satisfies ShorthandModule;
