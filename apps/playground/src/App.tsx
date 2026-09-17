@@ -9,8 +9,6 @@ import {
 import {
   COMPUTED_EXPORT_EXAMPLE,
   COMPUTED_EXPORT_EXAMPLE_ID,
-} from "./computedExportExample";
-import {
   EXAMPLE_GROUPS,
   SHORTHAND_EXAMPLES,
   getShorthandExample,
