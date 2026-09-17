@@ -33,6 +33,12 @@ jobs:
               'text = text.replace(/const initialValues\\s*=\\s*[\\s\\S]*?;\\n/, "");',
           )
 
+          # Rewrite array methods even when formatting puts the dot on another line.
+          text = text.replace(
+              'new RegExp(`\\\\blonghands\\\\.${method}\\\\b`, "g")',
+              'new RegExp(`\\\\blonghands\\\\s*\\\\.\\\\s*${method}\\\\b`, "g")',
+          )
+
           # Avoid nested template literals inside generated source strings.
           text = text.replace('return `${top} ${right}`;', 'return top + " " + right;')
           text = text.replace('return `${top} ${right} ${bottom}`;', 'return top + " " + right + " " + bottom;')
