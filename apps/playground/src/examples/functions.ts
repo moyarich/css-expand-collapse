@@ -22,10 +22,9 @@ console.log(result);`,
     source: `import { collapseToShorthand } from "@moyarich/css-expand-collapse";
 
 const result = collapseToShorthand("margin", {
-  "margin-top": "12px",
   "margin-right": "24px",
   "margin-bottom": "12px",
-  "margin-left": "24px",
+  "margin-left": "67px",
 });
 
 console.log(result);`,
