@@ -255,9 +255,9 @@ export function App() {
           <span className="control-step">1</span>
           <div className="control-copy">
             <strong>Conversion</strong>
-            <span>Choose what you want to produce.</span>
+            <span>Choose the direction.</span>
           </div>
-          <div className="direction-options" role="group" aria-label="Conversion direction">
+          <div className="segmented-control direction-options" role="group" aria-label="Conversion direction">
             {(Object.keys(MODE_META) as Mode[]).map((option) => {
               const optionMeta = MODE_META[option];
               return (
@@ -271,8 +271,8 @@ export function App() {
                     setCopied(false);
                   }}
                 >
-                  <span>{optionMeta.direction}</span>
-                  <small>{optionMeta.label}</small>
+                  <span>{optionMeta.label}</span>
+                  <small>{optionMeta.direction}</small>
                 </button>
               );
             })}
@@ -281,34 +281,58 @@ export function App() {
 
         <div className="control-divider" />
 
-        <div className="control-group secondary-controls">
+        <div className="control-group options-group">
           <span className="control-step">2</span>
           <div className="control-copy">
-            <strong>Input format</strong>
-            <span>Paste a full rule or declarations only.</span>
+            <strong>Options</strong>
+            <span>Set the input shape and collapse behavior.</span>
           </div>
-          <div className="input-kind-options" role="group" aria-label="Input format">
-            <button
-              type="button"
-              className={inputKind === "stylesheet" ? "active" : ""}
-              aria-pressed={inputKind === "stylesheet"}
-              onClick={() => setInputKind("stylesheet")}
-            >
-              Full stylesheet
-            </button>
-            <button
-              type="button"
-              className={inputKind === "declarations" ? "active" : ""}
-              aria-pressed={inputKind === "declarations"}
-              onClick={() => setInputKind("declarations")}
-            >
-              Declarations only
-            </button>
+
+          <div className="option-controls">
+            <div className="input-format-control">
+              <span className="field-label">Input format</span>
+              <div className="segmented-control input-kind-options" role="group" aria-label="Input format">
+                <button
+                  type="button"
+                  className={inputKind === "stylesheet" ? "active" : ""}
+                  aria-pressed={inputKind === "stylesheet"}
+                  onClick={() => setInputKind("stylesheet")}
+                >
+                  Stylesheet
+                </button>
+                <button
+                  type="button"
+                  className={inputKind === "declarations" ? "active" : ""}
+                  aria-pressed={inputKind === "declarations"}
+                  onClick={() => setInputKind("declarations")}
+                >
+                  Declarations
+                </button>
+              </div>
+            </div>
+
+            {mode === "collapse" && (
+              <label className="switch-control">
+                <input
+                  type="checkbox"
+                  role="switch"
+                  checked={fillMissingLonghands}
+                  onChange={(event) => setFillMissingLonghands(event.target.checked)}
+                />
+                <span className="switch-track" aria-hidden="true">
+                  <span className="switch-thumb" />
+                </span>
+                <span className="switch-copy">
+                  <strong>Fill missing longhands</strong>
+                  <small>Use initial values for computed/export CSS.</small>
+                </span>
+              </label>
+            )}
           </div>
 
           <div className="example-picker">
             <label className="example-field">
-              <span>Example</span>
+              <span className="field-label">Load example</span>
               <select
                 defaultValue=""
                 onChange={(event) => {
@@ -355,22 +379,7 @@ export function App() {
           <strong>{meta.direction}</strong>
           <p>{meta.description}</p>
         </div>
-        <div className="summary-actions">
-          {mode === "collapse" && (
-            <label className="initial-fill-toggle">
-              <input
-                type="checkbox"
-                checked={fillMissingLonghands}
-                onChange={(event) => setFillMissingLonghands(event.target.checked)}
-              />
-              <span>
-                <strong>Fill missing longhands</strong>
-                <small>Use CSS initial values for computed/export CSS.</small>
-              </span>
-            </label>
-          )}
-          <span className="live-badge">Live</span>
-        </div>
+        <span className="live-badge">Live</span>
       </section>
 
       <section className="workspace">
@@ -426,10 +435,10 @@ export function App() {
           className="conversion-arrow"
           disabled={!result.css}
           onClick={useResultAsInput}
-          aria-label="Use result as input"
-          title="Use result as input"
+          aria-label="Use result as input and reverse conversion"
+          title="Use result as input and reverse conversion"
         >
-          →
+          <span aria-hidden="true">⇄</span>
         </button>
 
         <article className="panel result-panel">
@@ -440,14 +449,6 @@ export function App() {
               <p>Formatted for readability</p>
             </div>
             <div className="result-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                disabled={!result.css}
-                onClick={useResultAsInput}
-              >
-                Use as input
-              </button>
               <button
                 type="button"
                 className="copy-button"
