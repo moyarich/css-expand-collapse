@@ -5,6 +5,5 @@
   "group": "Vendor prefixed",
   "groupOrder": 6,
   "order": 3,
-  "mode": "expand",
   "fillMissingLonghands": false
 }

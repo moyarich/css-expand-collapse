@@ -5,6 +5,5 @@
   "group": "Animation & scrolling",
   "groupOrder": 4,
   "order": 64,
-  "mode": "expand",
   "fillMissingLonghands": false
 }

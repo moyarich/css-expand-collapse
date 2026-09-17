@@ -5,6 +5,5 @@
   "group": "Box model & borders",
   "groupOrder": 1,
   "order": 12,
-  "mode": "expand",
   "fillMissingLonghands": false
 }
