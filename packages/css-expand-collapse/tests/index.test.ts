@@ -77,21 +77,11 @@ describe("collapse", () => {
     });
   });
 
-  it("keeps partial inset longhands uncollapsed by default", () => {
+  it("fills omitted object longhands with module-owned initial values by default", () => {
     expect(collapseToShorthand("inset", {
       top: "0",
       right: "0",
       bottom: "0",
-    })).toBeNull();
-  });
-
-  it("can fill a missing inset side with its initial value when opted in", () => {
-    expect(collapseToShorthand("inset", {
-      top: "0",
-      right: "0",
-      bottom: "0",
-    }, {
-      fillMissingLonghands: "initial",
     })).toEqual({
       property: "inset",
       value: "0 0 0 auto",
@@ -101,6 +91,34 @@ describe("collapse", () => {
         right: "0",
         bottom: "0",
         left: "auto",
+      },
+    });
+  });
+
+  it("can require a complete object declaration map", () => {
+    expect(collapseToShorthand("inset", {
+      top: "0",
+      right: "0",
+      bottom: "0",
+    }, {
+      fillMissingLonghands: false,
+    })).toBeNull();
+  });
+
+  it("collapses a partial margin object using margin-top's initial value", () => {
+    expect(collapseToShorthand("margin", {
+      "margin-right": "24px",
+      "margin-bottom": "12px",
+      "margin-left": "67px",
+    })).toEqual({
+      property: "margin",
+      value: "0 24px 12px 67px",
+      consumed: ["margin-right", "margin-bottom", "margin-left"],
+      declarations: {
+        "margin-top": "0",
+        "margin-right": "24px",
+        "margin-bottom": "12px",
+        "margin-left": "67px",
       },
     });
   });
