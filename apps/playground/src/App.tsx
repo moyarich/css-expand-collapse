@@ -250,68 +250,110 @@ export function App() {
         </a>
       </header>
 
-      <section className="control-card" aria-label="Conversion controls">
-        <div className="control-group direction-group">
-          <span className="control-step">1</span>
-          <div className="control-copy">
-            <strong>Conversion</strong>
-            <span>Choose the direction.</span>
-          </div>
-          <div className="segmented-control direction-options" role="group" aria-label="Conversion direction">
-            {(Object.keys(MODE_META) as Mode[]).map((option) => {
-              const optionMeta = MODE_META[option];
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  className={`direction-button ${mode === option ? "active" : ""}`}
-                  aria-pressed={mode === option}
-                  onClick={() => {
-                    setMode(option);
-                    setCopied(false);
-                  }}
-                >
-                  <span>{optionMeta.label}</span>
-                  <small>{optionMeta.direction}</small>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="control-divider" />
-
-        <div className="control-group options-group">
-          <span className="control-step">2</span>
-          <div className="control-copy">
-            <strong>Options</strong>
-            <span>Set the input shape and collapse behavior.</span>
+      <div className="playground-layout">
+        <aside className="settings-sidebar" aria-label="Conversion settings">
+          <div className="sidebar-header">
+            <span className="sidebar-kicker">Playground</span>
+            <h2>Conversion settings</h2>
           </div>
 
-          <div className="option-controls">
-            <div className="input-format-control">
-              <span className="field-label">Input format</span>
-              <div className="segmented-control input-kind-options" role="group" aria-label="Input format">
-                <button
-                  type="button"
-                  className={inputKind === "stylesheet" ? "active" : ""}
-                  aria-pressed={inputKind === "stylesheet"}
-                  onClick={() => setInputKind("stylesheet")}
-                >
-                  Stylesheet
-                </button>
-                <button
-                  type="button"
-                  className={inputKind === "declarations" ? "active" : ""}
-                  aria-pressed={inputKind === "declarations"}
-                  onClick={() => setInputKind("declarations")}
-                >
-                  Declarations
-                </button>
-              </div>
+          <section className="sidebar-section example-section">
+            <div className="sidebar-section-heading">
+              <span className="sidebar-section-label">Load example</span>
+              <a
+                className="mdn-link"
+                href={MDN_SHORTHAND_URL}
+                target="_blank"
+                rel="noreferrer"
+                title="MDN shorthand properties"
+              >
+                MDN ↗
+              </a>
             </div>
+            <select
+              className="example-select"
+              defaultValue=""
+              aria-label="Load example"
+              onChange={(event) => {
+                if (!event.target.value) return;
+                loadExample(event.target.value);
+                event.target.value = "";
+              }}
+            >
+              <option value="" disabled>Choose an example…</option>
+              <optgroup label="Real-world CSS">
+                <option value={COMPUTED_EXPORT_EXAMPLE_ID}>
+                  Computed/export CSS → compact shorthands
+                </option>
+              </optgroup>
+              {EXAMPLE_GROUPS.map((group) => (
+                <optgroup key={group} label={`MDN · ${group}`}>
+                  {SHORTHAND_EXAMPLES
+                    .filter((example) => example.group === group)
+                    .map((example) => (
+                      <option key={example.property} value={example.property}>
+                        {example.property}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
+            </select>
+          </section>
 
-            {mode === "collapse" && (
+          <section className="sidebar-section">
+            <div className="sidebar-section-heading stacked">
+              <span className="sidebar-section-label">Conversion</span>
+              <small>Choose what you want to produce.</small>
+            </div>
+            <div className="segmented-control direction-options" role="group" aria-label="Conversion direction">
+              {(Object.keys(MODE_META) as Mode[]).map((option) => {
+                const optionMeta = MODE_META[option];
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`direction-button ${mode === option ? "active" : ""}`}
+                    aria-pressed={mode === option}
+                    onClick={() => {
+                      setMode(option);
+                      setCopied(false);
+                    }}
+                  >
+                    <span>{optionMeta.label}</span>
+                    <small>{option === "expand" ? "Shorthand → Longhand" : "Longhand → Shorthand"}</small>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="sidebar-section">
+            <div className="sidebar-section-heading stacked">
+              <span className="sidebar-section-label">Input format</span>
+              <small>Paste a full rule or declarations only.</small>
+            </div>
+            <div className="segmented-control input-kind-options" role="group" aria-label="Input format">
+              <button
+                type="button"
+                className={inputKind === "stylesheet" ? "active" : ""}
+                aria-pressed={inputKind === "stylesheet"}
+                onClick={() => setInputKind("stylesheet")}
+              >
+                Stylesheet
+              </button>
+              <button
+                type="button"
+                className={inputKind === "declarations" ? "active" : ""}
+                aria-pressed={inputKind === "declarations"}
+                onClick={() => setInputKind("declarations")}
+              >
+                Declarations
+              </button>
+            </div>
+          </section>
+
+          {mode === "collapse" && (
+            <section className="sidebar-section">
               <label className="switch-control">
                 <input
                   type="checkbox"
@@ -327,162 +369,50 @@ export function App() {
                   <small>Use initial values for computed/export CSS.</small>
                 </span>
               </label>
-            )}
-          </div>
+            </section>
+          )}
 
-          <div className="example-picker">
-            <label className="example-field">
-              <span className="field-label">Load example</span>
-              <select
-                defaultValue=""
-                onChange={(event) => {
-                  if (!event.target.value) return;
-                  loadExample(event.target.value);
-                  event.target.value = "";
-                }}
-              >
-                <option value="" disabled>Choose an example…</option>
-                <optgroup label="Real-world CSS">
-                  <option value={COMPUTED_EXPORT_EXAMPLE_ID}>
-                    Computed/export CSS → compact shorthands
-                  </option>
-                </optgroup>
-                {EXAMPLE_GROUPS.map((group) => (
-                  <optgroup key={group} label={`MDN · ${group}`}>
-                    {SHORTHAND_EXAMPLES
-                      .filter((example) => example.group === group)
-                      .map((example) => (
-                        <option key={example.property} value={example.property}>
-                          {example.property}
-                        </option>
-                      ))}
-                  </optgroup>
-                ))}
-              </select>
-            </label>
-            <a
-              className="mdn-link"
-              href={MDN_SHORTHAND_URL}
-              target="_blank"
-              rel="noreferrer"
-              title="MDN shorthand properties"
-            >
-              MDN list ↗
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section className="conversion-summary" aria-live="polite">
-        <div>
-          <span className="summary-label">Current conversion</span>
-          <strong>{meta.direction}</strong>
-          <p>{meta.description}</p>
-        </div>
-        <span className="live-badge">Live</span>
-      </section>
-
-      <section className="workspace">
-        <article className="panel">
-          <div className="panel-header">
+          <div className="sidebar-status" aria-live="polite">
             <div>
-              <span className="panel-kicker">Source</span>
-              <h2>{meta.inputLabel}</h2>
-              <p>{inputKind === "stylesheet" ? "Full CSS stylesheet" : "Declaration block only"}</p>
+              <span className="sidebar-section-label">Current conversion</span>
+              <strong>{meta.direction}</strong>
+              <p>{meta.description}</p>
             </div>
+            <span className="live-badge">Live</span>
           </div>
+        </aside>
 
-          <div className="editor-surface">
-            <Editor
-              path="input.css"
-              language="css"
-              theme="vs-dark"
-              value={source}
-              onChange={(value) => {
-                setSource(value ?? "");
-                setCopied(false);
-              }}
-              loading={<div className="editor-loading">Loading CSS editor…</div>}
-              options={{
-                ariaLabel: `${meta.inputLabel} input`,
-                automaticLayout: true,
-                minimap: { enabled: false },
-                fontSize: 14,
-                lineHeight: 22,
-                lineNumbersMinChars: 3,
-                tabSize: 2,
-                insertSpaces: true,
-                detectIndentation: false,
-                wordWrap: "on",
-                scrollBeyondLastLine: false,
-                smoothScrolling: true,
-                folding: true,
-                glyphMargin: false,
-                stickyScroll: { enabled: false },
-                overviewRulerLanes: 0,
-                hideCursorInOverviewRuler: true,
-                renderLineHighlight: "line",
-                padding: { top: 16, bottom: 16 },
-                formatOnPaste: true,
-                formatOnType: true,
-              }}
-            />
-          </div>
-        </article>
-
-        <button
-          type="button"
-          className="conversion-arrow"
-          disabled={!result.css}
-          onClick={useResultAsInput}
-          aria-label="Use result as input and reverse conversion"
-          title="Use result as input and reverse conversion"
-        >
-          <span aria-hidden="true">⇄</span>
-        </button>
-
-        <article className="panel result-panel">
-          <div className="panel-header">
-            <div>
-              <span className="panel-kicker">Result</span>
-              <h2>{meta.outputLabel}</h2>
-              <p>Formatted for readability</p>
+        <section className="workspace" aria-label="CSS conversion workspace">
+          <article className="panel">
+            <div className="panel-header">
+              <div>
+                <span className="panel-kicker">Source</span>
+                <h2>{meta.inputLabel}</h2>
+                <p>{inputKind === "stylesheet" ? "Full CSS stylesheet" : "Declaration block only"}</p>
+              </div>
             </div>
-            <div className="result-actions">
-              <button
-                type="button"
-                className="copy-button"
-                disabled={!result.css}
-                onClick={copyResult}
-              >
-                {copied ? "Copied" : "Copy"}
-              </button>
-            </div>
-          </div>
 
-          {result.error ? (
-            <div className="error-state">
-              <strong>Couldn’t transform this CSS</strong>
-              <pre>{result.error}</pre>
-            </div>
-          ) : result.css ? (
             <div className="editor-surface">
               <Editor
-                path="output.css"
+                path="input.css"
                 language="css"
                 theme="vs-dark"
-                value={result.css}
+                value={source}
+                onChange={(value) => {
+                  setSource(value ?? "");
+                  setCopied(false);
+                }}
                 loading={<div className="editor-loading">Loading CSS editor…</div>}
                 options={{
-                  ariaLabel: `${meta.outputLabel} output`,
+                  ariaLabel: `${meta.inputLabel} input`,
                   automaticLayout: true,
-                  readOnly: true,
-                  domReadOnly: true,
                   minimap: { enabled: false },
                   fontSize: 14,
                   lineHeight: 22,
                   lineNumbersMinChars: 3,
                   tabSize: 2,
+                  insertSpaces: true,
+                  detectIndentation: false,
                   wordWrap: "on",
                   scrollBeyondLastLine: false,
                   smoothScrolling: true,
@@ -491,16 +421,87 @@ export function App() {
                   stickyScroll: { enabled: false },
                   overviewRulerLanes: 0,
                   hideCursorInOverviewRuler: true,
-                  renderLineHighlight: "none",
+                  renderLineHighlight: "line",
                   padding: { top: 16, bottom: 16 },
+                  formatOnPaste: true,
+                  formatOnType: true,
                 }}
               />
             </div>
-          ) : (
-            <div className="empty-state">Start typing CSS to see the transformed result.</div>
-          )}
-        </article>
-      </section>
+          </article>
+
+          <button
+            type="button"
+            className="conversion-arrow"
+            disabled={!result.css}
+            onClick={useResultAsInput}
+            aria-label="Use result as input and reverse conversion"
+            title="Use result as input and reverse conversion"
+          >
+            <span aria-hidden="true">⇄</span>
+          </button>
+
+          <article className="panel result-panel">
+            <div className="panel-header">
+              <div>
+                <span className="panel-kicker">Result</span>
+                <h2>{meta.outputLabel}</h2>
+                <p>Formatted for readability</p>
+              </div>
+              <div className="result-actions">
+                <button
+                  type="button"
+                  className="copy-button"
+                  disabled={!result.css}
+                  onClick={copyResult}
+                >
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
+            </div>
+
+            {result.error ? (
+              <div className="error-state">
+                <strong>Couldn’t transform this CSS</strong>
+                <pre>{result.error}</pre>
+              </div>
+            ) : result.css ? (
+              <div className="editor-surface">
+                <Editor
+                  path="output.css"
+                  language="css"
+                  theme="vs-dark"
+                  value={result.css}
+                  loading={<div className="editor-loading">Loading CSS editor…</div>}
+                  options={{
+                    ariaLabel: `${meta.outputLabel} output`,
+                    automaticLayout: true,
+                    readOnly: true,
+                    domReadOnly: true,
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    lineHeight: 22,
+                    lineNumbersMinChars: 3,
+                    tabSize: 2,
+                    wordWrap: "on",
+                    scrollBeyondLastLine: false,
+                    smoothScrolling: true,
+                    folding: true,
+                    glyphMargin: false,
+                    stickyScroll: { enabled: false },
+                    overviewRulerLanes: 0,
+                    hideCursorInOverviewRuler: true,
+                    renderLineHighlight: "none",
+                    padding: { top: 16, bottom: 16 },
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="empty-state">Start typing CSS to see the transformed result.</div>
+            )}
+          </article>
+        </section>
+      </div>
 
       <footer className="footer-note">
         Powered by <code>@moyarich/css-expand-collapse</code>. Examples follow the
