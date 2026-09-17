@@ -47,6 +47,13 @@ export interface ShorthandModule {
   readonly expand: ShorthandExpander;
   /** Optional property-specific collapse for grammars that cannot use a generic strategy. */
   readonly collapse?: ShorthandCollapser;
+  /**
+   * Overrides the core's conservative shadow-removal rule. Set this when the
+   * registered longhands fully describe the shorthand's cascade effects, so an
+   * earlier shorthand can be removed after a complete later longhand set is
+   * collapsed back into the same effective shorthand.
+   */
+  readonly safeToDropWhenFullyShadowed?: boolean;
 }
 
 export type TransformableShorthandModule = ShorthandModule & {
