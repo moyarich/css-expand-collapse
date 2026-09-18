@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeConsoleTableData } from "./consoleTableData";
+import { normalizeConsoleTableData } from "../src/components/Console/consoleTableData";
 
 describe("normalizeConsoleTableData", () => {
   it("adds a Value column for primitive arrays", () => {
@@ -42,9 +42,7 @@ describe("normalizeConsoleTableData", () => {
   });
 
   it("uses one Value column for mixed array rows", () => {
-    expect(
-      normalizeConsoleTableData([3, { value: 4 }]),
-    ).toEqual([
+    expect(normalizeConsoleTableData([3, { value: 4 }])).toEqual([
       { Value: 3 },
       { Value: { value: 4 } },
     ]);

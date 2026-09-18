@@ -1,9 +1,11 @@
 import "./Console.css";
 import { ConsoleMessage } from "./ConsoleMessage";
-import type {
-  ConsoleMessage as ConsoleMessageData,
-  RunOutput,
-} from "./run";
+import { ConsoleMessageData } from "./createConsoleProxy";
+
+export interface RunOutput {
+  messages: ConsoleMessageData[];
+  error: string;
+}
 
 export interface ConsoleProps {
   output: RunOutput;
@@ -44,7 +46,9 @@ export function Console({ output, onClear }: ConsoleProps) {
 
       <div className="console-surface" role="log" aria-live="polite">
         {isEmpty ? (
-          <div className="console-empty">Run the code to see console output.</div>
+          <div className="console-empty">
+            Run the code to see console output.
+          </div>
         ) : (
           messages.map((message, index) => (
             <ConsoleMessage

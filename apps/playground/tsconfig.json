@@ -6,8 +6,15 @@
     "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
-      "@moyarich/css-expand-collapse": ["../../packages/css-expand-collapse/src/index.ts"]
+      "@moyarich/css-expand-collapse": [
+        "../../packages/css-expand-collapse/src/index.ts"
+      ]
     }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": [
+    "src",
+    "vite.config.ts",
+    "tests/run.test.ts",
+    "tests/consoleTableData.test.ts"
+  ]
 }

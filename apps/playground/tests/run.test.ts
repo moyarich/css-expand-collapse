@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { runFunctionSource } from "./run";
+import { runFunctionSource } from "../src/components/APIPlayground/run";
 
 describe("runFunctionSource console capture", () => {
   it("captures primitive console.log values", () => {
@@ -79,7 +79,9 @@ describe("runFunctionSource console capture", () => {
       console.log("outside");
     `);
 
-    expect(output.messages.map(({ method, depth }) => ({ method, depth }))).toEqual([
+    expect(
+      output.messages.map(({ method, depth }) => ({ method, depth })),
+    ).toEqual([
       { method: "group", depth: 0 },
       { method: "log", depth: 1 },
       { method: "log", depth: 0 },
@@ -114,10 +116,14 @@ describe("runFunctionSource console capture", () => {
     expect(output.messages[0]?.data).toEqual(["items: 1"]);
     expect(output.messages[1]?.data).toEqual(["items: 2"]);
     expect(output.messages[2]?.method).toBe("log");
-    expect(String(output.messages[2]?.data[0])).toMatch(/^work: \d+\.\d{2} ms$/);
+    expect(String(output.messages[2]?.data[0])).toMatch(
+      /^work: \d+\.\d{2} ms$/,
+    );
     expect(output.messages[2]?.data[1]).toBe("running");
     expect(output.messages[3]?.method).toBe("timeEnd");
-    expect(String(output.messages[3]?.data[0])).toMatch(/^work: \d+\.\d{2} ms$/);
+    expect(String(output.messages[3]?.data[0])).toMatch(
+      /^work: \d+\.\d{2} ms$/,
+    );
   });
 
   it("returns runtime errors separately from console messages", () => {

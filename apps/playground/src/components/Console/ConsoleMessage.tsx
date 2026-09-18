@@ -1,6 +1,6 @@
-import type { ConsoleMessage as ConsoleMessageData } from "./run";
 import { ConsoleTable } from "./ConsoleTable";
 import { ConsoleValue } from "./ConsoleValue";
+import { ConsoleMessageData } from "./createConsoleProxy";
 
 export interface ConsoleMessageProps {
   message: ConsoleMessageData;
@@ -18,10 +18,7 @@ export function ConsoleMessage({ message }: ConsoleMessageProps) {
         data-method={message.method}
         style={style}
       >
-        <ConsoleTable
-          data={message.data[0]}
-          columns={message.columns}
-        />
+        <ConsoleTable data={message.data[0]} columns={message.columns} />
       </div>
     );
   }
@@ -45,11 +42,7 @@ export function ConsoleMessage({ message }: ConsoleMessageProps) {
     message.method === "group" || message.method === "groupCollapsed";
 
   return (
-    <div
-      className="console-message"
-      data-method={message.method}
-      style={style}
-    >
+    <div className="console-message" data-method={message.method} style={style}>
       {isGroup && <span className="console-group-marker">▾</span>}
       <div className="console-values">
         {message.data.map((value, index) => (

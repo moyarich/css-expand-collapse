@@ -6,8 +6,8 @@ import {
   type PointerEvent,
 } from "react";
 import { MonacoEditor } from "../MonacoEditor";
-import { Console } from "./Console";
-import { runFunctionSource, type RunOutput } from "./run";
+import { ConsolePanel, RunOutput } from "../Console/ConsolePanel";
+import { runFunctionSource } from "./run";
 
 export interface APIRunnerProps {
   initialSource: string;
@@ -25,7 +25,9 @@ export function APIRunner({ initialSource }: APIRunnerProps) {
   const workspaceRef = useRef<HTMLElement>(null);
   const resizingRef = useRef(false);
   const [source, setSource] = useState(initialSource);
-  const [output, setOutput] = useState<RunOutput>(() => runFunctionSource(initialSource));
+  const [output, setOutput] = useState<RunOutput>(() =>
+    runFunctionSource(initialSource),
+  );
   const [editorSize, setEditorSize] = useState(DEFAULT_EDITOR_SIZE);
 
   const run = (nextSource = source) => {
@@ -126,7 +128,9 @@ export function APIRunner({ initialSource }: APIRunnerProps) {
                 () => run(editor.getValue()),
               );
             }}
-            loading={<div className="editor-loading">Loading TypeScript editor…</div>}
+            loading={
+              <div className="editor-loading">Loading TypeScript editor…</div>
+            }
             options={{
               ariaLabel: "TypeScript API playground",
               automaticLayout: true,
@@ -156,7 +160,7 @@ export function APIRunner({ initialSource }: APIRunnerProps) {
         <span className="api-resize-grip" aria-hidden="true" />
       </div>
 
-      <Console output={output} onClear={clearOutput} />
+      <ConsolePanel output={output} onClear={clearOutput} />
     </section>
   );
 }
