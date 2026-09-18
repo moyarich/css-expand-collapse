@@ -19,9 +19,6 @@ declare module "@moyarich/css-expand-collapse" {
     consumed: string[];
   }
 
-  /** @deprecated Use CollapseShorthandResult instead. */
-  export type CollapseResult = CollapseShorthandResult;
-
   export type TransformMode = "expand" | "collapse";
 
   export interface TransformCssOptions extends TransformOptions {

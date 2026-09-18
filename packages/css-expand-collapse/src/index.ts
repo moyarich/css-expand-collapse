@@ -12,7 +12,6 @@ export {
 } from "./core.js";
 
 export type {
-  CollapseResult,
   CollapseShorthandResult,
   DeclarationMap,
   ExpandShorthandResult,

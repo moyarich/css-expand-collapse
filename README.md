@@ -290,7 +290,7 @@ System-font keywords such as `font: menu` are user-agent dependent and cannot be
 | Style declaration | `collapseStyleDeclarations(style, shorthands?, options?)` | Collapses multiple shorthands from a read-only style declaration. |
 | Utility | `splitTopLevelWhitespace(value)` | Splits a CSS value on top-level whitespace while preserving strings, functions, brackets, commas, and slashes. |
 
-The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `ShorthandResult`, `ExpandShorthandResult`, `CollapseShorthandResult`, `TransformOptions`, `TransformCssOptions`, `TransformMode`, and `ReadonlyStyleDeclaration`. `CollapseResult` remains as a deprecated alias of `CollapseShorthandResult`.
+The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `ShorthandResult`, `ExpandShorthandResult`, `CollapseShorthandResult`, `TransformOptions`, `TransformCssOptions`, `TransformMode`, and `ReadonlyStyleDeclaration`.
 
 ## Playground
 

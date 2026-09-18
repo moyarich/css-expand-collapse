@@ -43,9 +43,6 @@ export interface CollapseShorthandResult extends ShorthandResult {
   consumed: string[];
 }
 
-/** @deprecated Use CollapseShorthandResult instead. */
-export type CollapseResult = CollapseShorthandResult;
-
 const GLOBAL_VALUES = new Set(["inherit", "initial", "unset", "revert", "revert-layer"]);
 const normalizeProperty = (property: string) => property.trim().toLowerCase();
 
