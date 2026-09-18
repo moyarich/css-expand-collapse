@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -17,13 +18,14 @@
     "react-dom": "^19.2.7",
     "typescript": "^5.9.2",
     "react-router": "^8.3.0",
-    "console-feed": "^3.8.0"
+    "react-inspector": "^9.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.1",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
-    "vite": "^7.1.5"
+    "vite": "^7.1.5",
+    "vitest": "^3.2.7"
   }
 }

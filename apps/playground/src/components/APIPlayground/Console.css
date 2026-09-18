@@ -13,17 +13,98 @@
   flex: 1;
   overflow: auto;
   background: #242424;
+  color: #f2f2f2;
   color-scheme: dark;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.55;
 }
 
-.api-playground .console-surface > div:not(.console-empty) {
-  width: 100%;
+.api-playground .console-message {
+  display: flex;
   min-width: 0;
-  min-height: 100%;
+  align-items: flex-start;
+  gap: 7px;
+  border-bottom: 1px solid #323232;
+  padding-top: 8px;
+  padding-right: 14px;
+  padding-bottom: 8px;
 }
 
-.api-playground .console-surface * {
-  box-sizing: border-box;
+.api-playground .console-message[data-method="warn"],
+.api-playground .console-message[data-method="assert"] {
+  border-color: #665500;
+  background: #332b00;
+  color: #ffdc9e;
+}
+
+.api-playground .console-message[data-method="error"] {
+  border-color: #5b0000;
+  background: #290000;
+  color: #ff8080;
+}
+
+.api-playground .console-message[data-method="info"] {
+  color: #a8c7fa;
+}
+
+.api-playground .console-message[data-method="debug"],
+.api-playground .console-message[data-method="trace"] {
+  color: #8ab4f8;
+}
+
+.api-playground .console-message[data-method="group"],
+.api-playground .console-message[data-method="groupCollapsed"] {
+  font-weight: 700;
+}
+
+.api-playground .console-message-table {
+  display: block;
+  overflow-x: auto;
+}
+
+.api-playground .console-group-marker {
+  flex: 0 0 auto;
+  color: #9aa0a6;
+}
+
+.api-playground .console-values {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.api-playground .console-values > div {
+  min-width: 0;
+}
+
+.api-playground .console-stack {
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.api-playground .console-string {
+  color: #f28b82;
+}
+
+.api-playground .console-number,
+.api-playground .console-boolean {
+  color: #8ab4f8;
+}
+
+.api-playground .console-null,
+.api-playground .console-undefined {
+  color: #c58af9;
+}
+
+.api-playground .console-symbol {
+  color: #81c995;
 }
 
 .api-playground .console-empty {
@@ -32,7 +113,6 @@
   place-items: center;
   padding: 18px;
   color: #8e9aab;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   font-size: 0.86rem;
   text-align: center;
 }
