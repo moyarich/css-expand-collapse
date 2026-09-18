@@ -1,7 +1,6 @@
 import {
   ObjectInspector,
   TableInspector,
-  chromeDark,
 } from "react-inspector";
 import type { ConsoleMessage as ConsoleMessageData } from "./run";
 
@@ -9,18 +8,7 @@ export interface ConsoleMessageProps {
   message: ConsoleMessageData;
 }
 
-const INSPECTOR_THEME = {
-  ...chromeDark,
-  BASE_FONT_FAMILY:
-    '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace',
-  BASE_FONT_SIZE: "14px",
-  BASE_LINE_HEIGHT: 1.55,
-  TREENODE_FONT_FAMILY:
-    '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace',
-  TREENODE_FONT_SIZE: "14px",
-  TREENODE_LINE_HEIGHT: 1.55,
-  TREENODE_PADDING_LEFT: 14,
-};
+const INSPECTOR_THEME = "chromeDark" as const;
 
 function isInspectable(value: unknown): value is object | Function {
   return (
