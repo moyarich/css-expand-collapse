@@ -1,5 +1,6 @@
 import { MonacoEditor } from "../MonacoEditor";
 import { useState } from "react";
+import { Console } from "./Console";
 import { runFunctionSource, type RunOutput } from "./run";
 
 export interface APIRunnerProps {
@@ -14,7 +15,7 @@ export function APIRunner({ initialSource }: APIRunnerProps) {
     setOutput(runFunctionSource(nextSource));
   };
 
-  const clearOutput = () => setOutput({ lines: [], error: "" });
+  const clearOutput = () => setOutput({ entries: [], error: "" });
 
   return (
     <section className="api-workspace" aria-label="API runner">
@@ -54,34 +55,7 @@ export function APIRunner({ initialSource }: APIRunnerProps) {
         </div>
       </article>
 
-      <article className="panel console-panel">
-        <div className="panel-header">
-          <div>
-            <h2>Console</h2>
-            <p>Runtime output</p>
-          </div>
-          <div className="result-actions">
-            <button
-              type="button"
-              className="console-clear-button"
-              disabled={!output.lines.length && !output.error}
-              onClick={clearOutput}
-            >
-              Clear
-            </button>
-          </div>
-        </div>
-
-        <div className="console-surface" role="log" aria-live="polite">
-          {output.error ? (
-            <pre className="console-error">{output.error}</pre>
-          ) : output.lines.length ? (
-            <pre>{output.lines.join("\n\n")}</pre>
-          ) : (
-            <div className="console-empty">Run the code to see console output.</div>
-          )}
-        </div>
-      </article>
+      <Console output={output} onClear={clearOutput} />
     </section>
   );
 }

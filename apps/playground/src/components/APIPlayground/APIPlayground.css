@@ -222,42 +222,6 @@
 }
 
 /* ==========================================================================
-   Console
-   ========================================================================== */
-
-.api-playground .console-surface {
-  min-height: 488px;
-  flex: 1;
-  overflow: auto;
-  padding: 18px;
-  background: #0d1117;
-  color: #d9e2f1;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  font-size: 0.82rem;
-  line-height: 1.6;
-}
-
-.api-playground .console-surface pre {
-  margin: 0;
-  font: inherit;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.api-playground .console-error {
-  color: #ffb4b4;
-}
-
-.api-playground .console-empty {
-  display: grid;
-  min-height: 100%;
-  place-items: center;
-  color: #77859a;
-  text-align: center;
-}
-
-
-/* ==========================================================================
    Responsive
    ========================================================================== */
 
@@ -310,8 +274,7 @@
   }
 
   .api-playground .editor-surface,
-  .api-playground .editor-loading,
-  .api-playground .console-surface {
+  .api-playground .editor-loading {
     height: 360px;
     min-height: 360px;
   }

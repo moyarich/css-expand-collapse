@@ -36,7 +36,7 @@ export function APIPlayground() {
           <span className="sidebar-section-label">Run</span>
           <p className="sidebar-help">
             Press <kbd>⌘ Enter</kbd> on macOS or <kbd>Ctrl Enter</kbd> on Windows/Linux.
-            Output from <code>console.log()</code> appears in the console panel.
+            Standard <code>console.*()</code> output appears in the console panel.
           </p>
         </section>
       </aside>
