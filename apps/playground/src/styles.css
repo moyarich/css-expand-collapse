@@ -94,7 +94,7 @@ body {
   background: #eef2f7;
 }
 
-.playground-tabs button {
+.playground-tabs a {
   border: 0;
   border-radius: 8px;
   padding: 10px 15px;
@@ -103,15 +103,16 @@ body {
   font: inherit;
   font-size: 0.84rem;
   font-weight: 800;
+  text-decoration: none;
   cursor: pointer;
 }
 
-.playground-tabs button:hover:not(.active) {
+.playground-tabs a:hover:not(.active) {
   background: #e3e8f0;
   color: #33425c;
 }
 
-.playground-tabs button.active {
+.playground-tabs a.active {
   background: #fff;
   color: #3346b4;
   box-shadow: 0 1px 3px rgb(29 42 67 / 0.1), 0 0 0 1px rgb(97 119 231 / 0.14);
