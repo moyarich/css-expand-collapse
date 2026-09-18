@@ -234,6 +234,30 @@ describe("real CSS", () => {
     expect(css).toContain("margin-left:20px");
   });
 
+  it("preserves unresolved custom-property shorthands during expansion", () => {
+    const css = expandCss(`
+      .example {
+        border-color: red;
+      }
+
+      a {
+        --color: red;
+        border-color: var(--color);
+      }
+    `);
+
+    expect(css).toContain("border-top-color:red");
+    expect(css).toContain("border-right-color:red");
+    expect(css).toContain("border-bottom-color:red");
+    expect(css).toContain("border-left-color:red");
+
+    // var() may resolve to multiple shorthand components at computed-value
+    // time, so copying it to each longhand would change CSS semantics.
+    expect(css).toContain("--color:red");
+    expect(css).toContain("border-color:var(--color)");
+    expect(css).not.toContain("border-top-color:var(--color)");
+  });
+
   it("collapses contiguous longhands without changing priority", () => {
     const css = collapseCss(`
       .example {

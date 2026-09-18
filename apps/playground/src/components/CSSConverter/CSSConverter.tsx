@@ -122,7 +122,8 @@ function formatCss(css: string, inputKind: InputKind): string {
       indent = Math.max(0, indent - 1);
       output += "\n";
       writeIndent();
-      output += "}";
+      output += "}\n";
+      writeIndent();
       pendingSpace = false;
       continue;
     }
