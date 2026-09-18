@@ -1,4 +1,4 @@
-import { Copy, Trash2 } from "lucide-react";
+import { Braces, Copy, Trash2 } from "lucide-react";
 import {
   useEffect,
   useRef,
@@ -8,6 +8,10 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import {
+  findConsoleObjectValue,
+  formatConsoleObjectForCopy,
+} from "./consoleCopyObject";
 import "./ConsoleContextMenu.css";
 
 export interface ConsoleContextMenuProps {
@@ -16,13 +20,15 @@ export interface ConsoleContextMenuProps {
   onClear: () => void;
 }
 
-interface MenuPosition {
+interface MenuState {
   x: number;
   y: number;
+  objectText?: string;
 }
 
 const MENU_WIDTH = 220;
 const MENU_HEIGHT = 86;
+const MENU_HEIGHT_WITH_OBJECT = 122;
 const VIEWPORT_MARGIN = 8;
 
 async function writeClipboardText(value: string) {
@@ -50,12 +56,12 @@ export function ConsoleContextMenu({
   const targetRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const firstActionRef = useRef<HTMLButtonElement>(null);
-  const [position, setPosition] = useState<MenuPosition | null>(null);
+  const [menu, setMenu] = useState<MenuState | null>(null);
 
-  const closeMenu = () => setPosition(null);
+  const closeMenu = () => setMenu(null);
 
   useEffect(() => {
-    if (!position) return;
+    if (!menu) return;
 
     const handlePointerDown = (event: PointerEvent) => {
       if (menuRef.current?.contains(event.target as Node)) return;
@@ -81,10 +87,16 @@ export function ConsoleContextMenu({
       window.removeEventListener("resize", handleViewportChange);
       window.removeEventListener("scroll", handleViewportChange, true);
     };
-  }, [position]);
+  }, [menu]);
 
   const handleContextMenu = (event: MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
+
+    const objectValue = findConsoleObjectValue(event.target);
+    const objectText = objectValue
+      ? formatConsoleObjectForCopy(objectValue)
+      : undefined;
+    const menuHeight = objectText ? MENU_HEIGHT_WITH_OBJECT : MENU_HEIGHT;
 
     const maxX = Math.max(
       VIEWPORT_MARGIN,
@@ -92,21 +104,28 @@ export function ConsoleContextMenu({
     );
     const maxY = Math.max(
       VIEWPORT_MARGIN,
-      window.innerHeight - MENU_HEIGHT - VIEWPORT_MARGIN,
+      window.innerHeight - menuHeight - VIEWPORT_MARGIN,
     );
 
-    setPosition({
+    setMenu({
       x: Math.min(Math.max(VIEWPORT_MARGIN, event.clientX), maxX),
       y: Math.min(Math.max(VIEWPORT_MARGIN, event.clientY), maxY),
+      objectText,
     });
   };
 
-  const handleCopy = () => {
-    const text = targetRef.current?.innerText.trim() ?? "";
+  const copyText = (value: string) => {
     closeMenu();
+    void writeClipboardText(value);
+  };
+
+  const handleCopyConsole = () => {
+    const text = targetRef.current?.innerText.trim() ?? "";
 
     if (text) {
-      void writeClipboardText(text);
+      copyText(text);
+    } else {
+      closeMenu();
     }
   };
 
@@ -152,24 +171,37 @@ export function ConsoleContextMenu({
         {children}
       </div>
 
-      {position &&
+      {menu &&
         createPortal(
           <div
             ref={menuRef}
             className="console-context-menu"
             role="menu"
             aria-label="Console actions"
-            style={{ left: position.x, top: position.y }}
+            style={{ left: menu.x, top: menu.y }}
             onContextMenu={(event) => event.preventDefault()}
             onKeyDown={handleMenuKeyDown}
           >
+            {menu.objectText && (
+              <button
+                ref={firstActionRef}
+                type="button"
+                className="console-context-menu-item"
+                role="menuitem"
+                onClick={() => copyText(menu.objectText!)}
+              >
+                <Braces size={15} aria-hidden="true" />
+                <span>Copy object</span>
+              </button>
+            )}
+
             <button
-              ref={firstActionRef}
+              ref={menu.objectText ? undefined : firstActionRef}
               type="button"
               className="console-context-menu-item"
               role="menuitem"
               disabled={disabled}
-              onClick={handleCopy}
+              onClick={handleCopyConsole}
             >
               <Copy size={15} aria-hidden="true" />
               <span>Copy console output</span>

@@ -1,5 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
+import { registerConsoleObjectValue } from "./consoleCopyObject";
 
 export interface ConsoleValueProps {
   value: unknown;
@@ -107,7 +108,11 @@ export function ConsoleValue({
   const open = expandLevel > 0;
 
   return (
-    <details className="console-object" open={open}>
+    <details
+      ref={(element) => registerConsoleObjectValue(element, value)}
+      className="console-object"
+      open={open}
+    >
       <summary>
         <ChevronRight
           className="console-object-chevron"

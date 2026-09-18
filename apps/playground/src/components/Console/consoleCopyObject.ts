@@ -1,0 +1,72 @@
+const consoleObjectValues = new WeakMap<Element, object>();
+
+export function registerConsoleObjectValue(
+  element: Element | null,
+  value: object,
+) {
+  if (element) {
+    consoleObjectValues.set(element, value);
+  }
+}
+
+export function findConsoleObjectValue(target: EventTarget | null) {
+  let element = target instanceof Element ? target : null;
+
+  while (element) {
+    const value = consoleObjectValues.get(element);
+
+    if (value) {
+      return value;
+    }
+
+    element = element.parentElement;
+  }
+
+  return undefined;
+}
+
+function normalizeConsoleValue(
+  value: unknown,
+  seen: WeakSet<object>,
+): unknown {
+  if (typeof value === "bigint") return `${value}n`;
+  if (typeof value === "function") {
+    return `[Function ${value.name || "anonymous"}]`;
+  }
+  if (typeof value === "symbol") return String(value);
+  if (typeof value === "undefined") return "[undefined]";
+  if (value === null || typeof value !== "object") return value;
+
+  if (value instanceof Date) return value.toISOString();
+  if (value instanceof RegExp) return String(value);
+  if (value instanceof Error) return value.stack || value.message;
+
+  if (seen.has(value)) {
+    return "[Circular]";
+  }
+
+  seen.add(value);
+
+  if (Array.isArray(value)) {
+    return value.map((item) => normalizeConsoleValue(item, seen));
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, item]) => [
+      key,
+      normalizeConsoleValue(item, seen),
+    ]),
+  );
+}
+
+export function formatConsoleObjectForCopy(value: object): string {
+  try {
+    return JSON.stringify(
+      normalizeConsoleValue(value, new WeakSet<object>()),
+      null,
+      2,
+    );
+  } catch {
+    return String(value);
+  }
+}
