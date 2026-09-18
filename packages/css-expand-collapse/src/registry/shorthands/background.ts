@@ -1,5 +1,10 @@
 import { splitTopLevelComma } from "../context.js";
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  LonghandValueEquivalence,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["background-image", "none"],
@@ -13,6 +18,28 @@ const longhands = new Map([
 ] as const);
 const longhandNames = [...longhands.keys()];
 const initialValues = [...longhands.values()];
+
+const transparentBlackValues = new Set([
+  "transparent",
+  "rgba(0,0,0,0)",
+  "rgb(0 0 0/0)",
+  "rgb(0 0 0 / 0)",
+]);
+
+const equivalentLonghandValues = new Map<string, LonghandValueEquivalence>([
+  [
+    "background-size",
+    (left, right) =>
+      (left === "auto" && right === "auto auto") ||
+      (left === "auto auto" && right === "auto"),
+  ],
+  [
+    "background-color",
+    (left, right) =>
+      transparentBlackValues.has(left.toLowerCase()) &&
+      transparentBlackValues.has(right.toLowerCase()),
+  ],
+]);
 
 function parseLayer(
   layer: string,
@@ -128,6 +155,7 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   safeToDropWhenFullyShadowed: false,
+  equivalentLonghandValues,
   expand,
   collapse(declarations, context) {
     const layered = longhandNames.slice(0, 7).map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));

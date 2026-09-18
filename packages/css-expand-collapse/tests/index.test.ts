@@ -53,6 +53,12 @@ describe("expandShorthand", () => {
     expect(result?.["border-bottom-color"]).toBe("red");
     expect(result?.["border-left-width"]).toBe("2px");
   });
+
+  it("rejects invalid values in generic shorthand expanders", () => {
+    expect(expandShorthand("margin", "garbage")).toBeNull();
+    expect(expandShorthand("gap", "garbage")).toBeNull();
+    expect(expandShorthand("container", "sidebar / garbage")).toBeNull();
+  });
 });
 
 describe("collapse", () => {
@@ -100,6 +106,17 @@ describe("collapse", () => {
       top: "0",
       right: "0",
       bottom: "0",
+    }, {
+      fillMissingLonghands: false,
+    })).toBeNull();
+  });
+
+  it("rejects invalid shorthand serialization from longhand maps", () => {
+    expect(collapseToShorthand("margin", {
+      "margin-top": "garbage",
+      "margin-right": "garbage",
+      "margin-bottom": "garbage",
+      "margin-left": "garbage",
     }, {
       fillMissingLonghands: false,
     })).toBeNull();

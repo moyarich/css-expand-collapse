@@ -5,7 +5,10 @@ import {
   type DeclarationMap,
   type TransformOptions,
 } from "./core.js";
-import { SHORTHAND_DEFINITIONS } from "./registry/index.js";
+import {
+  LONGHAND_VALUE_EQUIVALENCE,
+  SHORTHAND_DEFINITIONS,
+} from "./registry/index.js";
 
 export type TransformMode = "expand" | "collapse";
 
@@ -17,13 +20,6 @@ type EffectiveDeclaration = {
   value: string;
   important: boolean;
 };
-
-const TRANSPARENT_BLACK_VALUES = new Set([
-  "transparent",
-  "rgba(0,0,0,0)",
-  "rgb(0 0 0/0)",
-  "rgb(0 0 0 / 0)",
-]);
 
 function makeDeclaration(property: string, value: string, important = false): any {
   return parse(`${property}:${value}${important ? "!important" : ""}`, {
@@ -52,17 +48,9 @@ function valuesEquivalent(property: string, left: string, right: string): boolea
   const b = canonicalizeCssValue(right);
   if (a === b) return true;
 
-  if (
-    property === "background-size" &&
-    ((a === "auto" && b === "auto auto") ||
-      (a === "auto auto" && b === "auto"))
-  ) {
-    return true;
-  }
-
-  return property === "background-color" &&
-    TRANSPARENT_BLACK_VALUES.has(a.toLowerCase()) &&
-    TRANSPARENT_BLACK_VALUES.has(b.toLowerCase());
+  return LONGHAND_VALUE_EQUIVALENCE
+    .get(property)
+    ?.some((equivalent) => equivalent(a, b)) ?? false;
 }
 
 function expandBlock(children: any[]): any[] {

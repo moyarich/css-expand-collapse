@@ -7,6 +7,7 @@ export interface ShorthandModule {
   readonly longhands: LonghandMap;
   readonly expand: ShorthandExpander;
   readonly collapse: ShorthandCollapser;
+  readonly equivalentLonghandValues?: ReadonlyMap<string, LonghandValueEquivalence>;
   readonly safeToDropWhenFullyShadowed?: boolean;
 }
 ```
@@ -27,6 +28,7 @@ registry/
 ├── expanders.ts     # reusable expansion factories
 ├── collapsers.ts    # reusable collapse factories
 ├── helpers.ts       # longhand-map helpers
+├── families/         # reusable behavior for related CSS property families
 ├── module.ts        # common module contract
 ├── index.ts         # derived lookup tables
 └── shorthands/      # one module per CSS shorthand
@@ -61,7 +63,7 @@ export default {
 } satisfies ShorthandModule;
 ```
 
-Available shared collapse factories include `collapseQuad`, `collapsePair`, `collapseTriple`, `collapseComponents`, `collapseSlashPair`, and `collapseLogicalBorderAxis`.
+Available shared collapse factories include `collapseQuad`, `collapsePair`, `collapseTriple`, `collapseComponents`, and `collapseSlashPair`. Property-family behavior such as logical border axes lives under `families/`.
 
 ## Property-specific shorthand
 
@@ -110,6 +112,10 @@ shorthandCollapseContext = {
 ```
 
 It also exports top-level comma, slash, and whitespace splitting helpers. The scanner uses named Unicode code-point constants and CSS-defined whitespace characters. Transformation modules must not depend on `document`, detached elements, or mutable `CSSStyleDeclaration` objects.
+
+## Longhand value equivalence
+
+A shorthand may provide `equivalentLonghandValues` when browsers serialize an equivalent longhand value differently from the module's canonical expansion. Keep these rules in the property module rather than adding property-name checks to `css.ts`.
 
 ## Cascade safety metadata
 

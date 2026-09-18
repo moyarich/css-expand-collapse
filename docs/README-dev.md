@@ -83,6 +83,7 @@ src/
     ├── expanders.ts        # reusable expand factories
     ├── collapsers.ts       # reusable collapse factories
     ├── helpers.ts          # longhand-map helpers
+    ├── families/           # reusable behavior for related CSS property families
     └── shorthands/         # one implementation per shorthand
 ```
 
@@ -114,6 +115,7 @@ export interface ShorthandModule {
   readonly longhands: LonghandMap;
   readonly expand: ShorthandExpander;
   readonly collapse: ShorthandCollapser;
+  readonly equivalentLonghandValues?: ReadonlyMap<string, LonghandValueEquivalence>;
   readonly safeToDropWhenFullyShadowed?: boolean;
 }
 ```
@@ -185,10 +187,9 @@ collapsePair
 collapseTriple
 collapseComponents
 collapseSlashPair
-collapseLogicalBorderAxis
 ```
 
-The inverse expansion factories live in `expanders.ts`.
+The inverse expansion factories live in `expanders.ts`. Reusable behavior tied to a specific CSS property family, such as logical border axes, lives under `registry/families/` instead of the generic factory files.
 
 ## Property-specific implementations
 
@@ -208,6 +209,10 @@ const collapse: ShorthandCollapser = (declarations, context) => {
 ```
 
 Collapse should be conservative. If an equivalent shorthand cannot be reconstructed without guessing, return `null` and leave the longhands unchanged.
+
+## Longhand value equivalence
+
+A shorthand may expose `equivalentLonghandValues` for alternate browser serializations that are semantically equivalent to its canonical longhand values. Keep those rules with the owning property module; `css.ts` consumes the derived registry lookup without hard-coding property names.
 
 ## Cascade safety metadata
 
@@ -249,6 +254,7 @@ SHORTHAND_PROPERTIES
 SHORTHAND_DEFINITIONS
 SHORTHAND_SET
 LONGHAND_TO_SHORTHANDS
+LONGHAND_VALUE_EQUIVALENCE
 ```
 
 `SHORTHAND_DEFINITIONS` contains modules with non-empty longhand sets. This is how transformability is determined; there is no strategy discriminator.

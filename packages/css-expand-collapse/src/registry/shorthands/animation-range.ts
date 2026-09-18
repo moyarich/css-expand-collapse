@@ -1,5 +1,4 @@
-import { expandOrderedPair } from "../expanders.js";
-import type { ShorthandModule } from "../types.js";
+import type { ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = new Map([
   ["animation-range-start", "normal"],
@@ -7,7 +6,26 @@ const longhands = new Map([
 ] as const);
 const longhandNames = [...longhands.keys()];
 const initialValues = [...longhands.values()];
-const expand = expandOrderedPair(longhands);
+
+const expand: ShorthandExpander = (value, context) => {
+  const tokens = context.splitWhitespace(value);
+  if (!tokens.length) return null;
+
+  for (let split = 1; split < tokens.length; split += 1) {
+    const start = tokens.slice(0, split).join(" ");
+    const end = tokens.slice(split).join(" ");
+    if (
+      context.matchProperty(longhandNames[0]!, start) &&
+      context.matchProperty(longhandNames[1]!, end)
+    ) {
+      return { [longhandNames[0]!]: start, [longhandNames[1]!]: end };
+    }
+  }
+
+  return context.matchProperty(longhandNames[0]!, value)
+    ? { [longhandNames[0]!]: value, [longhandNames[1]!]: initialValues[1]! }
+    : null;
+};
 
 export default {
   longhands,

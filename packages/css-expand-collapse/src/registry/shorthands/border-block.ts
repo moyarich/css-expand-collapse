@@ -1,5 +1,7 @@
-import { collapseLogicalBorderAxis } from "../collapsers.js";
-import { expandLogicalBorderAxis } from "../expanders.js";
+import {
+  collapseLogicalBorderAxis,
+  expandLogicalBorderAxis,
+} from "../families/logical-border-axis.js";
 import type { ShorthandModule } from "../types.js";
 
 const longhands = new Map([
@@ -11,7 +13,6 @@ const longhands = new Map([
   ["border-block-end-color", "currentcolor"],
 ] as const);
 const expand = expandLogicalBorderAxis(longhands);
-
 const collapse = collapseLogicalBorderAxis(longhands);
 
 export default { longhands, expand, collapse } satisfies ShorthandModule;

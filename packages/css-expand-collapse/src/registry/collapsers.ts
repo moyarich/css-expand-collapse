@@ -69,16 +69,3 @@ export function collapseSlashPair(longhands: LonghandMap): ShorthandCollapser {
     return second === longhands.get(properties[1]!) ? first! : first + " / " + second;
   };
 }
-
-export function collapseLogicalBorderAxis(longhands: LonghandMap): ShorthandCollapser {
-  return (declarations) => {
-    const values = concreteValues(longhands, declarations);
-    if (!values || values.length !== 6) return null;
-    const global = globalValue(values);
-    if (global) return global;
-    const first = values.slice(0, 3);
-    const second = values.slice(3, 6);
-    if (!first.every((value, index) => value === second[index])) return null;
-    return first.join(" ");
-  };
-}

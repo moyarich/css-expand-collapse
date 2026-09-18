@@ -1,6 +1,7 @@
 export type {
   DeclarationMap,
   LonghandMap,
+  LonghandValueEquivalence,
   ShorthandCollapseContext,
   ShorthandCollapser,
   ShorthandExpandContext,

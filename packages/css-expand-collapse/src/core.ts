@@ -100,6 +100,9 @@ export function collapseToShorthand(
     ? first
     : definition.collapse(completed, shorthandCollapseContext);
   if (!value) return null;
+  if (!GLOBAL_VALUES.has(value) && !shorthandCollapseContext.matchProperty(property, value)) {
+    return null;
+  }
 
   return {
     property,

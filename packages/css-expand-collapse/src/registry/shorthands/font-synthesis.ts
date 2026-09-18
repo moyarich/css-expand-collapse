@@ -1,5 +1,4 @@
-import { expandCsstreeComponents } from "../expanders.js";
-import type { ShorthandModule, ShorthandExpander } from "../types.js";
+import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
 
 const longhands = new Map([
   ["font-synthesis-weight", "auto"],
@@ -9,13 +8,32 @@ const longhands = new Map([
 ] as const);
 const longhandNames = [...longhands.keys()];
 const initialValues = [...longhands.values()];
-const expandComponents = expandCsstreeComponents(longhands);
 
 const expand: ShorthandExpander = (value, context) => {
   if (value === "none") {
     return Object.fromEntries(longhandNames.map((longhand) => [longhand, "none"]));
   }
-  return expandComponents(value, context);
+
+  const tokens = context.splitWhitespace(value);
+  if (!tokens.length) return null;
+
+  const result = Object.fromEntries(
+    longhandNames.map((longhand, index) => [longhand, initialValues[index]!]),
+  ) as DeclarationMap;
+  const assigned = new Set<string>();
+
+  for (const token of tokens) {
+    const candidates = longhandNames.filter(
+      (property) => !assigned.has(property) && context.matchProperty(property, token),
+    );
+    if (!candidates.length) return null;
+
+    const property = candidates[0]!;
+    result[property] = token;
+    assigned.add(property);
+  }
+
+  return result;
 };
 
 export default {

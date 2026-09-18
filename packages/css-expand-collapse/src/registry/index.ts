@@ -1,7 +1,16 @@
 import { SHORTHANDS } from "./shorthands/index.js";
-import type { ShorthandModule, ShorthandModuleMap } from "./module.js";
+import type {
+  LonghandValueEquivalence,
+  ShorthandModule,
+  ShorthandModuleMap,
+} from "./module.js";
 
-export type { LonghandMap, ShorthandModule, ShorthandModuleMap } from "./module.js";
+export type {
+  LonghandMap,
+  LonghandValueEquivalence,
+  ShorthandModule,
+  ShorthandModuleMap,
+} from "./module.js";
 export type {
   DeclarationMap,
   ShorthandCollapseContext,
@@ -33,6 +42,18 @@ export const LONGHAND_TO_SHORTHANDS = (() => {
       const values = map.get(longhand) ?? [];
       values.push(shorthand);
       map.set(longhand, values);
+    }
+  }
+  return map;
+})();
+
+export const LONGHAND_VALUE_EQUIVALENCE = (() => {
+  const map = new Map<string, LonghandValueEquivalence[]>();
+  for (const [, module] of shorthandEntries) {
+    for (const [longhand, equivalent] of module.equivalentLonghandValues ?? []) {
+      const rules = map.get(longhand) ?? [];
+      rules.push(equivalent);
+      map.set(longhand, rules);
     }
   }
   return map;
