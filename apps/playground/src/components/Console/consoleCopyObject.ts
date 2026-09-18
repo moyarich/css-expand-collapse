@@ -1,30 +1,3 @@
-const consoleObjectValues = new WeakMap<Element, object>();
-
-export function registerConsoleObjectValue(
-  element: Element | null,
-  value: object,
-) {
-  if (element) {
-    consoleObjectValues.set(element, value);
-  }
-}
-
-export function findConsoleObjectValue(target: EventTarget | null) {
-  let element = target instanceof Element ? target : null;
-
-  while (element) {
-    const value = consoleObjectValues.get(element);
-
-    if (value) {
-      return value;
-    }
-
-    element = element.parentElement;
-  }
-
-  return undefined;
-}
-
 function normalizeConsoleValue(
   value: unknown,
   seen: WeakSet<object>,

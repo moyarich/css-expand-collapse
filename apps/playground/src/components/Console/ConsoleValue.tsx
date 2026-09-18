@@ -1,6 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
-import { registerConsoleObjectValue } from "./consoleCopyObject";
+import { useConsoleContextMenu } from "./ConsoleContextMenu";
 
 export interface ConsoleValueProps {
   value: unknown;
@@ -91,6 +91,8 @@ export function ConsoleValue({
   expandLevel = 0,
   ancestors = new Set<object>(),
 }: ConsoleValueProps) {
+  const { openForValue } = useConsoleContextMenu();
+
   if (!isObjectLike(value)) return renderPrimitive(value);
 
   if (value instanceof Error || value instanceof Date || value instanceof RegExp) {
@@ -109,9 +111,9 @@ export function ConsoleValue({
 
   return (
     <details
-      ref={(element) => registerConsoleObjectValue(element, value)}
       className="console-object"
       open={open}
+      onContextMenu={(event) => openForValue(event, value)}
     >
       <summary>
         <ChevronRight

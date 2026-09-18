@@ -1,6 +1,10 @@
 import { Braces, Copy, Trash2 } from "lucide-react";
 import {
+  createContext,
+  useCallback,
+  useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent,
@@ -8,10 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import {
-  findConsoleObjectValue,
-  formatConsoleObjectForCopy,
-} from "./consoleCopyObject";
+import { formatConsoleObjectForCopy } from "./consoleCopyObject";
 import "./ConsoleContextMenu.css";
 
 export interface ConsoleContextMenuProps {
@@ -23,13 +24,37 @@ export interface ConsoleContextMenuProps {
 interface MenuState {
   x: number;
   y: number;
-  objectText?: string;
+  value?: object;
 }
+
+interface ConsoleContextMenuApi {
+  openForValue: (event: MouseEvent<HTMLElement>, value: object) => void;
+}
+
+const ConsoleContextMenuContext = createContext<ConsoleContextMenuApi | null>(
+  null,
+);
 
 const MENU_WIDTH = 220;
 const MENU_HEIGHT = 86;
 const MENU_HEIGHT_WITH_OBJECT = 122;
 const VIEWPORT_MARGIN = 8;
+
+function getMenuPosition(clientX: number, clientY: number, height: number) {
+  const maxX = Math.max(
+    VIEWPORT_MARGIN,
+    window.innerWidth - MENU_WIDTH - VIEWPORT_MARGIN,
+  );
+  const maxY = Math.max(
+    VIEWPORT_MARGIN,
+    window.innerHeight - height - VIEWPORT_MARGIN,
+  );
+
+  return {
+    x: Math.min(Math.max(VIEWPORT_MARGIN, clientX), maxX),
+    y: Math.min(Math.max(VIEWPORT_MARGIN, clientY), maxY),
+  };
+}
 
 async function writeClipboardText(value: string) {
   if (navigator.clipboard?.writeText) {
@@ -48,6 +73,18 @@ async function writeClipboardText(value: string) {
   textarea.remove();
 }
 
+export function useConsoleContextMenu() {
+  const context = useContext(ConsoleContextMenuContext);
+
+  if (!context) {
+    throw new Error(
+      "useConsoleContextMenu must be used within ConsoleContextMenu.",
+    );
+  }
+
+  return context;
+}
+
 export function ConsoleContextMenu({
   children,
   disabled = false,
@@ -58,7 +95,32 @@ export function ConsoleContextMenu({
   const firstActionRef = useRef<HTMLButtonElement>(null);
   const [menu, setMenu] = useState<MenuState | null>(null);
 
-  const closeMenu = () => setMenu(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
+
+  const openMenu = useCallback(
+    (clientX: number, clientY: number, value?: object) => {
+      const height = value ? MENU_HEIGHT_WITH_OBJECT : MENU_HEIGHT;
+      setMenu({
+        ...getMenuPosition(clientX, clientY, height),
+        value,
+      });
+    },
+    [],
+  );
+
+  const openForValue = useCallback(
+    (event: MouseEvent<HTMLElement>, value: object) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openMenu(event.clientX, event.clientY, value);
+    },
+    [openMenu],
+  );
+
+  const contextValue = useMemo(
+    () => ({ openForValue }),
+    [openForValue],
+  );
 
   useEffect(() => {
     if (!menu) return;
@@ -87,31 +149,11 @@ export function ConsoleContextMenu({
       window.removeEventListener("resize", handleViewportChange);
       window.removeEventListener("scroll", handleViewportChange, true);
     };
-  }, [menu]);
+  }, [closeMenu, menu]);
 
   const handleContextMenu = (event: MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
-
-    const objectValue = findConsoleObjectValue(event.target);
-    const objectText = objectValue
-      ? formatConsoleObjectForCopy(objectValue)
-      : undefined;
-    const menuHeight = objectText ? MENU_HEIGHT_WITH_OBJECT : MENU_HEIGHT;
-
-    const maxX = Math.max(
-      VIEWPORT_MARGIN,
-      window.innerWidth - MENU_WIDTH - VIEWPORT_MARGIN,
-    );
-    const maxY = Math.max(
-      VIEWPORT_MARGIN,
-      window.innerHeight - menuHeight - VIEWPORT_MARGIN,
-    );
-
-    setMenu({
-      x: Math.min(Math.max(VIEWPORT_MARGIN, event.clientX), maxX),
-      y: Math.min(Math.max(VIEWPORT_MARGIN, event.clientY), maxY),
-      objectText,
-    });
+    openMenu(event.clientX, event.clientY);
   };
 
   const copyText = (value: string) => {
@@ -127,6 +169,11 @@ export function ConsoleContextMenu({
     } else {
       closeMenu();
     }
+  };
+
+  const handleCopyObject = () => {
+    if (!menu?.value) return;
+    copyText(formatConsoleObjectForCopy(menu.value));
   };
 
   const handleMenuKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -162,7 +209,7 @@ export function ConsoleContextMenu({
   };
 
   return (
-    <>
+    <ConsoleContextMenuContext.Provider value={contextValue}>
       <div
         ref={targetRef}
         className="console-context-menu-target"
@@ -182,13 +229,13 @@ export function ConsoleContextMenu({
             onContextMenu={(event) => event.preventDefault()}
             onKeyDown={handleMenuKeyDown}
           >
-            {menu.objectText && (
+            {menu.value && (
               <button
                 ref={firstActionRef}
                 type="button"
                 className="console-context-menu-item"
                 role="menuitem"
-                onClick={() => copyText(menu.objectText!)}
+                onClick={handleCopyObject}
               >
                 <Braces size={15} aria-hidden="true" />
                 <span>Copy object</span>
@@ -196,7 +243,7 @@ export function ConsoleContextMenu({
             )}
 
             <button
-              ref={menu.objectText ? undefined : firstActionRef}
+              ref={menu.value ? undefined : firstActionRef}
               type="button"
               className="console-context-menu-item"
               role="menuitem"
@@ -225,6 +272,6 @@ export function ConsoleContextMenu({
           </div>,
           document.body,
         )}
-    </>
+    </ConsoleContextMenuContext.Provider>
   );
 }
