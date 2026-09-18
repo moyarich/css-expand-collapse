@@ -1,6 +1,7 @@
 import "./CSSConverter.css";
 import { MonacoEditor } from "../MonacoEditor";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 import {
   collapseCss,
   collapseDeclarations,
@@ -156,10 +157,35 @@ function formatCss(css: string, inputKind: InputKind): string {
 }
 
 export function CSSConverter() {
-  const [mode, setMode] = useState<Mode>("expand");
-  const [source, setSource] = useState(DEFAULT_CSS_CONVERTER_EXAMPLE.source);
-  const [fillMissingLonghands, setFillMissingLonghands] = useState(false);
+  const navigate = useNavigate();
+  const { mode: routeMode, exampleId } = useParams<{
+    mode: string;
+    exampleId: string;
+  }>();
+
+  const routeExample = CSS_CONVERTER_EXAMPLES.find(
+    (example) => example.mode === routeMode && example.id === exampleId,
+  );
+  const initialExample = routeExample ?? DEFAULT_CSS_CONVERTER_EXAMPLE;
+
+  const [mode, setMode] = useState<Mode>(initialExample.mode);
+  const [source, setSource] = useState(initialExample.source);
+  const [fillMissingLonghands, setFillMissingLonghands] = useState(
+    initialExample.fillMissingLonghands,
+  );
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!routeExample) {
+      navigate(`/converter/${DEFAULT_CSS_CONVERTER_EXAMPLE.key}`, { replace: true });
+      return;
+    }
+
+    setMode(routeExample.mode);
+    setSource(routeExample.source);
+    setFillMissingLonghands(routeExample.fillMissingLonghands);
+    setCopied(false);
+  }, [navigate, routeExample]);
 
   const meta = MODE_META[mode];
   const modeExamples = useMemo(
@@ -205,10 +231,7 @@ export function CSSConverter() {
     const example = CSS_CONVERTER_EXAMPLES.find((item) => item.key === selection);
     if (!example) return;
 
-    setMode(example.mode);
-    setFillMissingLonghands(example.fillMissingLonghands);
-    setSource(example.source);
-    setCopied(false);
+    navigate(`/converter/${example.key}`);
   };
 
   const copyResult = async () => {
@@ -233,12 +256,11 @@ export function CSSConverter() {
             <span className="sidebar-section-label">Load example</span>
             <select
               className="example-select"
-              defaultValue=""
+              value={routeExample?.mode === mode ? routeExample.key : ""}
               aria-label="Load example"
               onChange={(event) => {
                 if (!event.target.value) return;
                 loadExample(event.target.value);
-                event.target.value = "";
               }}
             >
               <option value="" disabled>Choose an example…</option>
