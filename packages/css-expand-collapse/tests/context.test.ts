@@ -24,4 +24,21 @@ describe("top-level CSS value splitting", () => {
       "linear-gradient(red, blue)",
     ]);
   });
+
+  it("preserves escaped separators and escaped quotes", () => {
+    expect(splitTopLevelComma(String.raw`foo\,bar,baz`)).toEqual([
+      String.raw`foo\,bar`,
+      "baz",
+    ]);
+    expect(splitTopLevelComma(String.raw`"a\",b",c`)).toEqual([
+      String.raw`"a\",b"`,
+      "c",
+    ]);
+  });
+
+  it("preserves separators inside square brackets", () => {
+    expect(splitTopLevelWhitespace("[a b] c")).toEqual(["[a b]", "c"]);
+    expect(splitTopLevelComma("[a,b],c")).toEqual(["[a,b]", "c"]);
+    expect(splitTopLevelSlash("[a/b]/c")).toEqual(["[a/b]", "c"]);
+  });
 });
