@@ -7,6 +7,20 @@ export interface ConsoleProps {
   onClear: () => void;
 }
 
+const FEED_STYLES = {
+  BASE_FONT_FAMILY:
+    '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace',
+  BASE_FONT_SIZE: "14px",
+  BASE_LINE_HEIGHT: 1.55,
+  PADDING: "8px 14px 8px 10px",
+  TREENODE_FONT_FAMILY:
+    '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace',
+  TREENODE_FONT_SIZE: "14px",
+  TREENODE_LINE_HEIGHT: 1.55,
+  TREENODE_PADDING_LEFT: 14,
+  ARROW_FONT_SIZE: "11px",
+} as const;
+
 export function Console({ output, onClear }: ConsoleProps) {
   const logs: ConsoleFeedMessage[] = output.error
     ? [...output.logs, { method: "error", data: [output.error] }]
@@ -40,6 +54,7 @@ export function Console({ output, onClear }: ConsoleProps) {
             logs={logs as any}
             variant="dark"
             logGrouping={false}
+            styles={FEED_STYLES}
           />
         )}
       </div>
