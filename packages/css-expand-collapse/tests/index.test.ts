@@ -253,7 +253,7 @@ describe("real CSS", () => {
 
     // var() may resolve to multiple shorthand components at computed-value
     // time, so copying it to each longhand would change CSS semantics.
-    expect(css).toContain("--color:red");
+    expect(css).toMatch(/--color:\\s*red/);
     expect(css).toContain("border-color:var(--color)");
     expect(css).not.toContain("border-top-color:var(--color)");
   });
