@@ -3,6 +3,7 @@ export {
   collapseLonghands,
   collapseToShorthand,
   expandShorthand,
+  expandShorthands,
   findCollapsibleShorthands,
   getLonghands,
   getShorthands,

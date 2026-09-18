@@ -1,0 +1,6 @@
+{
+  "id": "expand-shorthands",
+  "label": "expandShorthands()",
+  "description": "Expand every supported shorthand in a declaration object.",
+  "order": 7.5
+}

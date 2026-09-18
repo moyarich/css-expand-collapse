@@ -99,6 +99,35 @@ export function expandShorthand(
 }
 
 /**
+ * Expands every supported shorthand in a declaration object.
+ *
+ * Entries are processed in object iteration order so later shorthand or
+ * longhand declarations override earlier represented longhands.
+ * Unsupported or invalid shorthand declarations are preserved unchanged.
+ */
+export function expandShorthands(
+  declarations: DeclarationMap,
+): DeclarationMap {
+  const output: DeclarationMap = {};
+
+  for (const [rawProperty, value] of Object.entries(declarations)) {
+    const property = normalizeProperty(rawProperty);
+    const expanded = expandShorthand(property, value);
+
+    if (!expanded) {
+      output[property] = value;
+      continue;
+    }
+
+    for (const [longhand, longhandValue] of Object.entries(expanded.declarations)) {
+      output[longhand] = longhandValue;
+    }
+  }
+
+  return output;
+}
+
+/**
  * Collapses registered longhands into one shorthand value.
  *
  * declarations in the result is the complete represented longhand set,
@@ -157,6 +186,11 @@ export function findCollapsibleShorthands(
     .filter((result): result is CollapseShorthandResult => Boolean(result));
 }
 
+/**
+ * Collapses every compatible longhand group in a declaration object.
+ *
+ * This is the declaration-map counterpart to expandShorthands().
+ */
 export function collapseLonghands(
   declarations: DeclarationMap,
   options?: TransformOptions,

@@ -144,6 +144,37 @@ const collapsed = expanded
   : null;
 ```
 
+## Declaration map symmetry
+
+Declaration objects have a direct expand/collapse pair:
+
+```ts
+import {
+  collapseLonghands,
+  expandShorthands,
+} from "@moyarich/css-expand-collapse";
+
+const expanded = expandShorthands({
+  margin: "10px 20px",
+  color: "red",
+});
+// {
+//   "margin-top": "10px",
+//   "margin-right": "20px",
+//   "margin-bottom": "10px",
+//   "margin-left": "20px",
+//   color: "red"
+// }
+
+const collapsed = collapseLonghands(expanded);
+// {
+//   color: "red",
+//   margin: "10px 20px"
+// }
+```
+
+`expandShorthands()` processes entries in declaration-object order, so later shorthand and longhand entries override earlier represented longhands.
+
 ## Transform CSS
 
 Expand a stylesheet:
@@ -277,8 +308,9 @@ System-font keywords such as `font: menu` are user-agent dependent and cannot be
 | Registry | `supportsTransform(property)` | Returns whether the package implements expansion/collapse for the shorthand. |
 | Property | `expandShorthand(property, value)` | Expands one shorthand value into a structured result containing the represented longhand declarations. |
 | Property | `collapseToShorthand(shorthand, declarations, options?)` | Collapses a declaration object into one requested shorthand. |
-| Property | `findCollapsibleShorthands(declarations, options?)` | Finds every shorthand that can be produced from a declaration object. |
-| Property | `collapseLonghands(declarations, options?)` | Collapses compatible longhand groups across a declaration object. |
+| Declaration map | `expandShorthands(declarations)` | Expands every supported shorthand in a declaration object while preserving entry-order override semantics. |
+| Declaration map | `collapseLonghands(declarations, options?)` | Collapses compatible longhand groups across a declaration object. |
+| Discovery | `findCollapsibleShorthands(declarations, options?)` | Finds every shorthand that can be produced from a declaration object. |
 | Stylesheet | `expandCss(css)` | Expands supported shorthand declarations in a stylesheet. |
 | Stylesheet | `collapseCss(css, options?)` | Collapses compatible longhands in a stylesheet while preserving cascade semantics. |
 | Stylesheet | `transformCss(css, { mode, ...options })` | Runs the generic stylesheet transformer in `expand` or `collapse` mode. |

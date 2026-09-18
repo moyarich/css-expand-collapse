@@ -6,6 +6,7 @@ import {
   collapseToShorthand,
   expandCss,
   expandShorthand,
+  expandShorthands,
   getLonghands,
   getShorthands,
   isLonghand,
@@ -64,6 +65,55 @@ describe("expandShorthand", () => {
     expect(expandShorthand("margin", "garbage")).toBeNull();
     expect(expandShorthand("gap", "garbage")).toBeNull();
     expect(expandShorthand("container", "sidebar / garbage")).toBeNull();
+  });
+});
+
+describe("declaration map transforms", () => {
+  it("expands every supported shorthand in a declaration object", () => {
+    expect(expandShorthands({
+      margin: "10px 20px",
+      color: "red",
+    })).toEqual({
+      "margin-top": "10px",
+      "margin-right": "20px",
+      "margin-bottom": "10px",
+      "margin-left": "20px",
+      color: "red",
+    });
+  });
+
+  it("preserves source order when shorthand and longhand entries overlap", () => {
+    expect(expandShorthands({
+      inset: "auto",
+      top: "0",
+    })).toEqual({
+      top: "0",
+      right: "auto",
+      bottom: "auto",
+      left: "auto",
+    });
+
+    expect(expandShorthands({
+      top: "0",
+      inset: "auto",
+    })).toEqual({
+      top: "auto",
+      right: "auto",
+      bottom: "auto",
+      left: "auto",
+    });
+  });
+
+  it("round-trips declaration maps semantically", () => {
+    const expanded = expandShorthands({
+      margin: "10px 20px",
+      color: "red",
+    });
+
+    expect(collapseLonghands(expanded)).toEqual({
+      color: "red",
+      margin: "10px 20px",
+    });
   });
 });
 

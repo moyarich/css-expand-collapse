@@ -45,6 +45,10 @@ declare module "@moyarich/css-expand-collapse" {
     value: string,
   ): ExpandShorthandResult | null;
 
+  export function expandShorthands(
+    declarations: DeclarationMap,
+  ): DeclarationMap;
+
   export function collapseToShorthand(
     shorthand: string,
     declarations: DeclarationMap,
