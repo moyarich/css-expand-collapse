@@ -1,5 +1,5 @@
 import { ConsoleValue } from "./ConsoleValue";
-import { normalizeConsoleTableData } from "./consoleTable";
+import { normalizeConsoleTableData } from "./consoleTableData";
 
 export interface ConsoleTableProps {
   data: unknown;
