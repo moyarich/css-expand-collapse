@@ -1,38 +1,56 @@
 import * as cssExpandCollapse from "@moyarich/css-expand-collapse";
 import * as ts from "typescript";
 
-export type ConsoleFeedMethod =
+export type ConsoleMethod =
   | "log"
   | "debug"
   | "info"
   | "warn"
   | "error"
-  | "table"
-  | "clear"
-  | "time"
-  | "timeEnd"
-  | "count"
   | "assert"
-  | "command"
-  | "result"
-  | "dir";
+  | "dir"
+  | "table"
+  | "count"
+  | "timeEnd"
+  | "trace"
+  | "group"
+  | "groupCollapsed";
 
-export interface ConsoleFeedMessage {
-  method: ConsoleFeedMethod;
+export interface ConsoleMessage {
+  method: ConsoleMethod;
   data: unknown[];
+  depth: number;
+  columns?: string[];
+  expandLevel?: number;
+  showNonenumerable?: boolean;
 }
 
 export interface RunOutput {
-  logs: ConsoleFeedMessage[];
+  messages: ConsoleMessage[];
   error: string;
 }
 
-function createConsole(logs: ConsoleFeedMessage[]): Console {
+interface DirOptions {
+  depth?: number | null;
+  showHidden?: boolean;
+}
+
+function createConsole(messages: ConsoleMessage[]): Console {
   const counts = new Map<string, number>();
   const timers = new Map<string, number>();
+  let depth = 0;
 
-  const push = (method: ConsoleFeedMethod, data: unknown[]) => {
-    logs.push({ method, data });
+  const push = (
+    method: ConsoleMethod,
+    data: unknown[],
+    options: Partial<ConsoleMessage> = {},
+  ) => {
+    messages.push({
+      method,
+      data,
+      depth,
+      ...options,
+    });
   };
 
   const elapsed = (label: string): number | null => {
@@ -47,7 +65,7 @@ function createConsole(logs: ConsoleFeedMessage[]): Console {
     },
 
     clear() {
-      logs.length = 0;
+      messages.length = 0;
     },
 
     count(label = "default") {
@@ -58,19 +76,29 @@ function createConsole(logs: ConsoleFeedMessage[]): Console {
 
     countReset(label = "default") {
       counts.set(label, 0);
-      push("debug", [`Count reset: ${label}`]);
     },
 
     debug(...values: unknown[]) {
       push("debug", values);
     },
 
-    dir(value: unknown, _options?: unknown) {
-      push("dir", [value]);
+    dir(value: unknown, options?: DirOptions) {
+      const requestedDepth = options?.depth;
+      const expandLevel =
+        requestedDepth === null
+          ? 100
+          : typeof requestedDepth === "number"
+            ? Math.max(0, requestedDepth)
+            : 1;
+
+      push("dir", [value], {
+        expandLevel,
+        showNonenumerable: options?.showHidden === true,
+      });
     },
 
     dirxml(...values: unknown[]) {
-      push("dir", values);
+      push("dir", values, { expandLevel: 1 });
     },
 
     error(...values: unknown[]) {
@@ -78,14 +106,18 @@ function createConsole(logs: ConsoleFeedMessage[]): Console {
     },
 
     group(...values: unknown[]) {
-      if (values.length) push("log", values);
+      if (values.length) push("group", values);
+      depth += 1;
     },
 
     groupCollapsed(...values: unknown[]) {
-      if (values.length) push("log", values);
+      if (values.length) push("groupCollapsed", values);
+      depth += 1;
     },
 
-    groupEnd() {},
+    groupEnd() {
+      depth = Math.max(0, depth - 1);
+    },
 
     info(...values: unknown[]) {
       push("info", values);
@@ -96,22 +128,9 @@ function createConsole(logs: ConsoleFeedMessage[]): Console {
     },
 
     table(data: unknown, columns?: string[]) {
-      if (!columns?.length || !Array.isArray(data)) {
-        push("table", [data]);
-        return;
-      }
-
-      push("table", [
-        data.map((row) => {
-          if (!row || typeof row !== "object") return row;
-          return Object.fromEntries(
-            columns.map((column) => [
-              column,
-              (row as Record<string, unknown>)[column],
-            ]),
-          );
-        }),
-      ]);
+      push("table", [data], {
+        columns: columns?.length ? columns : undefined,
+      });
     },
 
     time(label = "default") {
@@ -139,8 +158,10 @@ function createConsole(logs: ConsoleFeedMessage[]): Console {
       push("log", [`${label}: ${duration.toFixed(2)} ms`, ...values]);
     },
 
-    timeStamp(label = "default") {
-      push("debug", [`Timestamp: ${label}`]);
+    timeStamp() {
+      // Console timestamps target browser performance tooling rather than
+      // printable console output. Supporting the method as a no-op mirrors
+      // that behavior without leaking into the playground UI.
     },
 
     trace(...values: unknown[]) {
@@ -149,7 +170,7 @@ function createConsole(logs: ConsoleFeedMessage[]): Console {
         .slice(2)
         .join("\n");
 
-      push("debug", stack ? [...values, stack] : values);
+      push("trace", stack ? [...values, stack] : values);
     },
 
     warn(...values: unknown[]) {
@@ -181,8 +202,8 @@ function formatDiagnostic(diagnostic: ts.Diagnostic): string {
 }
 
 export function runFunctionSource(source: string): RunOutput {
-  const logs: ConsoleFeedMessage[] = [];
-  const consoleProxy = createConsole(logs);
+  const messages: ConsoleMessage[] = [];
+  const consoleProxy = createConsole(messages);
 
   try {
     const compiled = ts.transpileModule(source, {
@@ -203,7 +224,7 @@ export function runFunctionSource(source: string): RunOutput {
 
     if (errors.length) {
       return {
-        logs,
+        messages,
         error: errors.map(formatDiagnostic).join("\n"),
       };
     }
@@ -226,10 +247,10 @@ export function runFunctionSource(source: string): RunOutput {
 
     execute(requirePackage, module, module.exports, consoleProxy);
 
-    return { logs, error: "" };
+    return { messages, error: "" };
   } catch (error) {
     return {
-      logs,
+      messages,
       error: error instanceof Error ? error.stack || error.message : String(error),
     };
   }
