@@ -3,6 +3,7 @@ import {
   TableInspector,
 } from "react-inspector";
 import type { ConsoleMessage as ConsoleMessageData } from "./run";
+import { normalizeConsoleTableData } from "./consoleTable";
 
 export interface ConsoleMessageProps {
   message: ConsoleMessageData;
@@ -77,7 +78,7 @@ export function ConsoleMessage({ message }: ConsoleMessageProps) {
           style={style}
         >
           <TableInspector
-            data={value}
+            data={normalizeConsoleTableData(value)}
             columns={message.columns}
             theme={INSPECTOR_THEME}
           />

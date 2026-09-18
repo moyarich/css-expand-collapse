@@ -151,8 +151,8 @@
 .api-playground .api-resize-handle {
   position: relative;
   display: flex;
-  width: 18px;
-  flex: 0 0 18px;
+  width: 22px;
+  flex: 0 0 22px;
   align-items: center;
   justify-content: center;
   cursor: col-resize;
@@ -163,33 +163,56 @@
 
 .api-playground .api-resize-handle::before {
   position: absolute;
-  width: 2px;
-  height: 56px;
+  width: 1px;
+  height: calc(100% - 20px);
   border-radius: 999px;
-  background: #cbd5e1;
+  background: #d9e1ec;
   content: "";
-  transition:
-    width 120ms ease,
-    background 120ms ease;
-}
-
-.api-playground .api-resize-handle:hover::before,
-.api-playground .api-resize-handle:focus-visible::before {
-  width: 4px;
-  background: #3346b4;
-}
-
-.api-playground .api-resize-handle:focus-visible {
-  border-radius: 8px;
-  box-shadow: inset 0 0 0 2px rgb(51 70 180 / 0.2);
+  transition: background 120ms ease;
 }
 
 .api-playground .api-resize-grip {
   position: relative;
   z-index: 1;
-  width: 6px;
-  height: 24px;
+  width: 10px;
+  height: 46px;
+  border: 1px solid #c7d2e3;
   border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(45 60 85 / 0.12);
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+}
+
+.api-playground .api-resize-grip::before {
+  position: absolute;
+  inset: 8px 2px;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle, #718096 1.3px, transparent 1.5px)
+    center / 4px 7px repeat-y;
+  content: "";
+}
+
+.api-playground .api-resize-handle:hover::before,
+.api-playground .api-resize-handle:focus-visible::before {
+  background: #8797dc;
+}
+
+.api-playground .api-resize-handle:hover .api-resize-grip,
+.api-playground .api-resize-handle:focus-visible .api-resize-grip {
+  border-color: #6677d1;
+  background: #f5f7ff;
+  box-shadow: 0 3px 12px rgb(51 70 180 / 0.18);
+  transform: scaleX(1.08);
+}
+
+.api-playground .api-resize-handle:focus-visible {
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px rgb(51 70 180 / 0.18);
 }
 
 /* ==========================================================================
