@@ -35,6 +35,7 @@
   --console-table-even-background: #232a31;
 
   --console-empty-foreground: #8e9aab;
+  --console-header-icon: #5266c9;
 
   --console-font-family:
     "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
@@ -49,6 +50,17 @@
 /* ==========================================================================
    Console shell
    ========================================================================== */
+
+.console-panel .console-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.console-panel .console-heading-icon {
+  flex: 0 0 auto;
+  color: var(--console-header-icon);
+}
 
 .console-panel .console-surface {
   width: 100%;
@@ -103,14 +115,19 @@
 }
 
 .console-panel .console-message-table {
-  display: block;
-  padding-left: 14px;
   overflow: hidden;
 }
 
-.console-panel .console-group-marker {
-  flex: 0 0 auto;
-  color: var(--console-group-marker);
+.console-panel .console-message-icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+  color: currentColor;
+  opacity: 0.9;
 }
 
 .console-panel .console-values {
@@ -169,10 +186,24 @@
 .console-panel .console-object > summary {
   display: inline-flex;
   max-width: 100%;
-  align-items: baseline;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
   cursor: pointer;
-  list-style-position: outside;
+  list-style: none;
+}
+
+.console-panel .console-object > summary::-webkit-details-marker {
+  display: none;
+}
+
+.console-panel .console-object-chevron {
+  flex: 0 0 auto;
+  color: var(--console-group-marker);
+  transition: transform 120ms ease;
+}
+
+.console-panel .console-object[open] > summary .console-object-chevron {
+  transform: rotate(90deg);
 }
 
 .console-panel .console-object-type {
@@ -222,6 +253,8 @@
 
 .console-panel .console-table-scroll {
   width: 100%;
+  min-width: 0;
+  flex: 1;
   overflow: auto;
 }
 
@@ -265,13 +298,20 @@
    ========================================================================== */
 
 .console-panel .console-empty {
-  display: grid;
+  display: flex;
   min-height: var(--console-min-height);
-  place-items: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   padding: 18px;
   color: var(--console-empty-foreground);
   font-size: 0.86rem;
   text-align: center;
+}
+
+.console-panel .console-empty-icon {
+  color: var(--console-subtle);
 }
 
 @media (max-width: 700px) {

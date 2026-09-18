@@ -5,6 +5,7 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from "react";
+import { Play } from "lucide-react";
 import { MonacoEditor } from "../MonacoEditor";
 import { ConsolePanel, RunOutput } from "../Console/ConsolePanel";
 import { runFunctionSource } from "./run";
@@ -110,7 +111,7 @@ export function APIRunner({ initialSource }: APIRunnerProps) {
           </div>
           <div className="result-actions">
             <button type="button" className="run-button" onClick={() => run()}>
-              <span aria-hidden="true">▶</span>
+              <Play size={14} aria-hidden="true" />
               Run
             </button>
           </div>

@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 
 export interface ConsoleValueProps {
@@ -108,6 +109,11 @@ export function ConsoleValue({
   return (
     <details className="console-object" open={open}>
       <summary>
+        <ChevronRight
+          className="console-object-chevron"
+          size={13}
+          aria-hidden="true"
+        />
         <span className="console-object-type">{objectLabel(value)}</span>
         <span className="console-object-preview">{preview(value)}</span>
       </summary>

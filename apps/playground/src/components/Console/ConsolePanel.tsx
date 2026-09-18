@@ -1,3 +1,4 @@
+import { SquareTerminal, Trash2 } from "lucide-react";
 import "./ConsolePanel.css";
 import { ConsoleMessage } from "./ConsoleMessage";
 import { ConsoleMessageData } from "./createConsoleProxy";
@@ -28,9 +29,16 @@ export function ConsolePanel({ output, onClear }: ConsoleProps) {
   return (
     <article className="panel console-panel">
       <div className="panel-header">
-        <div>
-          <h2>Console</h2>
-          <p>Runtime output from console.*()</p>
+        <div className="console-heading">
+          <SquareTerminal
+            className="console-heading-icon"
+            size={19}
+            aria-hidden="true"
+          />
+          <div>
+            <h2>Console</h2>
+            <p>Runtime output from console.*()</p>
+          </div>
         </div>
         <div className="result-actions">
           <button
@@ -39,6 +47,7 @@ export function ConsolePanel({ output, onClear }: ConsoleProps) {
             disabled={isEmpty}
             onClick={onClear}
           >
+            <Trash2 size={14} aria-hidden="true" />
             Clear
           </button>
         </div>
@@ -47,7 +56,12 @@ export function ConsolePanel({ output, onClear }: ConsoleProps) {
       <div className="console-surface" role="log" aria-live="polite">
         {isEmpty ? (
           <div className="console-empty">
-            Run the code to see console output.
+            <SquareTerminal
+              className="console-empty-icon"
+              size={28}
+              aria-hidden="true"
+            />
+            <span>Run the code to see console output.</span>
           </div>
         ) : (
           messages.map((message, index) => (
