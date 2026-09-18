@@ -1,14 +1,16 @@
 import "./APIPlayground.css";
-import { useMemo, useState } from "react";
+import { Navigate, useNavigate, useParams } from "react-router";
 import { DEFAULT_FUNCTION_EXAMPLE, FUNCTION_EXAMPLES } from "../../examples/APIPlayground";
 import { APIRunner } from "./APIRunner";
 
 export function APIPlayground() {
-  const [selectedExample, setSelectedExample] = useState(DEFAULT_FUNCTION_EXAMPLE.id);
-  const example = useMemo(
-    () => FUNCTION_EXAMPLES.find((item) => item.id === selectedExample) ?? DEFAULT_FUNCTION_EXAMPLE,
-    [selectedExample],
-  );
+  const navigate = useNavigate();
+  const { exampleId } = useParams<{ exampleId: string }>();
+  const example = FUNCTION_EXAMPLES.find((item) => item.id === exampleId);
+
+  if (!example) {
+    return <Navigate to={`/api/${DEFAULT_FUNCTION_EXAMPLE.id}`} replace />;
+  }
 
   return (
     <div className="api-playground">
@@ -18,9 +20,9 @@ export function APIPlayground() {
           <span className="sidebar-section-label">Load example</span>
           <select
             className="example-select"
-            value={selectedExample}
+            value={example.id}
             aria-label="Load function example"
-            onChange={(event) => setSelectedExample(event.target.value)}
+            onChange={(event) => navigate(`/api/${event.target.value}`)}
           >
             {FUNCTION_EXAMPLES.map((item) => (
               <option key={item.id} value={item.id}>
