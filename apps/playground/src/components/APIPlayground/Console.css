@@ -12,11 +12,11 @@
   min-height: 488px;
   flex: 1;
   overflow: auto;
-  background: #242424;
-  color: #f2f2f2;
+  background: #1e1e1e;
+  color: #d8dee9;
   color-scheme: dark;
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.55;
 }
 
@@ -25,23 +25,23 @@
   min-width: 0;
   align-items: flex-start;
   gap: 7px;
-  border-bottom: 1px solid #323232;
-  padding-top: 8px;
-  padding-right: 14px;
-  padding-bottom: 8px;
+  border-bottom: 1px solid #303030;
+  padding-top: 7px;
+  padding-right: 12px;
+  padding-bottom: 7px;
 }
 
 .api-playground .console-message[data-method="warn"],
 .api-playground .console-message[data-method="assert"] {
-  border-color: #665500;
+  border-color: #5e4d00;
   background: #332b00;
-  color: #ffdc9e;
+  color: #ffd99a;
 }
 
 .api-playground .console-message[data-method="error"] {
   border-color: #5b0000;
   background: #290000;
-  color: #ff8080;
+  color: #ff9b9b;
 }
 
 .api-playground .console-message[data-method="info"] {
@@ -60,7 +60,8 @@
 
 .api-playground .console-message-table {
   display: block;
-  overflow-x: auto;
+  padding-left: 14px;
+  overflow: hidden;
 }
 
 .api-playground .console-group-marker {
@@ -77,17 +78,9 @@
   gap: 6px;
 }
 
-.api-playground .console-values > div {
-  min-width: 0;
-}
-
-.api-playground .console-stack {
-  margin: 0;
-  color: inherit;
-  font: inherit;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
+/* ==========================================================================
+   Values
+   ========================================================================== */
 
 .api-playground .console-string {
   color: #f28b82;
@@ -103,9 +96,129 @@
   color: #c58af9;
 }
 
-.api-playground .console-symbol {
+.api-playground .console-symbol,
+.api-playground .console-function {
   color: #81c995;
 }
+
+.api-playground .console-circular {
+  color: #fdd663;
+}
+
+.api-playground .console-stack {
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ==========================================================================
+   Object inspector
+   ========================================================================== */
+
+.api-playground .console-object {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.api-playground .console-object > summary {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: baseline;
+  gap: 6px;
+  cursor: pointer;
+  list-style-position: outside;
+}
+
+.api-playground .console-object-type {
+  color: #d8dee9;
+  font-style: italic;
+}
+
+.api-playground .console-object-preview {
+  min-width: 0;
+  overflow: hidden;
+  color: #a8aeb8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.api-playground .console-object-properties {
+  margin: 4px 0 2px 12px;
+  border-left: 1px solid #3a3a3a;
+  padding-left: 10px;
+}
+
+.api-playground .console-property {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 2px 0;
+}
+
+.api-playground .console-property-key {
+  flex: 0 0 auto;
+  color: #c58af9;
+}
+
+.api-playground .console-property-separator {
+  color: #80868b;
+}
+
+.api-playground .console-object-empty {
+  color: #80868b;
+  font-style: italic;
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+
+.api-playground .console-table-scroll {
+  width: 100%;
+  overflow: auto;
+}
+
+.api-playground .console-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+  color: inherit;
+  font: inherit;
+}
+
+.api-playground .console-table th,
+.api-playground .console-table td {
+  max-width: 280px;
+  border: 1px solid #4a4a4a;
+  padding: 3px 7px;
+  vertical-align: top;
+  text-align: left;
+}
+
+.api-playground .console-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #292929;
+  color: #d8dee9;
+  font-weight: 600;
+}
+
+.api-playground .console-table tbody tr:nth-child(even) {
+  background: #232a31;
+}
+
+.api-playground .console-table-index {
+  color: #a8aeb8;
+}
+
+/* ==========================================================================
+   Empty state
+   ========================================================================== */
 
 .api-playground .console-empty {
   display: grid;
