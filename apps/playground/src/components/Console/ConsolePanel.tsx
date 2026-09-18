@@ -1,4 +1,4 @@
-import "./Console.css";
+import "./ConsolePanel.css";
 import { ConsoleMessage } from "./ConsoleMessage";
 import { ConsoleMessageData } from "./createConsoleProxy";
 
@@ -12,7 +12,7 @@ export interface ConsoleProps {
   onClear: () => void;
 }
 
-export function Console({ output, onClear }: ConsoleProps) {
+export function ConsolePanel({ output, onClear }: ConsoleProps) {
   const messages: ConsoleMessageData[] = output.error
     ? [
         ...output.messages,

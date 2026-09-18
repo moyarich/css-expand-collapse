@@ -1,0 +1,281 @@
+/* ==========================================================================
+   Console variables
+   ========================================================================== */
+
+.console-panel {
+  --console-background: #1e1e1e;
+  --console-foreground: #d8dee9;
+  --console-border: #303030;
+
+  --console-warning-border: #5e4d00;
+  --console-warning-background: #332b00;
+  --console-warning-foreground: #ffd99a;
+
+  --console-error-border: #5b0000;
+  --console-error-background: #290000;
+  --console-error-foreground: #ff9b9b;
+
+  --console-info: #a8c7fa;
+  --console-debug: #8ab4f8;
+
+  --console-string: #f28b82;
+  --console-number: #8ab4f8;
+  --console-null: #c58af9;
+  --console-symbol: #81c995;
+  --console-circular: #fdd663;
+
+  --console-muted: #a8aeb8;
+  --console-subtle: #80868b;
+  --console-group-marker: #9aa0a6;
+
+  --console-object-border: #3a3a3a;
+
+  --console-table-border: #4a4a4a;
+  --console-table-header-background: #292929;
+  --console-table-even-background: #232a31;
+
+  --console-empty-foreground: #8e9aab;
+
+  --console-font-family:
+    "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --console-font-size: 13px;
+  --console-line-height: 1.55;
+
+  --console-min-height: 488px;
+  --console-mobile-min-height: 360px;
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Console shell
+   ========================================================================== */
+
+.console-panel .console-surface {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--console-min-height);
+  flex: 1;
+  overflow: auto;
+  background: var(--console-background);
+  color: var(--console-foreground);
+  color-scheme: dark;
+  font-family: var(--console-font-family);
+  font-size: var(--console-font-size);
+  line-height: var(--console-line-height);
+}
+
+.console-panel .console-message {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 7px;
+  border-bottom: 1px solid var(--console-border);
+  padding-top: 7px;
+  padding-right: 12px;
+  padding-bottom: 7px;
+}
+
+.console-panel .console-message[data-method="warn"],
+.console-panel .console-message[data-method="assert"] {
+  border-color: var(--console-warning-border);
+  background: var(--console-warning-background);
+  color: var(--console-warning-foreground);
+}
+
+.console-panel .console-message[data-method="error"] {
+  border-color: var(--console-error-border);
+  background: var(--console-error-background);
+  color: var(--console-error-foreground);
+}
+
+.console-panel .console-message[data-method="info"] {
+  color: var(--console-info);
+}
+
+.console-panel .console-message[data-method="debug"],
+.console-panel .console-message[data-method="trace"] {
+  color: var(--console-debug);
+}
+
+.console-panel .console-message[data-method="group"],
+.console-panel .console-message[data-method="groupCollapsed"] {
+  font-weight: 700;
+}
+
+.console-panel .console-message-table {
+  display: block;
+  padding-left: 14px;
+  overflow: hidden;
+}
+
+.console-panel .console-group-marker {
+  flex: 0 0 auto;
+  color: var(--console-group-marker);
+}
+
+.console-panel .console-values {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   Values
+   ========================================================================== */
+
+.console-panel .console-string {
+  color: var(--console-string);
+}
+
+.console-panel .console-number,
+.console-panel .console-boolean {
+  color: var(--console-number);
+}
+
+.console-panel .console-null,
+.console-panel .console-undefined {
+  color: var(--console-null);
+}
+
+.console-panel .console-symbol,
+.console-panel .console-function {
+  color: var(--console-symbol);
+}
+
+.console-panel .console-circular {
+  color: var(--console-circular);
+}
+
+.console-panel .console-stack {
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ==========================================================================
+   Object inspector
+   ========================================================================== */
+
+.console-panel .console-object {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.console-panel .console-object > summary {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: baseline;
+  gap: 6px;
+  cursor: pointer;
+  list-style-position: outside;
+}
+
+.console-panel .console-object-type {
+  color: var(--console-foreground);
+  font-style: italic;
+}
+
+.console-panel .console-object-preview {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--console-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.console-panel .console-object-properties {
+  margin: 4px 0 2px 12px;
+  border-left: 1px solid var(--console-object-border);
+  padding-left: 10px;
+}
+
+.console-panel .console-property {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 2px 0;
+}
+
+.console-panel .console-property-key {
+  flex: 0 0 auto;
+  color: var(--console-null);
+}
+
+.console-panel .console-property-separator {
+  color: var(--console-subtle);
+}
+
+.console-panel .console-object-empty {
+  color: var(--console-subtle);
+  font-style: italic;
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+
+.console-panel .console-table-scroll {
+  width: 100%;
+  overflow: auto;
+}
+
+.console-panel .console-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+  color: inherit;
+  font: inherit;
+}
+
+.console-panel .console-table th,
+.console-panel .console-table td {
+  max-width: 280px;
+  border: 1px solid var(--console-table-border);
+  padding: 3px 7px;
+  vertical-align: top;
+  text-align: left;
+}
+
+.console-panel .console-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--console-table-header-background);
+  color: var(--console-foreground);
+  font-weight: 600;
+}
+
+.console-panel .console-table tbody tr:nth-child(even) {
+  background: var(--console-table-even-background);
+}
+
+.console-panel .console-table-index {
+  color: var(--console-muted);
+}
+
+/* ==========================================================================
+   Empty state
+   ========================================================================== */
+
+.console-panel .console-empty {
+  display: grid;
+  min-height: var(--console-min-height);
+  place-items: center;
+  padding: 18px;
+  color: var(--console-empty-foreground);
+  font-size: 0.86rem;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .console-panel {
+    --console-min-height: var(--console-mobile-min-height);
+  }
+}
