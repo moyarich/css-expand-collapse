@@ -15,7 +15,7 @@ export function APIRunner({ initialSource }: APIRunnerProps) {
     setOutput(runFunctionSource(nextSource));
   };
 
-  const clearOutput = () => setOutput({ entries: [], error: "" });
+  const clearOutput = () => setOutput({ logs: [], error: "" });
 
   return (
     <section className="api-workspace" aria-label="API runner">

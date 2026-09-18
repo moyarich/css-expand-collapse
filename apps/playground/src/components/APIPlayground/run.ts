@@ -1,45 +1,38 @@
 import * as cssExpandCollapse from "@moyarich/css-expand-collapse";
 import * as ts from "typescript";
 
-export interface ConsoleEntry {
-  method: string;
-  text: string;
-  depth: number;
+export type ConsoleFeedMethod =
+  | "log"
+  | "debug"
+  | "info"
+  | "warn"
+  | "error"
+  | "table"
+  | "clear"
+  | "time"
+  | "timeEnd"
+  | "count"
+  | "assert"
+  | "command"
+  | "result"
+  | "dir";
+
+export interface ConsoleFeedMessage {
+  method: ConsoleFeedMethod;
+  data: unknown[];
 }
 
 export interface RunOutput {
-  entries: ConsoleEntry[];
+  logs: ConsoleFeedMessage[];
   error: string;
 }
 
-function formatValue(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (typeof value === "undefined") return "undefined";
-  if (typeof value === "function") return `[Function ${value.name || "anonymous"}]`;
-  if (value instanceof Error) return value.stack || value.message;
-
-  try {
-    return JSON.stringify(value, null, 2) ?? String(value);
-  } catch {
-    return String(value);
-  }
-}
-
-function formatValues(values: unknown[]): string {
-  return values.map(formatValue).join(" ");
-}
-
-function createConsole(entries: ConsoleEntry[]): Console {
+function createConsole(logs: ConsoleFeedMessage[]): Console {
   const counts = new Map<string, number>();
   const timers = new Map<string, number>();
-  let depth = 0;
 
-  const push = (method: string, values: unknown[]) => {
-    entries.push({
-      method,
-      text: formatValues(values),
-      depth,
-    });
+  const push = (method: ConsoleFeedMethod, data: unknown[]) => {
+    logs.push({ method, data });
   };
 
   const elapsed = (label: string): number | null => {
@@ -50,11 +43,11 @@ function createConsole(entries: ConsoleEntry[]): Console {
   const baseConsole = {
     assert(condition?: boolean, ...values: unknown[]) {
       if (condition) return;
-      push("assert", values.length ? ["Assertion failed:", ...values] : ["Assertion failed"]);
+      push("assert", values.length ? values : ["Assertion failed"]);
     },
 
     clear() {
-      entries.length = 0;
+      logs.length = 0;
     },
 
     count(label = "default") {
@@ -65,6 +58,7 @@ function createConsole(entries: ConsoleEntry[]): Console {
 
     countReset(label = "default") {
       counts.set(label, 0);
+      push("debug", [`Count reset: ${label}`]);
     },
 
     debug(...values: unknown[]) {
@@ -76,7 +70,7 @@ function createConsole(entries: ConsoleEntry[]): Console {
     },
 
     dirxml(...values: unknown[]) {
-      push("dirxml", values);
+      push("dir", values);
     },
 
     error(...values: unknown[]) {
@@ -84,18 +78,14 @@ function createConsole(entries: ConsoleEntry[]): Console {
     },
 
     group(...values: unknown[]) {
-      if (values.length) push("group", values);
-      depth += 1;
+      if (values.length) push("log", values);
     },
 
     groupCollapsed(...values: unknown[]) {
-      if (values.length) push("groupCollapsed", values);
-      depth += 1;
+      if (values.length) push("log", values);
     },
 
-    groupEnd() {
-      depth = Math.max(0, depth - 1);
-    },
+    groupEnd() {},
 
     info(...values: unknown[]) {
       push("info", values);
@@ -146,11 +136,11 @@ function createConsole(entries: ConsoleEntry[]): Console {
         return;
       }
 
-      push("timeLog", [`${label}: ${duration.toFixed(2)} ms`, ...values]);
+      push("log", [`${label}: ${duration.toFixed(2)} ms`, ...values]);
     },
 
     timeStamp(label = "default") {
-      push("timeStamp", [label]);
+      push("debug", [`Timestamp: ${label}`]);
     },
 
     trace(...values: unknown[]) {
@@ -159,7 +149,7 @@ function createConsole(entries: ConsoleEntry[]): Console {
         .slice(2)
         .join("\n");
 
-      push("trace", stack ? [...values, stack] : values);
+      push("debug", stack ? [...values, stack] : values);
     },
 
     warn(...values: unknown[]) {
@@ -174,7 +164,7 @@ function createConsole(entries: ConsoleEntry[]): Console {
       }
 
       if (typeof property === "string") {
-        return (...values: unknown[]) => push(property, values);
+        return (...values: unknown[]) => push("log", [`${property}:`, ...values]);
       }
 
       return undefined;
@@ -191,8 +181,8 @@ function formatDiagnostic(diagnostic: ts.Diagnostic): string {
 }
 
 export function runFunctionSource(source: string): RunOutput {
-  const entries: ConsoleEntry[] = [];
-  const consoleProxy = createConsole(entries);
+  const logs: ConsoleFeedMessage[] = [];
+  const consoleProxy = createConsole(logs);
 
   try {
     const compiled = ts.transpileModule(source, {
@@ -213,7 +203,7 @@ export function runFunctionSource(source: string): RunOutput {
 
     if (errors.length) {
       return {
-        entries,
+        logs,
         error: errors.map(formatDiagnostic).join("\n"),
       };
     }
@@ -236,10 +226,10 @@ export function runFunctionSource(source: string): RunOutput {
 
     execute(requirePackage, module, module.exports, consoleProxy);
 
-    return { entries, error: "" };
+    return { logs, error: "" };
   } catch (error) {
     return {
-      entries,
+      logs,
       error: error instanceof Error ? error.stack || error.message : String(error),
     };
   }
