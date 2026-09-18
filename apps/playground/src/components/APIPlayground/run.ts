@@ -65,7 +65,7 @@ function createConsole(logs: ConsoleFeedMessage[]): Console {
       push("debug", values);
     },
 
-    dir(value: unknown) {
+    dir(value: unknown, _options?: unknown) {
       push("dir", [value]);
     },
 
