@@ -1,6 +1,0 @@
-{
-  "id": "get-computed-style",
-  "label": "getComputedStyle()",
-  "description": "Convert computed longhands to a declaration map and collapse them into supported shorthands.",
-  "order": 19
-}
