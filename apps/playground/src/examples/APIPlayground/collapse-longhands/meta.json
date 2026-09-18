@@ -1,6 +1,6 @@
 {
   "id": "collapse-longhands",
   "label": "collapseLonghands()",
-  "description": "Collapse every safe longhand group in a declaration object.",
+  "description": "Collapse longhand declaration maps, including values read from getComputedStyle().",
   "order": 8
 }
