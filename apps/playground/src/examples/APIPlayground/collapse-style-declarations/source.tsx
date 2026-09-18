@@ -3,6 +3,7 @@ import {
   type ReadonlyStyleDeclaration,
 } from "@moyarich/css-expand-collapse";
 
+// This style contains enough longhands to build both margin and padding.
 const values: Record<string, string> = {
   "margin-top": "10px",
   "margin-right": "20px",
@@ -13,6 +14,7 @@ const values: Record<string, string> = {
   "padding-bottom": "8px",
   "padding-left": "16px",
 };
+
 const properties = Object.keys(values);
 const style: ReadonlyStyleDeclaration = {
   length: properties.length,
@@ -20,4 +22,5 @@ const style: ReadonlyStyleDeclaration = {
   getPropertyValue: (property) => values[property] ?? "",
 };
 
-console.log(collapseStyleDeclarations(style, ["margin", "padding"]));
+// Pass a shorthand list when you only want selected collapse candidates.
+console.table(collapseStyleDeclarations(style, ["margin", "padding"]));

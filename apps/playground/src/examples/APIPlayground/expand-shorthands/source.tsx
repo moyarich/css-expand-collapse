@@ -3,7 +3,8 @@ import {
   styleToDeclarations,
 } from "@moyarich/css-expand-collapse";
 
-// Plain declaration map
+// expandShorthands() expands every supported shorthand in a declaration map.
+// Non-shorthand declarations, such as color, pass through unchanged.
 const declarations = {
   margin: "10px 20px",
   padding: "0 0 8px",
@@ -13,9 +14,12 @@ const declarations = {
   color: "red",
 };
 
+console.group("Plain declaration map");
 console.log(expandShorthands(declarations));
+console.groupEnd();
 
-// Browser inline styles
+// element.style preserves authored inline shorthands, unlike getComputedStyle(),
+// which generally exposes resolved longhands. Convert it before expansion.
 const element = document.createElement("div");
 
 element.style.cssText = `
@@ -33,6 +37,7 @@ element.style.cssText = `
 `;
 
 const styleDeclarations = styleToDeclarations(element.style);
-const result = expandShorthands(styleDeclarations);
 
-console.log(result);
+console.group("Inline style");
+console.log(expandShorthands(styleDeclarations));
+console.groupEnd();

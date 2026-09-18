@@ -1,4 +1,5 @@
 import { isShorthand } from "@moyarich/css-expand-collapse";
 
-console.log(isShorthand("margin"));
-console.log(isShorthand("margin-top"));
+// isShorthand() reports whether the property has a registered shorthand module.
+console.log("margin:", isShorthand("margin")); // true
+console.log("margin-top:", isShorthand("margin-top")); // false

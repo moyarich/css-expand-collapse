@@ -1,5 +1,7 @@
 import { findCollapsibleShorthands } from "@moyarich/css-expand-collapse";
 
+// This function discovers every registered shorthand that can be represented by
+// the supplied longhands. It does not mutate or replace the input declarations.
 const results = findCollapsibleShorthands({
   "margin-top": "10px",
   "margin-right": "20px",
@@ -11,4 +13,5 @@ const results = findCollapsibleShorthands({
   "padding-left": "16px",
 });
 
-console.log(results);
+// Each result describes the shorthand value and which inputs it would consume.
+console.table(results);

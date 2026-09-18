@@ -3,6 +3,8 @@ import {
   type ReadonlyStyleDeclaration,
 } from "@moyarich/css-expand-collapse";
 
+// styleToDeclarations() converts a CSSStyleDeclaration-compatible object into
+// the package's plain DeclarationMap representation.
 const values: Record<string, string> = {
   "margin-top": "10px",
   "margin-right": "20px",
@@ -10,6 +12,7 @@ const values: Record<string, string> = {
   "margin-left": "20px",
   color: "rgb(255, 0, 0)",
 };
+
 const properties = Object.keys(values);
 const style: ReadonlyStyleDeclaration = {
   length: properties.length,

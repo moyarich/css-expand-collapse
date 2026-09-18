@@ -3,7 +3,8 @@ import {
   styleToDeclarations,
 } from "@moyarich/css-expand-collapse";
 
-// Plain declaration map
+// collapseLonghands() works on a plain declaration map. Unrelated properties
+// such as color are preserved while registered longhand groups are collapsed.
 const declarations = {
   "margin-top": "10px",
   "margin-right": "20px",
@@ -12,9 +13,12 @@ const declarations = {
   color: "red",
 };
 
+console.group("Plain declaration map");
 console.log(collapseLonghands(declarations));
+console.groupEnd();
 
-// Browser computed styles
+// getComputedStyle() exposes resolved browser styles mostly as longhands.
+// Convert that CSSStyleDeclaration to a DeclarationMap before collapsing it.
 const element = document.createElement("div");
 
 element.style.cssText = `
@@ -37,7 +41,9 @@ try {
   const computedStyle = getComputedStyle(element);
   const computedDeclarations = styleToDeclarations(computedStyle);
 
+  console.group("Computed style");
   console.log(collapseLonghands(computedDeclarations));
+  console.groupEnd();
 } finally {
   element.remove();
 }
