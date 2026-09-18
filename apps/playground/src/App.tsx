@@ -1,6 +1,8 @@
 import { Navigate, NavLink, Route, Routes, useLocation } from "react-router";
 import { APIPlayground } from "./components/APIPlayground";
 import { CSSConverter } from "./components/CSSConverter";
+import { DEFAULT_FUNCTION_EXAMPLE } from "./examples/APIPlayground";
+import { DEFAULT_CSS_CONVERTER_EXAMPLE } from "./examples/CSSConverter";
 
 const VIEW_COPY = {
   converter: {
@@ -15,9 +17,13 @@ const VIEW_COPY = {
   },
 } as const;
 
+const DEFAULT_CONVERTER_PATH =
+  `/converter/${DEFAULT_CSS_CONVERTER_EXAMPLE.key}`;
+const DEFAULT_API_PATH = `/api/${DEFAULT_FUNCTION_EXAMPLE.id}`;
+
 export function App() {
   const { pathname } = useLocation();
-  const view = pathname === "/api" ? VIEW_COPY.api : VIEW_COPY.converter;
+  const view = pathname.startsWith("/api") ? VIEW_COPY.api : VIEW_COPY.converter;
 
   return (
     <main className="app-shell">
@@ -38,16 +44,23 @@ export function App() {
       </header>
 
       <nav className="playground-tabs" aria-label="Playground mode">
-        <NavLink to="/" end>
-          CSS Converter
-        </NavLink>
+        <NavLink to="/converter">CSS Converter</NavLink>
         <NavLink to="/api">API Playground</NavLink>
       </nav>
 
       <Routes>
-        <Route path="/" element={<CSSConverter />} />
-        <Route path="/api" element={<APIPlayground />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/" element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />} />
+        <Route
+          path="/converter"
+          element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />}
+        />
+        <Route
+          path="/converter/:mode/:exampleId"
+          element={<CSSConverter />}
+        />
+        <Route path="/api" element={<Navigate to={DEFAULT_API_PATH} replace />} />
+        <Route path="/api/:exampleId" element={<APIPlayground />} />
+        <Route path="*" element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />} />
       </Routes>
     </main>
   );
