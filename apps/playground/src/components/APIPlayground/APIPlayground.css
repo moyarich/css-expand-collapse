@@ -130,11 +130,66 @@
 }
 
 .api-playground .api-workspace {
-  display: grid;
+  display: flex;
   min-width: 0;
   min-height: 560px;
-  grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
-  gap: 18px;
+  align-items: stretch;
+}
+
+.api-playground .api-code-panel {
+  flex: 0 1 var(--api-editor-size, 58%);
+}
+
+.api-playground .console-panel {
+  flex: 1 1 0;
+}
+
+/* ==========================================================================
+   Resize handle
+   ========================================================================== */
+
+.api-playground .api-resize-handle {
+  position: relative;
+  display: flex;
+  width: 18px;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+  outline: none;
+  touch-action: none;
+  user-select: none;
+}
+
+.api-playground .api-resize-handle::before {
+  position: absolute;
+  width: 2px;
+  height: 56px;
+  border-radius: 999px;
+  background: #cbd5e1;
+  content: "";
+  transition:
+    width 120ms ease,
+    background 120ms ease;
+}
+
+.api-playground .api-resize-handle:hover::before,
+.api-playground .api-resize-handle:focus-visible::before {
+  width: 4px;
+  background: #3346b4;
+}
+
+.api-playground .api-resize-handle:focus-visible {
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px rgb(51 70 180 / 0.2);
+}
+
+.api-playground .api-resize-grip {
+  position: relative;
+  z-index: 1;
+  width: 6px;
+  height: 24px;
+  border-radius: 999px;
 }
 
 /* ==========================================================================
@@ -230,9 +285,6 @@
     grid-template-columns: 230px minmax(0, 1fr);
   }
 
-  .api-playground .api-workspace {
-    grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
-  }
 }
 
 @media (max-width: 880px) {
@@ -270,7 +322,17 @@
   }
 
   .api-playground .api-workspace {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .api-playground .api-code-panel,
+  .api-playground .console-panel {
+    flex: none;
+  }
+
+  .api-playground .api-resize-handle {
+    display: none;
   }
 
   .api-playground .editor-surface,
