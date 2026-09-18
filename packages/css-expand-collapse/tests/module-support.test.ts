@@ -12,13 +12,13 @@ describe("module-owned shorthand transforms", () => {
   });
 
   it("expands and collapses flex without a DOM", () => {
-    expect(expandShorthand("flex", "2 0 10rem")).toEqual({
+    expect(expandShorthand("flex", "2 0 10rem")?.declarations).toEqual({
       "flex-grow": "2",
       "flex-shrink": "0",
       "flex-basis": "10rem",
     });
 
-    expect(expandShorthand("flex", "3")).toEqual({
+    expect(expandShorthand("flex", "3")?.declarations).toEqual({
       "flex-grow": "3",
       "flex-shrink": "1",
       "flex-basis": "0%",
@@ -32,7 +32,7 @@ describe("module-owned shorthand transforms", () => {
   });
 
   it("supports unordered component shorthands", () => {
-    expect(expandShorthand("columns", "18rem 3")).toEqual({
+    expect(expandShorthand("columns", "18rem 3")?.declarations).toEqual({
       "column-width": "18rem",
       "column-count": "3",
     });
@@ -44,12 +44,12 @@ describe("module-owned shorthand transforms", () => {
   });
 
   it("supports slash-pair shorthands", () => {
-    expect(expandShorthand("container", "sidebar / inline-size")).toEqual({
+    expect(expandShorthand("container", "sidebar / inline-size")?.declarations).toEqual({
       "container-name": "sidebar",
       "container-type": "inline-size",
     });
 
-    expect(expandShorthand("grid-column", "2 / span 3")).toEqual({
+    expect(expandShorthand("grid-column", "2 / span 3")?.declarations).toEqual({
       "grid-column-start": "2",
       "grid-column-end": "span 3",
     });
@@ -61,7 +61,7 @@ describe("module-owned shorthand transforms", () => {
   });
 
   it("supports logical border-axis shorthands", () => {
-    expect(expandShorthand("border-block", "2px solid red")).toEqual({
+    expect(expandShorthand("border-block", "2px solid red")?.declarations).toEqual({
       "border-block-start-width": "2px",
       "border-block-start-style": "solid",
       "border-block-start-color": "red",

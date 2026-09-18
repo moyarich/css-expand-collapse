@@ -1,7 +1,7 @@
 import {
   collapseToShorthand,
   getLonghands,
-  type CollapseResult,
+  type CollapseShorthandResult,
   type DeclarationMap,
   type TransformOptions,
 } from "./core.js";
@@ -47,7 +47,7 @@ export function collapseStyleDeclaration(
   style: ReadonlyStyleDeclaration,
   shorthand: string,
   options?: TransformOptions,
-): CollapseResult | null {
+): CollapseShorthandResult | null {
   const longhands = getLonghands(shorthand);
   const declarations = longhands.length
     ? styleToDeclarations(style, longhands)
@@ -59,8 +59,8 @@ export function collapseStyleDeclarations(
   style: ReadonlyStyleDeclaration,
   shorthands: Iterable<string> = SHORTHAND_PROPERTIES,
   options?: TransformOptions,
-): CollapseResult[] {
-  const results: CollapseResult[] = [];
+): CollapseShorthandResult[] {
+  const results: CollapseShorthandResult[] = [];
   for (const shorthand of shorthands) {
     const result = collapseStyleDeclaration(style, shorthand, options);
     if (result) results.push(result);

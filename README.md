@@ -20,10 +20,14 @@ import {
 
 expandShorthand("margin", "10px 20px");
 // {
-//   "margin-top": "10px",
-//   "margin-right": "20px",
-//   "margin-bottom": "10px",
-//   "margin-left": "20px"
+//   property: "margin",
+//   value: "10px 20px",
+//   declarations: {
+//     "margin-top": "10px",
+//     "margin-right": "20px",
+//     "margin-bottom": "10px",
+//     "margin-left": "20px"
+//   }
 // }
 
 collapseToShorthand("inset", {
@@ -35,7 +39,13 @@ collapseToShorthand("inset", {
 // {
 //   property: "inset",
 //   value: "0 0 0 auto",
-//   ...
+//   declarations: {
+//     top: "0",
+//     right: "0",
+//     bottom: "0",
+//     left: "auto"
+//   },
+//   consumed: ["top", "right", "bottom", "left"]
 // }
 ```
 
@@ -110,6 +120,28 @@ supportsTransform("background");
 // true
 
 expandShorthand("transition", "opacity 200ms ease");
+```
+
+## Property result symmetry
+
+`expandShorthand()` and `collapseToShorthand()` share the same core result shape:
+
+```ts
+interface ShorthandResult {
+  property: string;
+  value: string;
+  declarations: Record<string, string>;
+}
+```
+
+For both operations, `declarations` means the longhand declarations represented by the shorthand operation. Collapse adds `consumed` because it also reports which input longhands were actually consumed.
+
+```ts
+const expanded = expandShorthand("inset", "0 0 0 auto");
+
+const collapsed = expanded
+  ? collapseToShorthand("inset", expanded.declarations)
+  : null;
 ```
 
 ## Transform CSS
@@ -243,7 +275,7 @@ System-font keywords such as `font: menu` are user-agent dependent and cannot be
 | Registry | `getLonghands(shorthand)` | Returns the registered longhand property names for a shorthand. |
 | Registry | `getShorthands(longhand)` | Returns shorthands that include the supplied longhand. |
 | Registry | `supportsTransform(property)` | Returns whether the package implements expansion/collapse for the shorthand. |
-| Property | `expandShorthand(property, value)` | Expands one shorthand value into a longhand declaration object. |
+| Property | `expandShorthand(property, value)` | Expands one shorthand value into a structured result containing the represented longhand declarations. |
 | Property | `collapseToShorthand(shorthand, declarations, options?)` | Collapses a declaration object into one requested shorthand. |
 | Property | `findCollapsibleShorthands(declarations, options?)` | Finds every shorthand that can be produced from a declaration object. |
 | Property | `collapseLonghands(declarations, options?)` | Collapses compatible longhand groups across a declaration object. |
@@ -258,7 +290,7 @@ System-font keywords such as `font: menu` are user-agent dependent and cannot be
 | Style declaration | `collapseStyleDeclarations(style, shorthands?, options?)` | Collapses multiple shorthands from a read-only style declaration. |
 | Utility | `splitTopLevelWhitespace(value)` | Splits a CSS value on top-level whitespace while preserving strings, functions, brackets, commas, and slashes. |
 
-The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `TransformOptions`, `TransformCssOptions`, `CollapseResult`, `TransformMode`, and `ReadonlyStyleDeclaration`.
+The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `ShorthandResult`, `ExpandShorthandResult`, `CollapseShorthandResult`, `TransformOptions`, `TransformCssOptions`, `TransformMode`, and `ReadonlyStyleDeclaration`. `CollapseResult` remains as a deprecated alias of `CollapseShorthandResult`.
 
 ## Playground
 

@@ -22,12 +22,29 @@ export interface TransformOptions {
   fillMissingLonghands?: false | "initial";
 }
 
-export interface CollapseResult {
+/**
+ * Shared result shape for shorthand expansion and collapse operations.
+ *
+ * The declarations field always represents the longhand declarations described
+ * by the shorthand operation.
+ */
+export interface ShorthandResult {
   property: string;
   value: string;
-  consumed: string[];
   declarations: DeclarationMap;
 }
+
+/** Result returned when a shorthand value is expanded into longhands. */
+export type ExpandShorthandResult = ShorthandResult;
+
+/** Result returned when longhands are collapsed into a shorthand. */
+export interface CollapseShorthandResult extends ShorthandResult {
+  /** Input longhands that were present and consumed by the collapse operation. */
+  consumed: string[];
+}
+
+/** @deprecated Use CollapseShorthandResult instead. */
+export type CollapseResult = CollapseShorthandResult;
 
 const GLOBAL_VALUES = new Set(["inherit", "initial", "unset", "revert", "revert-layer"]);
 const normalizeProperty = (property: string) => property.trim().toLowerCase();
@@ -52,10 +69,16 @@ export function supportsTransform(property: string): boolean {
   return Boolean(SHORTHAND_DEFINITIONS[normalizeProperty(property)]);
 }
 
+/**
+ * Expands a shorthand value into its registered longhand declarations.
+ *
+ * The returned property is normalized, value is the trimmed shorthand value
+ * that was expanded, and declarations contains the represented longhands.
+ */
 export function expandShorthand(
   property: string,
   value: string,
-): DeclarationMap | null {
+): ExpandShorthandResult | null {
   const shorthand = normalizeProperty(property);
   const definition = SHORTHAND_DEFINITIONS[shorthand];
   if (!definition) return null;
@@ -63,20 +86,33 @@ export function expandShorthand(
   const normalizedValue = value.trim();
   if (!normalizedValue) return null;
 
-  if (GLOBAL_VALUES.has(normalizedValue)) {
-    return Object.fromEntries(
+  const declarations = GLOBAL_VALUES.has(normalizedValue)
+    ? Object.fromEntries(
       [...definition.longhands.keys()].map((longhand) => [longhand, normalizedValue]),
-    );
-  }
+    )
+    : definition.expand(normalizedValue, shorthandExpandContext);
 
-  return definition.expand(normalizedValue, shorthandExpandContext);
+  if (!declarations) return null;
+
+  return {
+    property: shorthand,
+    value: normalizedValue,
+    declarations,
+  };
 }
 
+/**
+ * Collapses registered longhands into one shorthand value.
+ *
+ * declarations in the result is the complete represented longhand set,
+ * including module-owned initial values when missing values are filled.
+ * consumed contains only longhands that were present in the input.
+ */
 export function collapseToShorthand(
   shorthandProperty: string,
   declarations: DeclarationMap,
   options?: TransformOptions,
-): CollapseResult | null {
+): CollapseShorthandResult | null {
   const property = normalizeProperty(shorthandProperty);
   const definition = SHORTHAND_DEFINITIONS[property];
   if (!definition) return null;
@@ -107,21 +143,21 @@ export function collapseToShorthand(
   return {
     property,
     value,
-    consumed,
     declarations: Object.fromEntries(
       [...definition.longhands.keys()].map((longhand) => [longhand, completed[longhand]!]),
     ),
+    consumed,
   };
 }
 
 export function findCollapsibleShorthands(
   declarations: DeclarationMap,
   options?: TransformOptions,
-): CollapseResult[] {
+): CollapseShorthandResult[] {
   return Object.entries(SHORTHAND_DEFINITIONS)
     .sort(([, a], [, b]) => b.longhands.size - a.longhands.size)
     .map(([shorthand]) => collapseToShorthand(shorthand, declarations, options))
-    .filter((result): result is CollapseResult => Boolean(result));
+    .filter((result): result is CollapseShorthandResult => Boolean(result));
 }
 
 export function collapseLonghands(

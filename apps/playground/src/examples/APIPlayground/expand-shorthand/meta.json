@@ -1,6 +1,6 @@
 {
   "id": "expand-shorthand",
   "label": "expandShorthand()",
-  "description": "Expand one shorthand value into its registered longhands.",
+  "description": "Expand one shorthand value into a structured result containing its registered longhands.",
   "order": 5
 }

@@ -13,8 +13,11 @@ export {
 
 export type {
   CollapseResult,
+  CollapseShorthandResult,
   DeclarationMap,
+  ExpandShorthandResult,
   LonghandMap,
+  ShorthandResult,
   TransformOptions,
 } from "./core.js";
 

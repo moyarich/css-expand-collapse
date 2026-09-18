@@ -67,7 +67,7 @@ function expandBlock(children: any[]): any[] {
       continue;
     }
 
-    for (const [property, value] of Object.entries(expanded)) {
+    for (const [property, value] of Object.entries(expanded.declarations)) {
       output.push(makeDeclaration(property, value, Boolean(child.important)));
     }
   }
@@ -113,7 +113,7 @@ function removeRedundantDeclarations(children: any[]): any[] {
       const expanded = expandShorthand(property, value);
 
       if (expanded) {
-        const entries = Object.entries(expanded);
+        const entries = Object.entries(expanded.declarations);
         const changesEffectiveValue = entries.some(([longhand, longhandValue]) => {
           const current = effective.get(longhand);
           if (!declarationWouldApply(current, important)) return false;

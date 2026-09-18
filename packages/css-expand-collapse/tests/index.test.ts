@@ -28,17 +28,23 @@ describe("property metadata", () => {
 });
 
 describe("expandShorthand", () => {
-  it("expands four-side shorthand values", () => {
+  it("returns a structured shorthand result", () => {
     expect(expandShorthand("margin", "10px 20px")).toEqual({
-      "margin-top": "10px",
-      "margin-right": "20px",
-      "margin-bottom": "10px",
-      "margin-left": "20px",
+      property: "margin",
+      value: "10px 20px",
+      declarations: {
+        "margin-top": "10px",
+        "margin-right": "20px",
+        "margin-bottom": "10px",
+        "margin-left": "20px",
+      },
     });
   });
 
   it("expands text-decoration regardless of component order", () => {
-    expect(expandShorthand("text-decoration", "wavy underline purple 25%")).toEqual({
+    expect(
+      expandShorthand("text-decoration", "wavy underline purple 25%")?.declarations,
+    ).toEqual({
       "text-decoration-line": "underline",
       "text-decoration-style": "wavy",
       "text-decoration-color": "purple",
@@ -48,10 +54,10 @@ describe("expandShorthand", () => {
 
   it("expands border components and fills shorthand defaults", () => {
     const result = expandShorthand("border", "2px solid red");
-    expect(result?.["border-top-width"]).toBe("2px");
-    expect(result?.["border-right-style"]).toBe("solid");
-    expect(result?.["border-bottom-color"]).toBe("red");
-    expect(result?.["border-left-width"]).toBe("2px");
+    expect(result?.declarations["border-top-width"]).toBe("2px");
+    expect(result?.declarations["border-right-style"]).toBe("solid");
+    expect(result?.declarations["border-bottom-color"]).toBe("red");
+    expect(result?.declarations["border-left-width"]).toBe("2px");
   });
 
   it("rejects invalid values in generic shorthand expanders", () => {
@@ -73,6 +79,30 @@ describe("collapse", () => {
     expect(collapseToShorthand("margin", margin)).toMatchObject({
       property: "margin",
       value: "10px 20px",
+      declarations: margin,
+      consumed: Object.keys(margin),
+    });
+  });
+
+  it("uses declarations consistently across inverse operations", () => {
+    const expanded = expandShorthand("inset", "0 0 0 auto");
+    expect(expanded).toEqual({
+      property: "inset",
+      value: "0 0 0 auto",
+      declarations: {
+        top: "0",
+        right: "0",
+        bottom: "0",
+        left: "auto",
+      },
+    });
+
+    const collapsed = collapseToShorthand("inset", expanded!.declarations);
+    expect(collapsed).toEqual({
+      property: "inset",
+      value: "0 0 0 auto",
+      declarations: expanded!.declarations,
+      consumed: ["top", "right", "bottom", "left"],
     });
   });
 
@@ -91,13 +121,13 @@ describe("collapse", () => {
     })).toEqual({
       property: "inset",
       value: "0 0 0 auto",
-      consumed: ["top", "right", "bottom"],
       declarations: {
         top: "0",
         right: "0",
         bottom: "0",
         left: "auto",
       },
+      consumed: ["top", "right", "bottom"],
     });
   });
 
@@ -130,13 +160,13 @@ describe("collapse", () => {
     })).toEqual({
       property: "margin",
       value: "0 24px 12px 67px",
-      consumed: ["margin-right", "margin-bottom", "margin-left"],
       declarations: {
         "margin-top": "0",
         "margin-right": "24px",
         "margin-bottom": "12px",
         "margin-left": "67px",
       },
+      consumed: ["margin-right", "margin-bottom", "margin-left"],
     });
   });
 });

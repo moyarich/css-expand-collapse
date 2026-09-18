@@ -7,12 +7,20 @@ declare module "@moyarich/css-expand-collapse" {
     fillMissingLonghands?: false | "initial";
   }
 
-  export interface CollapseResult {
+  export interface ShorthandResult {
     property: string;
     value: string;
-    consumed: string[];
     declarations: DeclarationMap;
   }
+
+  export type ExpandShorthandResult = ShorthandResult;
+
+  export interface CollapseShorthandResult extends ShorthandResult {
+    consumed: string[];
+  }
+
+  /** @deprecated Use CollapseShorthandResult instead. */
+  export type CollapseResult = CollapseShorthandResult;
 
   export type TransformMode = "expand" | "collapse";
 
@@ -38,18 +46,18 @@ declare module "@moyarich/css-expand-collapse" {
   export function expandShorthand(
     property: string,
     value: string,
-  ): DeclarationMap | null;
+  ): ExpandShorthandResult | null;
 
   export function collapseToShorthand(
     shorthand: string,
     declarations: DeclarationMap,
     options?: TransformOptions,
-  ): CollapseResult | null;
+  ): CollapseShorthandResult | null;
 
   export function findCollapsibleShorthands(
     declarations: DeclarationMap,
     options?: TransformOptions,
-  ): CollapseResult[];
+  ): CollapseShorthandResult[];
 
   export function collapseLonghands(
     declarations: DeclarationMap,
@@ -74,11 +82,11 @@ declare module "@moyarich/css-expand-collapse" {
     style: ReadonlyStyleDeclaration,
     shorthand: string,
     options?: TransformOptions,
-  ): CollapseResult | null;
+  ): CollapseShorthandResult | null;
   export function collapseStyleDeclarations(
     style: ReadonlyStyleDeclaration,
     shorthands?: Iterable<string>,
     options?: TransformOptions,
-  ): CollapseResult[];
+  ): CollapseShorthandResult[];
 }
 `;
