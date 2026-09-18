@@ -2,21 +2,31 @@ function isTableRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function normalizeTableRow(value: unknown): unknown {
-  return isTableRecord(value) ? value : { Value: value };
+function allRowsAreRecords(values: unknown[]): boolean {
+  return values.length > 0 && values.every(isTableRecord);
+}
+
+function wrapValue(value: unknown) {
+  return { Value: value };
 }
 
 export function normalizeConsoleTableData(data: unknown): unknown {
   if (Array.isArray(data)) {
-    return data.map(normalizeTableRow);
+    return allRowsAreRecords(data)
+      ? data
+      : data.map(wrapValue);
   }
 
   if (isTableRecord(data)) {
+    const entries = Object.entries(data);
+    const values = entries.map(([, value]) => value);
+
+    if (allRowsAreRecords(values)) {
+      return data;
+    }
+
     return Object.fromEntries(
-      Object.entries(data).map(([key, value]) => [
-        key,
-        normalizeTableRow(value),
-      ]),
+      entries.map(([key, value]) => [key, wrapValue(value)]),
     );
   }
 
