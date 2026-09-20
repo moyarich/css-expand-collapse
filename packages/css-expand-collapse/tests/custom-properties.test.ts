@@ -144,6 +144,68 @@ describe("custom property scope in stylesheet transforms", () => {
     expect(css).not.toContain("margin-top");
   });
 
+  it("preserves a shorthand when a locally scoped variable expands to multiple components", () => {
+    const css = expandCss(`
+      .card {
+        --space: 8px 16px;
+        margin: var(--space);
+      }
+    `);
+
+    expect(css).toMatch(/--space:\s*8px 16px/);
+    expect(css).toContain("margin:var(--space)");
+    expect(css).not.toContain("margin-top");
+    expect(css).not.toContain("margin-right");
+    expect(css).not.toContain("margin-bottom");
+    expect(css).not.toContain("margin-left");
+  });
+
+  it("uses a local multi-component variable instead of a root single-component value", () => {
+    const css = expandCss(`
+      :root { --space: 8px; }
+
+      .card {
+        --space: 8px 16px;
+        margin: var(--space);
+      }
+    `);
+
+    expect(css).toMatch(/--space:\s*8px 16px/);
+    expect(css).toContain("margin:var(--space)");
+    expect(css).not.toContain("margin-top:var(--space)");
+  });
+
+  it("preserves a background shorthand backed by a local multi-component variable", () => {
+    const css = expandCss(`
+      .hero {
+        --surface: url(hero.png) center / cover no-repeat #111;
+        background: var(--surface);
+      }
+    `);
+
+    expect(css).toContain("background:var(--surface)");
+    expect(css).not.toContain("background-image:var(--surface)");
+    expect(css).not.toContain("background-color:var(--surface)");
+  });
+
+  it("does not collapse invalid longhands backed by a local multi-component variable", () => {
+    const css = collapseCss(`
+      .card {
+        --space: 8px 16px;
+        margin-top: var(--space);
+        margin-right: var(--space);
+        margin-bottom: var(--space);
+        margin-left: var(--space);
+      }
+    `);
+
+    expect(css).toContain("margin-top:var(--space)");
+    expect(css).toContain("margin-right:var(--space)");
+    expect(css).toContain("margin-bottom:var(--space)");
+    expect(css).toContain("margin-left:var(--space)");
+    expect(css).not.toContain("margin:var(--space)");
+  });
+
   it("does not assume an unknown fallback is the final cascaded value", () => {
     const css = expandCss(`
       .card { border-color: var(--external-color, red); }
