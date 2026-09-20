@@ -9,5 +9,5 @@
       "@moyarich/css-expand-collapse": ["../../packages/css-expand-collapse/src/index.ts"]
     }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", ".storybook", "vite.config.ts", "vitest.config.ts"]
 }
