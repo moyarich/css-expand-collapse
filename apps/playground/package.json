@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",
+    "storybook:install-browser": "playwright install chromium",
     "build-storybook": "storybook build",
     "test-storybook": "vitest run --project=storybook"
   },
