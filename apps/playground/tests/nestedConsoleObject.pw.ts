@@ -141,26 +141,31 @@ test.describe("nested console objects", () => {
 
     const deploymentKeyMetrics = await deploymentKey.evaluate((element) => {
       const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
 
       return {
         clientWidth: element.clientWidth,
         scrollWidth: element.scrollWidth,
+        width: rect.width,
+        height: rect.height,
+        flexShrink: style.flexShrink,
         maxWidth: style.maxWidth,
         overflowWrap: style.overflowWrap,
         textOverflow: style.textOverflow,
         whiteSpace: style.whiteSpace,
-        wordBreak: style.wordBreak,
       };
     });
 
     expect(deploymentKeyMetrics.scrollWidth).toBeLessThanOrEqual(
       deploymentKeyMetrics.clientWidth + 1,
     );
+    expect(deploymentKeyMetrics.flexShrink).toBe("0");
     expect(deploymentKeyMetrics.maxWidth).toBe("none");
-    expect(deploymentKeyMetrics.overflowWrap).toBe("anywhere");
+    expect(deploymentKeyMetrics.overflowWrap).toBe("normal");
     expect(deploymentKeyMetrics.textOverflow).not.toBe("ellipsis");
-    expect(deploymentKeyMetrics.whiteSpace).toBe("normal");
-    expect(deploymentKeyMetrics.wordBreak).toBe("normal");
+    expect(deploymentKeyMetrics.whiteSpace).toBe("nowrap");
+    expect(deploymentKeyMetrics.width).toBeGreaterThan(100);
+    expect(deploymentKeyMetrics.height).toBeLessThan(24);
 
 
     const valueBox = await departmentHeadValue.boundingBox();
