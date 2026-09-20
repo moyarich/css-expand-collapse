@@ -222,13 +222,6 @@
   transform: rotate(90deg);
 }
 
-.console-panel .console-object-property-key {
-  max-width: 45%;
-  flex: 0 1 auto;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
 .console-panel .console-object-type {
   flex: 0 0 auto;
   color: var(--console-foreground);
@@ -305,14 +298,18 @@
   padding: 2px 0;
 }
 
-.console-panel .console-property-key {
+.console-panel .console-property-key,
+.console-panel .console-object-property-key {
   min-width: 0;
-  max-width: 45%;
   flex: 0 1 auto;
   color: var(--console-null);
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: normal;
+}
+
+.console-panel .console-property > .console-property-key {
+  max-width: 45%;
 }
 
 .console-panel .console-property-separator {
