@@ -222,6 +222,61 @@ selectors, conditional at-rules, external stylesheets, or missing variables. It 
 leaves a shorthand unchanged when one variable expands to multiple components that
 cannot be safely represented by each generated longhand.
 
+### Locally scoped multi-component variables
+
+Locally declared variables participate in the same safety checks. A multi-component
+value stays attached to its shorthand when copying the same `var()` reference into
+individual longhands would change or invalidate the CSS.
+
+```css
+.card {
+  --space: 8px 16px;
+  margin: var(--space);
+}
+```
+
+The transform preserves that declaration:
+
+```css
+.card {
+  --space: 8px 16px;
+  margin: var(--space);
+}
+```
+
+This also respects local scope over a root value:
+
+```css
+:root {
+  --space: 8px;
+}
+
+.card {
+  --space: 8px 16px;
+  margin: var(--space);
+}
+```
+
+Even though the root value could be copied safely into each margin longhand, the local
+`--space` is the value that applies to `.card`, so the shorthand remains intact.
+
+The same rule applies to compound background values:
+
+```css
+.hero {
+  --surface: url(hero.png) center / cover no-repeat #111;
+  background: var(--surface);
+}
+```
+
+Because `--surface` represents several background components, the transformer keeps
+`background: var(--surface)` rather than incorrectly producing declarations such as
+`background-image: var(--surface)` or `background-color: var(--surface)`.
+
+Collapse is conservative too. If a locally scoped multi-component variable is used
+where an individual longhand requires a single component, those longhands are not
+collapsed into a shorthand merely because their authored text matches.
+
 The low-level resolver is also public:
 
 ```js
