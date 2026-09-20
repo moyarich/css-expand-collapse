@@ -62,7 +62,8 @@ async function replaceEditorSource(page: import("@playwright/test").Page) {
   });
 
   await expect(editor).toBeVisible();
-  await editor.click();
+  await editor.focus();
+  await expect(editor).toBeFocused();
 
   const selectAll = process.platform === "darwin" ? "Meta+A" : "Control+A";
   const runShortcut = process.platform === "darwin" ? "Meta+Enter" : "Control+Enter";
