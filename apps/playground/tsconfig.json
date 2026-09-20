@@ -3,7 +3,9 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "noEmit": true,
-    "types": ["vite/client"],
+    "types": [
+      "vite/client"
+    ],
     "baseUrl": ".",
     "paths": {
       "@moyarich/css-expand-collapse": [
@@ -13,7 +15,10 @@
   },
   "include": [
     "src",
+    ".storybook",
     "vite.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts",
     "tests/**/*.test.ts",
     "tests/**/*.test.tsx"
   ]
