@@ -145,7 +145,7 @@ describe("ConsolePanel rendering", () => {
           method: "dir",
           data: [globalEnterprise],
           depth: 0,
-          expandLevel: 12,
+          expandLevel: 20,
         },
       ],
     });

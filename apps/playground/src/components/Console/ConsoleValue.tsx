@@ -8,6 +8,12 @@ export interface ConsoleValueProps {
   ancestors?: ReadonlySet<object>;
 }
 
+interface ConsoleObjectValueProps {
+  value: object;
+  expandLevel: number;
+  ancestors: ReadonlySet<object>;
+}
+
 function isObjectLike(value: unknown): value is object {
   return typeof value === "object" && value !== null;
 }
@@ -88,23 +94,13 @@ function preview(value: object): string {
   return `{ ${parts.join(", ")}${Object.keys(value).length > 3 ? ", …" : ""} }`;
 }
 
-export function ConsoleValue({
+function ConsoleObjectValue({
   value,
-  expandLevel = 0,
-  ancestors = new Set<object>(),
-}: ConsoleValueProps) {
+  expandLevel,
+  ancestors,
+}: ConsoleObjectValueProps) {
   const { copyObject, openForValue } = useConsoleContextMenu();
   const [isOpen, setIsOpen] = useState(expandLevel > 0);
-
-  if (!isObjectLike(value)) return renderPrimitive(value);
-
-  if (value instanceof Error || value instanceof Date || value instanceof RegExp) {
-    return renderPrimitive(value);
-  }
-
-  if (ancestors.has(value)) {
-    return <span className="console-circular">[Circular]</span>;
-  }
 
   const nextAncestors = new Set(ancestors);
   nextAncestors.add(value);
@@ -172,5 +168,29 @@ export function ConsoleValue({
         <Copy size={12} aria-hidden="true" />
       </button>
     </div>
+  );
+}
+
+export function ConsoleValue({
+  value,
+  expandLevel = 0,
+  ancestors = new Set<object>(),
+}: ConsoleValueProps) {
+  if (!isObjectLike(value)) return renderPrimitive(value);
+
+  if (value instanceof Error || value instanceof Date || value instanceof RegExp) {
+    return renderPrimitive(value);
+  }
+
+  if (ancestors.has(value)) {
+    return <span className="console-circular">[Circular]</span>;
+  }
+
+  return (
+    <ConsoleObjectValue
+      value={value}
+      expandLevel={expandLevel}
+      ancestors={ancestors}
+    />
   );
 }
