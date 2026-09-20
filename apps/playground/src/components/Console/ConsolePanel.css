@@ -178,58 +178,34 @@
    Object inspector
    ========================================================================== */
 
+.console-panel .console-values > .console-object-shell {
+  flex: 1 1 100%;
+}
+
 .console-panel .console-object-shell {
-  display: inline-flex;
+  display: grid;
+  width: 100%;
   min-width: 0;
   max-width: 100%;
-  align-items: flex-start;
-  gap: 3px;
-}
-
-.console-panel .console-object-shell > .console-object {
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.console-panel .console-object-copy-button {
-  display: inline-flex;
-  width: 24px;
-  height: 24px;
-  flex: 0 0 24px;
-  align-items: center;
-  justify-content: center;
-  margin-top: -2px;
-  border: 0;
-  border-radius: 5px;
-  padding: 0;
-  background: transparent;
-  color: var(--console-subtle);
-  cursor: pointer;
-  opacity: 0.72;
-  transition:
-    background 120ms ease,
-    color 120ms ease,
-    opacity 120ms ease;
-}
-
-.console-panel .console-object-copy-button:hover,
-.console-panel .console-object-copy-button:focus-visible {
-  outline: none;
-  background: var(--console-object-border);
-  color: var(--console-foreground);
-  opacity: 1;
+  grid-template-columns: minmax(0, 1fr) 24px;
+  align-items: start;
+  column-gap: 4px;
 }
 
 .console-panel .console-object {
+  width: 100%;
   min-width: 0;
   max-width: 100%;
 }
 
 .console-panel .console-object > summary {
-  display: inline-flex;
+  display: grid;
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
+  grid-template-columns: 14px max-content minmax(0, 1fr);
   align-items: center;
-  gap: 4px;
+  column-gap: 4px;
   cursor: pointer;
   list-style: none;
 }
@@ -249,8 +225,10 @@
 }
 
 .console-panel .console-object-type {
+  min-width: 0;
   color: var(--console-foreground);
   font-style: italic;
+  white-space: nowrap;
 }
 
 .console-panel .console-object-preview {
@@ -261,27 +239,82 @@
   white-space: nowrap;
 }
 
+.console-panel .console-object-copy-button {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 5px;
+  padding: 0;
+  background: transparent;
+  color: var(--console-subtle);
+  cursor: pointer;
+  opacity: 0.58;
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    opacity 120ms ease;
+}
+
+.console-panel .console-object-shell:hover > .console-object-copy-button,
+.console-panel .console-object-copy-button:focus-visible {
+  outline: none;
+  background: var(--console-object-border);
+  color: var(--console-foreground);
+  opacity: 1;
+}
+
 .console-panel .console-object-properties {
-  margin: 4px 0 2px 12px;
+  min-width: 0;
+  margin: 4px 0 2px 7px;
   border-left: 1px solid var(--console-object-border);
-  padding-left: 10px;
+  padding-left: 8px;
 }
 
 .console-panel .console-property {
-  display: flex;
+  display: grid;
   min-width: 0;
-  align-items: flex-start;
-  gap: 5px;
+  grid-template-columns: fit-content(160px) 8px minmax(0, 1fr);
+  align-items: start;
+  column-gap: 4px;
   padding: 2px 0;
 }
 
 .console-panel .console-property-key {
-  flex: 0 0 auto;
+  min-width: 0;
+  overflow: hidden;
   color: var(--console-null);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .console-panel .console-property-separator {
   color: var(--console-subtle);
+  text-align: center;
+}
+
+.console-panel .console-property-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.console-panel .console-property-value > .console-object-shell {
+  min-width: 0;
+}
+
+.console-panel .console-string,
+.console-panel .console-function,
+.console-panel .console-symbol,
+.console-panel .console-number,
+.console-panel .console-boolean,
+.console-panel .console-null,
+.console-panel .console-undefined,
+.console-panel .console-circular {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .console-panel .console-object-empty {

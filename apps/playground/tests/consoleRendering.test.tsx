@@ -8,6 +8,59 @@ function renderConsole(output: RunOutput) {
   );
 }
 
+
+const globalEnterprise = {
+  enterpriseName: "TechNova Global",
+  hqLocation: "San Francisco",
+  divisions: [
+    {
+      divisionId: "DIV-01",
+      divisionName: "Digital Innovation",
+      departments: {
+        engineering: {
+          departmentHead: "Sarah Jenkins",
+          teams: [
+            {
+              teamName: "Core Platform",
+              scrumMaster: "Alex Rivera",
+              projects: {
+                quantumCloud: {
+                  status: "Active",
+                  budget: 1250000,
+                  repositories: [
+                    {
+                      repoName: "nova-cloud-core",
+                      mainBranch: "main",
+                      deploymentPipelines: {
+                        productionEnv: {
+                          provider: "AWS",
+                          region: "us-west-2",
+                          microservices: [
+                            {
+                              serviceName: "auth-gateway",
+                              runtime: "Node.js v20",
+                              isHealthy: true,
+                            },
+                            {
+                              serviceName: "billing-engine",
+                              runtime: "Go 1.21",
+                              isHealthy: true,
+                            },
+                          ],
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+  ],
+};
+
 describe("ConsolePanel rendering", () => {
   it("renders primitive console values", () => {
     const html = renderConsole({
@@ -62,6 +115,45 @@ describe("ConsolePanel rendering", () => {
     expect(html.match(/<details[^>]* open=""/g)?.length).toBe(2);
     expect(html).toContain("outer");
     expect(html).toContain("inner");
+  });
+
+  it("lazily renders deep objects until expanded", () => {
+    const html = renderConsole({
+      error: "",
+      messages: [
+        {
+          method: "log",
+          data: [globalEnterprise],
+          depth: 0,
+        },
+      ],
+    });
+
+    expect(html.match(/<details/g)?.length).toBe(1);
+    expect(html).toContain("TechNova Global");
+    expect(html).toContain("San Francisco");
+    expect(html).not.toContain("auth-gateway");
+    expect(html).toContain('data-depth="0"');
+    expect(html).toContain('aria-label="Copy object"');
+  });
+
+  it("renders deeply expanded objects without flattening nested inspectors", () => {
+    const html = renderConsole({
+      error: "",
+      messages: [
+        {
+          method: "dir",
+          data: [globalEnterprise],
+          depth: 0,
+          expandLevel: 12,
+        },
+      ],
+    });
+
+    expect(html).toContain("auth-gateway");
+    expect(html).toContain("billing-engine");
+    expect(html).toContain('data-depth="8"');
+    expect((html.match(/aria-label="Copy object"/g) ?? []).length).toBeGreaterThan(8);
   });
 
   it("renders primitive console.table rows with a Value column", () => {

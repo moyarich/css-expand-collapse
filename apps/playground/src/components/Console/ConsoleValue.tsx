@@ -1,5 +1,5 @@
 import { ChevronRight, Copy } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useConsoleContextMenu } from "./ConsoleContextMenu";
 
 export interface ConsoleValueProps {
@@ -79,7 +79,9 @@ function preview(value: object): string {
   const entries = Object.entries(value).slice(0, 3);
   const parts = entries.map(([key, item]) => {
     if (typeof item === "string") return `${key}: ${JSON.stringify(item)}`;
-    if (isObjectLike(item)) return `${key}: ${Array.isArray(item) ? "Array" : "Object"}`;
+    if (isObjectLike(item)) {
+      return `${key}: ${Array.isArray(item) ? "Array" : "Object"}`;
+    }
     return `${key}: ${String(item)}`;
   });
 
@@ -92,6 +94,7 @@ export function ConsoleValue({
   ancestors = new Set<object>(),
 }: ConsoleValueProps) {
   const { copyObject, openForValue } = useConsoleContextMenu();
+  const [isOpen, setIsOpen] = useState(expandLevel > 0);
 
   if (!isObjectLike(value)) return renderPrimitive(value);
 
@@ -107,14 +110,19 @@ export function ConsoleValue({
   nextAncestors.add(value);
 
   const entries = Object.entries(value);
-  const open = expandLevel > 0;
+  const depth = ancestors.size;
 
   return (
     <div
       className="console-object-shell"
+      data-depth={depth}
       onContextMenu={(event) => openForValue(event, value)}
     >
-      <details className="console-object" open={open}>
+      <details
+        className="console-object"
+        open={isOpen}
+        onToggle={(event) => setIsOpen(event.currentTarget.open)}
+      >
         <summary>
           <ChevronRight
             className="console-object-chevron"
@@ -125,23 +133,29 @@ export function ConsoleValue({
           <span className="console-object-preview">{preview(value)}</span>
         </summary>
 
-        <div className="console-object-properties">
-          {entries.length ? (
-            entries.map(([key, child]) => (
-              <div className="console-property" key={key}>
-                <span className="console-property-key">{key}</span>
-                <span className="console-property-separator">:</span>
-                <ConsoleValue
-                  value={child}
-                  expandLevel={Math.max(0, expandLevel - 1)}
-                  ancestors={nextAncestors}
-                />
-              </div>
-            ))
-          ) : (
-            <div className="console-object-empty">No enumerable properties</div>
-          )}
-        </div>
+        {isOpen && (
+          <div className="console-object-properties">
+            {entries.length ? (
+              entries.map(([key, child]) => (
+                <div className="console-property" key={key}>
+                  <span className="console-property-key" title={key}>
+                    {key}
+                  </span>
+                  <span className="console-property-separator">:</span>
+                  <div className="console-property-value">
+                    <ConsoleValue
+                      value={child}
+                      expandLevel={Math.max(0, expandLevel - 1)}
+                      ancestors={nextAncestors}
+                    />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="console-object-empty">No enumerable properties</div>
+            )}
+          </div>
+        )}
       </details>
 
       <button
