@@ -153,7 +153,12 @@ describe("ConsolePanel rendering", () => {
     expect(html).toContain("auth-gateway");
     expect(html).toContain("billing-engine");
     expect(html).toContain('data-depth="8"');
-    expect((html.match(/aria-label="Copy object"/g) ?? []).length).toBeGreaterThan(8);
+    expect(html).toContain('aria-label="Copy departments object"');
+    expect(html).toContain('aria-label="Copy engineering object"');
+    expect(html).toContain('aria-label="Copy teams object"');
+    expect(html).toContain('aria-label="Copy repositories object"');
+    expect(html).toContain('aria-label="Copy microservices object"');
+    expect((html.match(/aria-label="Copy [^"]*object"/g) ?? []).length).toBeGreaterThan(8);
   });
 
   it("renders primitive console.table rows with a Value column", () => {
