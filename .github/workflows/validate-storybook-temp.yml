@@ -1,0 +1,26 @@
+name: Validate Storybook component tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/validate-storybook-temp.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test-storybook:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --include=optional
+      - name: Install Chromium
+        run: npm run storybook:install-browser --workspace @moyarich/css-expand-collapse-playground
+      - name: Run Storybook component tests
+        run: npm run test-storybook --workspace @moyarich/css-expand-collapse-playground
