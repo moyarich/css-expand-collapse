@@ -223,7 +223,10 @@
 }
 
 .console-panel .console-object-property-key {
-  max-width: min(180px, 32%);
+  max-width: 45%;
+  flex: 0 1 auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .console-panel .console-object-type {
@@ -295,21 +298,21 @@
 }
 
 .console-panel .console-property {
-  display: grid;
+  display: flex;
   min-width: 0;
-  grid-template-columns: minmax(0, max-content) 8px minmax(0, 1fr);
-  align-items: start;
-  column-gap: 4px;
+  align-items: flex-start;
+  gap: 4px;
   padding: 2px 0;
 }
 
 .console-panel .console-property-key {
   min-width: 0;
-  max-width: 160px;
-  overflow: hidden;
+  max-width: 45%;
+  flex: 0 1 auto;
   color: var(--console-null);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .console-panel .console-property-separator {
@@ -319,7 +322,8 @@
 }
 
 .console-panel .console-property-value {
-  min-width: 0;
+  min-width: 12ch;
+  flex: 1 1 12ch;
   overflow-wrap: break-word;
 }
 
