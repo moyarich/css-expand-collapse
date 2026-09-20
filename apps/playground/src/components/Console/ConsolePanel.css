@@ -183,29 +183,26 @@
 }
 
 .console-panel .console-object-shell {
-  display: grid;
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  grid-template-columns: minmax(0, 1fr) 24px;
-  align-items: start;
-  column-gap: 4px;
 }
 
 .console-panel .console-object {
+  position: relative;
   width: 100%;
   min-width: 0;
   max-width: 100%;
 }
 
 .console-panel .console-object > summary {
-  display: grid;
+  display: flex;
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  grid-template-columns: 14px max-content minmax(0, 1fr);
   align-items: center;
-  column-gap: 4px;
+  gap: 4px;
+  padding-right: 28px;
   cursor: pointer;
   list-style: none;
 }
@@ -215,7 +212,8 @@
 }
 
 .console-panel .console-object-chevron {
-  flex: 0 0 auto;
+  width: 14px;
+  flex: 0 0 14px;
   color: var(--console-group-marker);
   transition: transform 120ms ease;
 }
@@ -224,8 +222,12 @@
   transform: rotate(90deg);
 }
 
+.console-panel .console-object-property-key {
+  max-width: min(180px, 32%);
+}
+
 .console-panel .console-object-type {
-  min-width: 0;
+  flex: 0 0 auto;
   color: var(--console-foreground);
   font-style: italic;
   white-space: nowrap;
@@ -233,6 +235,7 @@
 
 .console-panel .console-object-preview {
   min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
   color: var(--console-muted);
   text-overflow: ellipsis;
@@ -240,6 +243,9 @@
 }
 
 .console-panel .console-object-copy-button {
+  position: absolute;
+  top: -2px;
+  right: 0;
   display: inline-flex;
   width: 24px;
   height: 24px;
@@ -258,11 +264,18 @@
     opacity 120ms ease;
 }
 
-.console-panel .console-object-shell[data-depth="0"] > .console-object-copy-button {
+.console-panel
+  .console-object-shell[data-depth="0"]
+  > .console-object
+  > .console-object-copy-button {
   opacity: 0.58;
 }
 
-.console-panel .console-object-shell:hover > .console-object-copy-button,
+.console-panel
+  .console-object
+  > summary:hover
+  + .console-object-copy-button,
+.console-panel .console-object-copy-button:hover,
 .console-panel .console-object-copy-button:focus-visible {
   outline: none;
   background: var(--console-object-border);
@@ -277,10 +290,14 @@
   padding-left: 8px;
 }
 
+.console-panel .console-object-properties > .console-object-shell {
+  padding: 2px 0;
+}
+
 .console-panel .console-property {
   display: grid;
   min-width: 0;
-  grid-template-columns: fit-content(160px) 8px minmax(0, 1fr);
+  grid-template-columns: minmax(0, max-content) 8px minmax(0, 1fr);
   align-items: start;
   column-gap: 4px;
   padding: 2px 0;
@@ -288,6 +305,7 @@
 
 .console-panel .console-property-key {
   min-width: 0;
+  max-width: 160px;
   overflow: hidden;
   color: var(--console-null);
   text-overflow: ellipsis;
@@ -295,17 +313,14 @@
 }
 
 .console-panel .console-property-separator {
+  flex: 0 0 auto;
   color: var(--console-subtle);
   text-align: center;
 }
 
 .console-panel .console-property-value {
   min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.console-panel .console-property-value > .console-object-shell {
-  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .console-panel .console-string,
@@ -317,8 +332,8 @@
 .console-panel .console-undefined,
 .console-panel .console-circular {
   max-width: 100%;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .console-panel .console-object-empty {
