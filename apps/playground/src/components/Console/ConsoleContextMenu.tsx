@@ -28,6 +28,7 @@ interface MenuState {
 }
 
 interface ConsoleContextMenuApi {
+  copyObject: (value: object) => void;
   openForValue: (event: MouseEvent<HTMLElement>, value: object) => void;
 }
 
@@ -117,9 +118,17 @@ export function ConsoleContextMenu({
     [openMenu],
   );
 
+  const copyObject = useCallback(
+    (value: object) => {
+      closeMenu();
+      void writeClipboardText(formatConsoleObjectForCopy(value));
+    },
+    [closeMenu],
+  );
+
   const contextValue = useMemo(
-    () => ({ openForValue }),
-    [openForValue],
+    () => ({ copyObject, openForValue }),
+    [copyObject, openForValue],
   );
 
   useEffect(() => {
@@ -169,11 +178,6 @@ export function ConsoleContextMenu({
     } else {
       closeMenu();
     }
-  };
-
-  const handleCopyObject = () => {
-    if (!menu?.value) return;
-    copyText(formatConsoleObjectForCopy(menu.value));
   };
 
   const handleMenuKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -235,7 +239,7 @@ export function ConsoleContextMenu({
                 type="button"
                 className="console-context-menu-item"
                 role="menuitem"
-                onClick={handleCopyObject}
+                onClick={() => copyObject(menu.value!)}
               >
                 <Braces size={15} aria-hidden="true" />
                 <span>Copy object</span>

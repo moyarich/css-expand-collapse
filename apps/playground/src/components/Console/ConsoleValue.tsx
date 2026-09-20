@@ -1,4 +1,4 @@
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Copy } from "lucide-react";
 import type { ReactNode } from "react";
 import { useConsoleContextMenu } from "./ConsoleContextMenu";
 
@@ -91,7 +91,7 @@ export function ConsoleValue({
   expandLevel = 0,
   ancestors = new Set<object>(),
 }: ConsoleValueProps) {
-  const { openForValue } = useConsoleContextMenu();
+  const { copyObject, openForValue } = useConsoleContextMenu();
 
   if (!isObjectLike(value)) return renderPrimitive(value);
 
@@ -110,38 +110,53 @@ export function ConsoleValue({
   const open = expandLevel > 0;
 
   return (
-    <details
-      className="console-object"
-      open={open}
+    <div
+      className="console-object-shell"
       onContextMenu={(event) => openForValue(event, value)}
     >
-      <summary>
-        <ChevronRight
-          className="console-object-chevron"
-          size={13}
-          aria-hidden="true"
-        />
-        <span className="console-object-type">{objectLabel(value)}</span>
-        <span className="console-object-preview">{preview(value)}</span>
-      </summary>
+      <details className="console-object" open={open}>
+        <summary>
+          <ChevronRight
+            className="console-object-chevron"
+            size={13}
+            aria-hidden="true"
+          />
+          <span className="console-object-type">{objectLabel(value)}</span>
+          <span className="console-object-preview">{preview(value)}</span>
+        </summary>
 
-      <div className="console-object-properties">
-        {entries.length ? (
-          entries.map(([key, child]) => (
-            <div className="console-property" key={key}>
-              <span className="console-property-key">{key}</span>
-              <span className="console-property-separator">:</span>
-              <ConsoleValue
-                value={child}
-                expandLevel={Math.max(0, expandLevel - 1)}
-                ancestors={nextAncestors}
-              />
-            </div>
-          ))
-        ) : (
-          <div className="console-object-empty">No enumerable properties</div>
-        )}
-      </div>
-    </details>
+        <div className="console-object-properties">
+          {entries.length ? (
+            entries.map(([key, child]) => (
+              <div className="console-property" key={key}>
+                <span className="console-property-key">{key}</span>
+                <span className="console-property-separator">:</span>
+                <ConsoleValue
+                  value={child}
+                  expandLevel={Math.max(0, expandLevel - 1)}
+                  ancestors={nextAncestors}
+                />
+              </div>
+            ))
+          ) : (
+            <div className="console-object-empty">No enumerable properties</div>
+          )}
+        </div>
+      </details>
+
+      <button
+        type="button"
+        className="console-object-copy-button"
+        aria-label="Copy object"
+        title="Copy object"
+        onClick={(event) => {
+          event.stopPropagation();
+          copyObject(value);
+        }}
+        onContextMenu={(event) => event.stopPropagation()}
+      >
+        <Copy size={12} aria-hidden="true" />
+      </button>
+    </div>
   );
 }

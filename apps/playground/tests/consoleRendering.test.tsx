@@ -43,6 +43,7 @@ describe("ConsolePanel rendering", () => {
     expect(html).toContain("Object");
     expect(html).toContain("margin");
     expect(html).toContain("Array(3)");
+    expect(html.match(/aria-label="Copy object"/g)?.length).toBe(2);
   });
 
   it("honors console.dir expansion depth", () => {

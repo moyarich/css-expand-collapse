@@ -178,6 +178,48 @@
    Object inspector
    ========================================================================== */
 
+.console-panel .console-object-shell {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.console-panel .console-object-shell > .console-object {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.console-panel .console-object-copy-button {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  align-items: center;
+  justify-content: center;
+  margin-top: -2px;
+  border: 0;
+  border-radius: 5px;
+  padding: 0;
+  background: transparent;
+  color: var(--console-subtle);
+  cursor: pointer;
+  opacity: 0.72;
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    opacity 120ms ease;
+}
+
+.console-panel .console-object-copy-button:hover,
+.console-panel .console-object-copy-button:focus-visible {
+  outline: none;
+  background: var(--console-object-border);
+  color: var(--console-foreground);
+  opacity: 1;
+}
+
 .console-panel .console-object {
   min-width: 0;
   max-width: 100%;
