@@ -77,7 +77,9 @@ async function expandObject(
   propertyKey?: string,
 ) {
   const summary = propertyKey
-    ? page.locator(`summary[data-console-object-key="${propertyKey}"]`)
+    ? page
+        .locator(`summary[data-console-object-key="${propertyKey}"]`)
+        .last()
     : page.locator(
         '.console-object-shell[data-depth="0"] > .console-object > summary',
       );
