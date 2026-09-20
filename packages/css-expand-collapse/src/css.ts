@@ -1,5 +1,10 @@
 import { generate, List, parse, walk } from "css-tree";
 import {
+  isCustomProperty,
+  mergeCustomProperties,
+  type CustomPropertyMap,
+} from "./custom-properties.js";
+import {
   collapseToShorthand,
   expandShorthand,
   type DeclarationMap,
@@ -9,6 +14,7 @@ import {
   LONGHAND_VALUE_EQUIVALENCE,
   SHORTHAND_DEFINITIONS,
 } from "./registry/index.js";
+import { splitTopLevelComma } from "./registry/context.js";
 
 export type TransformMode = "expand" | "collapse";
 
@@ -19,6 +25,13 @@ export interface TransformCssOptions extends TransformOptions {
 type EffectiveDeclaration = {
   value: string;
   important: boolean;
+};
+
+type CascadedCustomProperty = {
+  value: string;
+  important: boolean;
+  specificity: number;
+  order: number;
 };
 
 function makeDeclaration(property: string, value: string, important = false): any {
@@ -32,7 +45,109 @@ function declarationValue(node: any): string {
 }
 
 function normalizeProperty(property: string): string {
-  return property.trim().toLowerCase();
+  const trimmed = property.trim();
+  return isCustomProperty(trimmed) ? trimmed : trimmed.toLowerCase();
+}
+
+function shouldReplaceCustomProperty(
+  current: CascadedCustomProperty | undefined,
+  candidate: CascadedCustomProperty,
+): boolean {
+  if (!current) return true;
+  if (current.important !== candidate.important) return candidate.important;
+  if (current.specificity !== candidate.specificity) {
+    return candidate.specificity > current.specificity;
+  }
+  return candidate.order >= current.order;
+}
+
+function collectBlockCustomProperties(children: any[]): Record<string, string> {
+  const cascade = new Map<string, CascadedCustomProperty>();
+
+  for (let index = 0; index < children.length; index += 1) {
+    const node = children[index];
+    if (node?.type !== "Declaration" || !isCustomProperty(node.property)) continue;
+
+    const name = node.property.trim();
+    const candidate: CascadedCustomProperty = {
+      value: declarationValue(node),
+      important: Boolean(node.important),
+      specificity: 0,
+      order: index,
+    };
+
+    if (shouldReplaceCustomProperty(cascade.get(name), candidate)) {
+      cascade.set(name, candidate);
+    }
+  }
+
+  return Object.fromEntries(
+    [...cascade].map(([name, declaration]) => [name, declaration.value]),
+  );
+}
+
+function globalSelectorSpecificity(selectorText: string): number | null {
+  const scores = splitTopLevelComma(selectorText).flatMap((selector) => {
+    const normalized = selector.replace(/\s+/g, "").toLowerCase();
+    switch (normalized) {
+      case "html":
+        return [1];
+      case ":root":
+      case ":host":
+        return [10];
+      case "html:root":
+        return [11];
+      default:
+        return [];
+    }
+  });
+
+  return scores.length ? Math.max(...scores) : null;
+}
+
+function collectGlobalCustomProperties(ast: any): Record<string, string> {
+  const cascade = new Map<string, CascadedCustomProperty>();
+  const topLevel = ast.children?.toArray?.() ?? [];
+
+  for (let ruleIndex = 0; ruleIndex < topLevel.length; ruleIndex += 1) {
+    const rule = topLevel[ruleIndex];
+    if (rule?.type !== "Rule" || !rule.block) continue;
+
+    const specificity = globalSelectorSpecificity(generate(rule.prelude));
+    if (specificity === null) continue;
+
+    const declarations = rule.block.children?.toArray?.() ?? [];
+    for (let declarationIndex = 0; declarationIndex < declarations.length; declarationIndex += 1) {
+      const node = declarations[declarationIndex];
+      if (node?.type !== "Declaration" || !isCustomProperty(node.property)) continue;
+
+      const name = node.property.trim();
+      const candidate: CascadedCustomProperty = {
+        value: declarationValue(node),
+        important: Boolean(node.important),
+        specificity,
+        order: ruleIndex * 100000 + declarationIndex,
+      };
+
+      if (shouldReplaceCustomProperty(cascade.get(name), candidate)) {
+        cascade.set(name, candidate);
+      }
+    }
+  }
+
+  return Object.fromEntries(
+    [...cascade].map(([name, declaration]) => [name, declaration.value]),
+  );
+}
+
+function scopedTransformOptions(
+  options: TransformOptions | undefined,
+  customProperties: CustomPropertyMap,
+): TransformOptions {
+  return {
+    ...options,
+    customProperties,
+  };
 }
 
 function canonicalizeCssValue(value: string): string {
@@ -53,7 +168,10 @@ function valuesEquivalent(property: string, left: string, right: string): boolea
     ?.some((equivalent) => equivalent(a, b)) ?? false;
 }
 
-function expandBlock(children: any[]): any[] {
+function expandBlock(
+  children: any[],
+  options?: TransformOptions,
+): any[] {
   const output: any[] = [];
   for (const child of children) {
     if (child.type !== "Declaration") {
@@ -61,7 +179,11 @@ function expandBlock(children: any[]): any[] {
       continue;
     }
 
-    const expanded = expandShorthand(child.property, declarationValue(child));
+    const expanded = expandShorthand(
+      child.property,
+      declarationValue(child),
+      options,
+    );
     if (!expanded) {
       output.push(child);
       continue;
@@ -94,7 +216,10 @@ function declarationWouldApply(
  * combine a complete set of those overrides and remove an earlier shorthand when the
  * cascade proves that shorthand is fully overridden.
  */
-function removeRedundantDeclarations(children: any[]): any[] {
+function removeRedundantDeclarations(
+  children: any[],
+  options?: TransformOptions,
+): any[] {
   const output: any[] = [];
   const effective = new Map<string, EffectiveDeclaration>();
 
@@ -110,7 +235,7 @@ function removeRedundantDeclarations(children: any[]): any[] {
     const definition = SHORTHAND_DEFINITIONS[property];
 
     if (definition) {
-      const expanded = expandShorthand(property, value);
+      const expanded = expandShorthand(property, value, options);
 
       if (expanded) {
         const entries = Object.entries(expanded.declarations);
@@ -314,19 +439,35 @@ function collapseBlock(children: any[], options?: TransformOptions): any[] {
     if (!consumed.has(index)) collapsedOutput.push(children[index]);
   }
 
-  return removeRedundantDeclarations(collapsedOutput);
+  return removeRedundantDeclarations(collapsedOutput, options);
 }
 
 export function transformCss(css: string, options: TransformCssOptions): string {
   const ast: any = parse(css, { context: "stylesheet" });
+  const globalCustomProperties = collectGlobalCustomProperties(ast);
+  const ruleBlocks = new WeakSet<object>();
+
+  walk(ast, {
+    visit: "Rule",
+    enter(rule: any) {
+      if (rule.block) ruleBlocks.add(rule.block);
+    },
+  });
 
   walk(ast, {
     visit: "Block",
     enter(block: any) {
       const children = block.children.toArray();
+      const localCustomProperties = collectBlockCustomProperties(children);
+      const customProperties = mergeCustomProperties(
+        options.customProperties,
+        ruleBlocks.has(block) ? globalCustomProperties : undefined,
+        localCustomProperties,
+      );
+      const blockOptions = scopedTransformOptions(options, customProperties);
       const transformed = options.mode === "expand"
-        ? expandBlock(children)
-        : collapseBlock(children, options);
+        ? expandBlock(children, blockOptions)
+        : collapseBlock(children, blockOptions);
       const list = new List();
       for (const child of transformed) list.appendData(child);
       block.children = list;
@@ -336,8 +477,8 @@ export function transformCss(css: string, options: TransformCssOptions): string 
   return generate(ast);
 }
 
-export function expandCss(css: string): string {
-  return transformCss(css, { mode: "expand" });
+export function expandCss(css: string, options?: TransformOptions): string {
+  return transformCss(css, { ...options, mode: "expand" });
 }
 
 export function collapseCss(css: string, options?: TransformOptions): string {
@@ -356,8 +497,11 @@ function transformDeclarationBlock(
   return open === -1 || close === -1 ? output : output.slice(open + 1, close);
 }
 
-export function expandDeclarations(declarations: string): string {
-  return transformDeclarationBlock(declarations, "expand");
+export function expandDeclarations(
+  declarations: string,
+  options?: TransformOptions,
+): string {
+  return transformDeclarationBlock(declarations, "expand", options);
 }
 
 export function collapseDeclarations(declarations: string, options?: TransformOptions): string {

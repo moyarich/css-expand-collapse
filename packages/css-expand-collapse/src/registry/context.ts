@@ -1,4 +1,9 @@
 import { lexer } from "css-tree";
+import {
+  hasCustomPropertyReference,
+  resolveCustomProperties,
+  type CustomPropertyMap,
+} from "../custom-properties.js";
 import type {
   ShorthandCollapseContext,
   ShorthandExpandContext,
@@ -189,6 +194,28 @@ export function matchProperty(property: string, value: string): boolean {
   }
 }
 
+function createScopedMatchProperty(
+  customProperties?: CustomPropertyMap,
+): (property: string, value: string) => boolean {
+  if (!customProperties || !Object.keys(customProperties).length) {
+    return matchProperty;
+  }
+
+  return (property, value) => {
+    if (!hasCustomPropertyReference(value)) {
+      return matchProperty(property, value);
+    }
+
+    const resolved = resolveCustomProperties(value, customProperties, {
+      // A missing source-level variable may still be supplied by another
+      // stylesheet or a more specific rule, so do not infer its fallback.
+      allowFallbackForMissing: false,
+    });
+
+    return resolved !== null && matchProperty(property, resolved);
+  };
+}
+
 /**
  * Shared runtime-neutral services available while expanding shorthand values.
  */
@@ -204,3 +231,21 @@ export const shorthandExpandContext: ShorthandExpandContext = {
 export const shorthandCollapseContext: ShorthandCollapseContext = {
   matchProperty,
 };
+
+export function createShorthandExpandContext(
+  customProperties?: CustomPropertyMap,
+): ShorthandExpandContext {
+  return {
+    matchProperty: createScopedMatchProperty(customProperties),
+    splitWhitespace: splitTopLevelWhitespace,
+    splitSlash: splitTopLevelSlash,
+  };
+}
+
+export function createShorthandCollapseContext(
+  customProperties?: CustomPropertyMap,
+): ShorthandCollapseContext {
+  return {
+    matchProperty: createScopedMatchProperty(customProperties),
+  };
+}
