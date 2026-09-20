@@ -75,6 +75,18 @@ describe("custom properties in property transforms", () => {
     })?.value).toBe("var(--color)");
   });
 
+  it("does not collapse when a variable resolves to an invalid longhand value", () => {
+    expect(collapseToShorthand("margin", {
+      "margin-top": "var(--space)",
+      "margin-right": "var(--space)",
+      "margin-bottom": "var(--space)",
+      "margin-left": "var(--space)",
+    }, {
+      fillMissingLonghands: false,
+      customProperties: { "--space": "8px 16px" },
+    })).toBeNull();
+  });
+
   it("collects local custom properties from declaration maps without lowercasing them", () => {
     expect(expandShorthands({
       "--Color": "red",
@@ -211,7 +223,7 @@ describe("custom property scope in stylesheet transforms", () => {
       .card { border-color: var(--external-color, red); }
     `);
 
-    expect(css).toContain("border-color:var(--external-color,red)");
+    expect(css).toMatch(/border-color:var\(--external-color,\s*red\)/);
     expect(css).not.toContain("border-top-color");
   });
 
