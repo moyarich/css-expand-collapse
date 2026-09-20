@@ -129,7 +129,7 @@ function ConsoleObjectValue({
         open={isOpen}
         onToggle={(event) => setIsOpen(event.currentTarget.open)}
       >
-        <summary>
+        <summary data-console-object-key={propertyKey}>
           <ChevronRight
             className="console-object-chevron"
             size={13}
@@ -184,7 +184,11 @@ function ConsoleObjectValue({
                 }
 
                 return (
-                  <div className="console-property" key={key}>
+                  <div
+                    className="console-property"
+                    data-console-property-key={key}
+                    key={key}
+                  >
                     <span className="console-property-key" title={key}>
                       {key}
                     </span>
