@@ -10,10 +10,10 @@ const NESTED_ENTERPRISE = {
   divisions: [
     {
       divisionId: "DIV-01",
-      divisionName: "Digital Innovation",
+      divisionName: "Digital Products Innovation Division",
       departments: {
         engineering: {
-          departmentHead: "Sarah Jenkins",
+          departmentHeadBudgetManagement: "Sarah Jenkins",
           teams: [
             {
               teamName: "Core Platform",

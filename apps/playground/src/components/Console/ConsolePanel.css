@@ -37,6 +37,13 @@
   --console-empty-foreground: #8e9aab;
   --console-header-icon: #5266c9;
 
+  --console-property-key: color-mix(in oklab, var(--console-null), black 10%);
+  --console-object-property-key: color-mix(
+    in oklab,
+    var(--console-null),
+    white 20%
+  );
+
   --console-font-family:
     "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
   --console-font-size: 13px;
@@ -267,10 +274,7 @@
   opacity: 0.58;
 }
 
-.console-panel
-  .console-object
-  > summary:hover
-  + .console-object-copy-button,
+.console-panel .console-object > summary:hover + .console-object-copy-button,
 .console-panel .console-object-copy-button:hover,
 .console-panel .console-object-copy-button:focus-visible {
   outline: none;
@@ -298,11 +302,13 @@
   padding: 2px 0;
 }
 
+.console-panel .console-property-key {
+  color: var(--console-property-key);
+}
 .console-panel .console-property-key,
 .console-panel .console-object-property-key {
   min-width: 0;
   flex: 0 1 auto;
-  color: var(--console-null);
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: normal;
@@ -318,6 +324,7 @@
   flex: 0 0 auto;
   white-space: nowrap;
   overflow-wrap: normal;
+  color: var(--console-object-property-key);
 }
 
 .console-panel .console-property-separator {
