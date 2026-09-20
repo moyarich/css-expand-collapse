@@ -7,7 +7,7 @@ import {
 } from "react";
 import { Play } from "lucide-react";
 import { MonacoEditor } from "../MonacoEditor";
-import { ConsolePanel, RunOutput } from "../Console/ConsolePanel";
+import { Console, RunOutput } from "../Console/Console";
 import { runFunctionSource } from "./run";
 
 export interface APIRunnerProps {
@@ -161,7 +161,7 @@ export function APIRunner({ initialSource }: APIRunnerProps) {
         <span className="api-resize-grip" aria-hidden="true" />
       </div>
 
-      <ConsolePanel output={output} onClear={clearOutput} />
+      <Console output={output} onClear={clearOutput} />
     </section>
   );
 }

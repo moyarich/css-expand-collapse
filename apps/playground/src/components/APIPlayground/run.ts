@@ -1,6 +1,6 @@
 import * as cssExpandCollapse from "@moyarich/css-expand-collapse";
 import * as ts from "typescript";
-import { RunOutput } from "../Console/ConsolePanel";
+import { RunOutput } from "../Console/Console";
 import {
   ConsoleMessageData,
   createConsoleProxy,

@@ -1,13 +1,12 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ConsolePanel, type RunOutput } from "../src/components/Console/ConsolePanel";
+import { Console, type RunOutput } from "../src/components/Console/Console";
 
 function renderConsole(output: RunOutput) {
   return renderToStaticMarkup(
-    <ConsolePanel output={output} onClear={() => undefined} />,
+    <Console output={output} onClear={() => undefined} />,
   );
 }
-
 
 const globalEnterprise = {
   enterpriseName: "TechNova Global",
@@ -61,7 +60,7 @@ const globalEnterprise = {
   ],
 };
 
-describe("ConsolePanel rendering", () => {
+describe("Console rendering", () => {
   it("renders primitive console values", () => {
     const html = renderConsole({
       error: "",
@@ -158,7 +157,9 @@ describe("ConsolePanel rendering", () => {
     expect(html).toContain('aria-label="Copy teams object"');
     expect(html).toContain('aria-label="Copy repositories object"');
     expect(html).toContain('aria-label="Copy microservices object"');
-    expect((html.match(/aria-label="Copy [^"]*object"/g) ?? []).length).toBeGreaterThan(8);
+    expect(
+      (html.match(/aria-label="Copy [^"]*object"/g) ?? []).length,
+    ).toBeGreaterThan(8);
   });
 
   it("renders primitive console.table rows with a Value column", () => {
@@ -189,10 +190,12 @@ describe("ConsolePanel rendering", () => {
       messages: [
         {
           method: "table",
-          data: [[
-            { name: "margin", value: "10px" },
-            { name: "padding", value: "8px" },
-          ]],
+          data: [
+            [
+              { name: "margin", value: "10px" },
+              { name: "padding", value: "8px" },
+            ],
+          ],
           depth: 0,
           columns: ["name"],
         },

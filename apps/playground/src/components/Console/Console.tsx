@@ -1,5 +1,5 @@
 import { SquareTerminal, Trash2 } from "lucide-react";
-import "./ConsolePanel.css";
+import "./console.css";
 import { ConsoleContextMenu } from "./ConsoleContextMenu";
 import { ConsoleMessage } from "./ConsoleMessage";
 import { ConsoleMessageData } from "./createConsoleProxy";
@@ -9,12 +9,12 @@ export interface RunOutput {
   error: string;
 }
 
-export interface ConsoleProps {
+export interface IConsole {
   output: RunOutput;
   onClear: () => void;
 }
 
-export function ConsolePanel({ output, onClear }: ConsoleProps) {
+export function Console({ output, onClear }: IConsole) {
   const messages: ConsoleMessageData[] = output.error
     ? [
         ...output.messages,
@@ -28,7 +28,7 @@ export function ConsolePanel({ output, onClear }: ConsoleProps) {
   const isEmpty = messages.length === 0;
 
   return (
-    <article className="panel console-panel">
+    <article className="console panel console-panel">
       <div className="panel-header">
         <div className="console-heading">
           <SquareTerminal

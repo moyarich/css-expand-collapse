@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn } from "storybook/test";
 import "../src/styles.css";
 import "../src/components/APIPlayground/APIPlayground.css";
-import { ConsolePanel } from "../src/components/Console/ConsolePanel";
+import { Console } from "../src/components/Console/Console";
 
 const NESTED_ENTERPRISE = {
   enterpriseName: "TechNova Global",
@@ -58,7 +58,7 @@ const NESTED_ENTERPRISE = {
 
 const meta = {
   title: "API Playground/Console",
-  component: ConsolePanel,
+  component: Console,
   decorators: [
     (Story) => (
       <div
@@ -73,7 +73,7 @@ const meta = {
     layout: "padded",
   },
   tags: ["test"],
-} satisfies Meta<typeof ConsolePanel>;
+} satisfies Meta<typeof Console>;
 
 export default meta;
 
