@@ -312,6 +312,14 @@
   max-width: 45%;
 }
 
+.console-panel .console-object-property-key {
+  width: max-content;
+  max-width: none;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
 .console-panel .console-property-separator {
   flex: 0 0 auto;
   color: var(--console-subtle);
