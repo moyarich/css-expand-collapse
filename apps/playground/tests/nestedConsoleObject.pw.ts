@@ -139,16 +139,28 @@ test.describe("nested console objects", () => {
 
     await expect(deploymentKey).toHaveText("deploymentPipelines");
 
-    const deploymentKeyMetrics = await deploymentKey.evaluate((element) => ({
-      clientWidth: element.clientWidth,
-      scrollWidth: element.scrollWidth,
-      textOverflow: getComputedStyle(element).textOverflow,
-    }));
+    const deploymentKeyMetrics = await deploymentKey.evaluate((element) => {
+      const style = getComputedStyle(element);
+
+      return {
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        maxWidth: style.maxWidth,
+        overflowWrap: style.overflowWrap,
+        textOverflow: style.textOverflow,
+        whiteSpace: style.whiteSpace,
+        wordBreak: style.wordBreak,
+      };
+    });
 
     expect(deploymentKeyMetrics.scrollWidth).toBeLessThanOrEqual(
       deploymentKeyMetrics.clientWidth + 1,
     );
+    expect(deploymentKeyMetrics.maxWidth).toBe("none");
+    expect(deploymentKeyMetrics.overflowWrap).toBe("anywhere");
     expect(deploymentKeyMetrics.textOverflow).not.toBe("ellipsis");
+    expect(deploymentKeyMetrics.whiteSpace).toBe("normal");
+    expect(deploymentKeyMetrics.wordBreak).toBe("normal");
 
 
     const valueBox = await departmentHeadValue.boundingBox();
