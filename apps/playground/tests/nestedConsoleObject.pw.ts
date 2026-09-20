@@ -119,6 +119,37 @@ test.describe("nested console objects", () => {
     const departmentHeadValue = departmentHeadRow.locator(".console-string");
 
     await expect(departmentHeadValue).toHaveText('"Sarah Jenkins"');
+    const departmentHeadKey = departmentHeadRow.locator(".console-property-key");
+    await expect(departmentHeadKey).toHaveText("departmentHead");
+
+    const departmentHeadKeyMetrics = await departmentHeadKey.evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+      textOverflow: getComputedStyle(element).textOverflow,
+    }));
+
+    expect(departmentHeadKeyMetrics.scrollWidth).toBeLessThanOrEqual(
+      departmentHeadKeyMetrics.clientWidth + 1,
+    );
+    expect(departmentHeadKeyMetrics.textOverflow).not.toBe("ellipsis");
+
+    const deploymentKey = page
+      .locator('summary[data-console-object-key="deploymentPipelines"]')
+      .locator(".console-object-property-key");
+
+    await expect(deploymentKey).toHaveText("deploymentPipelines");
+
+    const deploymentKeyMetrics = await deploymentKey.evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+      textOverflow: getComputedStyle(element).textOverflow,
+    }));
+
+    expect(deploymentKeyMetrics.scrollWidth).toBeLessThanOrEqual(
+      deploymentKeyMetrics.clientWidth + 1,
+    );
+    expect(deploymentKeyMetrics.textOverflow).not.toBe("ellipsis");
+
 
     const valueBox = await departmentHeadValue.boundingBox();
     expect(valueBox).not.toBeNull();
