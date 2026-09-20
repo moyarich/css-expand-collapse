@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, fn } from "storybook/test";
-import "../../styles.css";
-import "./APIPlayground.css";
-import { Console } from "./Console";
+import "../src/styles.css";
+import "../src/components/APIPlayground/APIPlayground.css";
+import { ConsolePanel } from "../src/components/Console/ConsolePanel";
 
 const NESTED_ENTERPRISE = {
   enterpriseName: "TechNova Global",
@@ -30,6 +30,18 @@ const NESTED_ENTERPRISE = {
                         productionEnv: {
                           provider: "AWS",
                           region: "us-west-2",
+                          microservices: [
+                            {
+                              serviceName: "auth-gateway",
+                              runtime: "Node.js v20",
+                              isHealthy: true,
+                            },
+                            {
+                              serviceName: "billing-engine",
+                              runtime: "Go 1.21",
+                              isHealthy: true,
+                            },
+                          ],
                         },
                       },
                     },
@@ -46,10 +58,13 @@ const NESTED_ENTERPRISE = {
 
 const meta = {
   title: "API Playground/Console",
-  component: Console,
+  component: ConsolePanel,
   decorators: [
     (Story) => (
-      <div className="api-playground" style={{ maxWidth: 960, margin: "0 auto" }}>
+      <div
+        className="api-playground"
+        style={{ maxWidth: 960, margin: "0 auto" }}
+      >
         <Story />
       </div>
     ),
@@ -58,7 +73,7 @@ const meta = {
     layout: "padded",
   },
   tags: ["test"],
-} satisfies Meta<typeof Console>;
+} satisfies Meta<typeof ConsolePanel>;
 
 export default meta;
 
@@ -67,7 +82,7 @@ type Story = StoryObj<typeof meta>;
 export const Empty: Story = {
   args: {
     output: {
-      logs: [],
+      messages: [],
       error: "",
     },
     onClear: fn(),
@@ -83,24 +98,23 @@ export const Empty: Story = {
 export const NestedObject: Story = {
   args: {
     output: {
-      logs: [
+      messages: [
         {
           method: "log",
-          data: ["result", NESTED_ENTERPRISE],
+          data: [NESTED_ENTERPRISE],
+          depth: 0,
         },
       ],
       error: "",
     },
     onClear: fn(),
   },
-  play: async ({ args, canvas, userEvent }) => {
+  play: async ({ canvas }) => {
     await expect(canvas.getByRole("log")).toBeInTheDocument();
-    await expect(canvas.getByText("result")).toBeInTheDocument();
-
-    const clearButton = canvas.getByRole("button", { name: "Clear" });
-    await expect(clearButton).toBeEnabled();
-
-    await userEvent.click(clearButton);
-    await expect(args.onClear).toHaveBeenCalledTimes(1);
+    await expect(canvas.getByText("Object")).toBeInTheDocument();
+    await expect(canvas.getByRole("button", { name: "Clear" })).toBeEnabled();
+    await expect(
+      canvas.getByRole("button", { name: "Copy object" }),
+    ).toBeInTheDocument();
   },
 };

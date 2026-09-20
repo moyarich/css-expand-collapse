@@ -3,11 +3,23 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "noEmit": true,
-    "types": ["vite/client"],
+    "types": [
+      "vite/client"
+    ],
     "baseUrl": ".",
     "paths": {
-      "@moyarich/css-expand-collapse": ["../../packages/css-expand-collapse/src/index.ts"]
+      "@moyarich/css-expand-collapse": [
+        "../../packages/css-expand-collapse/src/index.ts"
+      ]
     }
   },
-  "include": ["src", ".storybook", "vite.config.ts", "vitest.config.ts"]
+  "include": [
+    "src",
+    ".storybook",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "tests/**/*.test.ts",
+    "tests/**/*.test.tsx",
+    "stories"
+  ]
 }
