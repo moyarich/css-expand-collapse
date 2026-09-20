@@ -35,6 +35,19 @@ export type {
 } from "./css.js";
 
 export {
+  collectCustomProperties,
+  hasCustomPropertyReference,
+  isCustomProperty,
+  mergeCustomProperties,
+  resolveCustomProperties,
+} from "./custom-properties.js";
+
+export type {
+  CustomPropertyMap,
+  ResolveCustomPropertiesOptions,
+} from "./custom-properties.js";
+
+export {
   collapseStyleDeclaration,
   collapseStyleDeclarations,
   getStyleLonghands,

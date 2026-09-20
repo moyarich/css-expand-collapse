@@ -175,6 +175,65 @@ const collapsed = collapseLonghands(expanded);
 
 `expandShorthands()` processes entries in declaration-object order, so later shorthand and longhand entries override earlier represented longhands.
 
+## Custom properties
+
+Custom-property references can participate in shorthand decisions instead of being
+automatically ignored. Resolved values are used only to validate CSS grammar; the
+authored `var(--name)` reference is preserved in transformed output.
+
+```js
+import { expandShorthand } from "@moyarich/css-expand-collapse";
+
+expandShorthand("border-color", "var(--color)", {
+  customProperties: {
+    "--color": "red",
+  },
+});
+// declarations:
+// {
+//   "border-top-color": "var(--color)",
+//   "border-right-color": "var(--color)",
+//   "border-bottom-color": "var(--color)",
+//   "border-left-color": "var(--color)"
+// }
+```
+
+Full stylesheet transforms automatically collect custom properties declared in the
+current rule plus unconditional top-level `:root`, `html`, `:host`, and
+`html:root` rules. Local declarations override inherited root values. Custom
+property names remain case-sensitive.
+
+```css
+:root {
+  --bg-color: #123456;
+}
+
+.card {
+  background: var(--bg-color);
+}
+```
+
+This can expand because `--bg-color` proves that `var(--bg-color)` is a valid
+background color, while the resulting `background-color` still contains
+`var(--bg-color)`.
+
+The resolver is conservative. It does not guess values from arbitrary ancestor
+selectors, conditional at-rules, external stylesheets, or missing variables. It also
+leaves a shorthand unchanged when one variable expands to multiple components that
+cannot be safely represented by each generated longhand.
+
+The low-level resolver is also public:
+
+```js
+import { resolveCustomProperties } from "@moyarich/css-expand-collapse";
+
+resolveCustomProperties("calc(var(--space) * 2)", {
+  "--space": "var(--base)",
+  "--base": "8px",
+});
+// "calc(8px * 2)"
+```
+
 ## Transform CSS
 
 Expand a stylesheet:
@@ -320,6 +379,9 @@ System-font keywords such as `font: menu` are user-agent dependent and cannot be
 | Style declaration | `getStyleLonghands(style, shorthand)` | Reads the registered longhands for one shorthand from a read-only style declaration. |
 | Style declaration | `collapseStyleDeclaration(style, shorthand, options?)` | Collapses one shorthand from a read-only style declaration. |
 | Style declaration | `collapseStyleDeclarations(style, shorthands?, options?)` | Collapses multiple shorthands from a read-only style declaration. |
+| Utility | `resolveCustomProperties(value, customProperties, options?)` | Resolves nested `var()` references against a known case-sensitive custom-property map. |
+| Utility | `collectCustomProperties(declarations)` | Collects custom-property declarations without lowercasing their names. |
+| Utility | `hasCustomPropertyReference(value)` | Returns whether a CSS value contains a real `var()` reference outside strings/comments. |
 | Utility | `splitTopLevelWhitespace(value)` | Splits a CSS value on top-level whitespace while preserving strings, functions, brackets, commas, and slashes. |
 
 The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `ShorthandResult`, `ExpandShorthandResult`, `CollapseShorthandResult`, `TransformOptions`, `TransformCssOptions`, `TransformMode`, and `ReadonlyStyleDeclaration`.
