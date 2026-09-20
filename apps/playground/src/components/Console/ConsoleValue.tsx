@@ -6,16 +6,27 @@ export interface ConsoleValueProps {
   value: unknown;
   expandLevel?: number;
   ancestors?: ReadonlySet<object>;
+  propertyKey?: string;
 }
 
 interface ConsoleObjectValueProps {
   value: object;
   expandLevel: number;
   ancestors: ReadonlySet<object>;
+  propertyKey?: string;
 }
 
 function isObjectLike(value: unknown): value is object {
   return typeof value === "object" && value !== null;
+}
+
+function isInspectableObject(value: unknown): value is object {
+  return (
+    isObjectLike(value) &&
+    !(value instanceof Error) &&
+    !(value instanceof Date) &&
+    !(value instanceof RegExp)
+  );
 }
 
 function typeClass(value: unknown): string {
@@ -62,8 +73,6 @@ function renderPrimitive(value: unknown): ReactNode {
 
 function objectLabel(value: object): string {
   if (Array.isArray(value)) return `Array(${value.length})`;
-  if (value instanceof Date) return value.toISOString();
-  if (value instanceof RegExp) return String(value);
 
   const constructorName = value.constructor?.name;
   return constructorName && constructorName !== "Object"
@@ -98,6 +107,7 @@ function ConsoleObjectValue({
   value,
   expandLevel,
   ancestors,
+  propertyKey,
 }: ConsoleObjectValueProps) {
   const { copyObject, openForValue } = useConsoleContextMenu();
   const [isOpen, setIsOpen] = useState(expandLevel > 0);
@@ -125,48 +135,76 @@ function ConsoleObjectValue({
             size={13}
             aria-hidden="true"
           />
+          {propertyKey && (
+            <>
+              <span
+                className="console-property-key console-object-property-key"
+                title={propertyKey}
+              >
+                {propertyKey}
+              </span>
+              <span className="console-property-separator">:</span>
+            </>
+          )}
           <span className="console-object-type">{objectLabel(value)}</span>
           <span className="console-object-preview">{preview(value)}</span>
         </summary>
 
+        <button
+          type="button"
+          className="console-object-copy-button"
+          aria-label={propertyKey ? `Copy ${propertyKey} object` : "Copy object"}
+          title={propertyKey ? `Copy ${propertyKey} object` : "Copy object"}
+          onClick={(event) => {
+            event.stopPropagation();
+            copyObject(value);
+          }}
+          onContextMenu={(event) => event.stopPropagation()}
+        >
+          <Copy size={12} aria-hidden="true" />
+        </button>
+
         {isOpen && (
           <div className="console-object-properties">
             {entries.length ? (
-              entries.map(([key, child]) => (
-                <div className="console-property" key={key}>
-                  <span className="console-property-key" title={key}>
-                    {key}
-                  </span>
-                  <span className="console-property-separator">:</span>
-                  <div className="console-property-value">
+              entries.map(([key, child]) => {
+                const nestedObject =
+                  isInspectableObject(child) && !nextAncestors.has(child);
+
+                if (nestedObject) {
+                  return (
                     <ConsoleValue
+                      key={key}
                       value={child}
+                      propertyKey={key}
                       expandLevel={Math.max(0, expandLevel - 1)}
                       ancestors={nextAncestors}
                     />
+                  );
+                }
+
+                return (
+                  <div className="console-property" key={key}>
+                    <span className="console-property-key" title={key}>
+                      {key}
+                    </span>
+                    <span className="console-property-separator">:</span>
+                    <div className="console-property-value">
+                      <ConsoleValue
+                        value={child}
+                        expandLevel={Math.max(0, expandLevel - 1)}
+                        ancestors={nextAncestors}
+                      />
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="console-object-empty">No enumerable properties</div>
             )}
           </div>
         )}
       </details>
-
-      <button
-        type="button"
-        className="console-object-copy-button"
-        aria-label="Copy object"
-        title="Copy object"
-        onClick={(event) => {
-          event.stopPropagation();
-          copyObject(value);
-        }}
-        onContextMenu={(event) => event.stopPropagation()}
-      >
-        <Copy size={12} aria-hidden="true" />
-      </button>
     </div>
   );
 }
@@ -175,10 +213,11 @@ export function ConsoleValue({
   value,
   expandLevel = 0,
   ancestors = new Set<object>(),
+  propertyKey,
 }: ConsoleValueProps) {
   if (!isObjectLike(value)) return renderPrimitive(value);
 
-  if (value instanceof Error || value instanceof Date || value instanceof RegExp) {
+  if (!isInspectableObject(value)) {
     return renderPrimitive(value);
   }
 
@@ -191,6 +230,7 @@ export function ConsoleValue({
       value={value}
       expandLevel={expandLevel}
       ancestors={ancestors}
+      propertyKey={propertyKey}
     />
   );
 }
