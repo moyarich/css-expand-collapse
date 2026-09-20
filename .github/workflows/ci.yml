@@ -27,9 +27,12 @@ jobs:
       - name: Build playground
         run: npm run build:playground
       - name: Install Playwright test runner
-        run: npm install --no-save --package-lock=false @playwright/test@1.55.0
+        run: npm install --no-save --package-lock=false @playwright/test@1.63.0
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
+      - name: Test Storybook
+        working-directory: apps/playground
+        run: npm run test-storybook
       - name: Test nested console object layout
         working-directory: apps/playground
         run: npm run test:browser
