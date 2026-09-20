@@ -293,6 +293,48 @@
    Tables
    ========================================================================== */
 
+.console-panel .console-table-shell {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.console-panel .console-table-actions {
+  display: flex;
+  justify-content: flex-end;
+  border: 1px solid var(--console-table-border);
+  border-bottom: 0;
+  padding: 3px;
+  background: var(--console-table-header-background);
+}
+
+.console-panel .console-table-copy-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  border-radius: 5px;
+  padding: 4px 7px;
+  background: transparent;
+  color: var(--console-muted);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.console-panel .console-table-copy-button:hover,
+.console-panel .console-table-copy-button:focus-visible {
+  outline: none;
+  background: var(--console-object-border);
+  color: var(--console-foreground);
+}
+
 .console-panel .console-table-scroll {
   width: 100%;
   min-width: 0;

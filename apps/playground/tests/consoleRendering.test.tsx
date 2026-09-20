@@ -83,6 +83,7 @@ describe("ConsolePanel rendering", () => {
     expect(html).toContain(">23<");
     expect(html).toContain(">34<");
     expect(html).toContain(">21<");
+    expect(html).toContain('aria-label="Copy table data"');
   });
 
   it("renders object rows and respects requested table columns", () => {
@@ -105,6 +106,7 @@ describe("ConsolePanel rendering", () => {
     expect(html).not.toContain(">value<");
     expect(html).toContain("&quot;margin&quot;");
     expect(html).toContain("&quot;padding&quot;");
+    expect(html).toContain('aria-label="Copy table data"');
   });
 
   it("renders warn, error, and assert message paths", () => {
