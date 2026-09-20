@@ -186,6 +186,20 @@ export function collapseToShorthand(
   const consumed = [...definition.longhands.keys()].filter((longhand) => Object.hasOwn(normalized, longhand));
   if (!consumed.length) return null;
 
+  // Validate each authored longhand before considering the shorthand as a whole.
+  // A custom property can be valid for the shorthand grammar while still resolving
+  // to a value that is invalid for an individual longhand (for example,
+  // margin-top: var(--space) when --space is "8px 16px").
+  for (const longhand of consumed) {
+    const longhandValue = normalized[longhand]!;
+    if (
+      !GLOBAL_VALUES.has(longhandValue) &&
+      !collapseContext.matchProperty(longhand, longhandValue)
+    ) {
+      return null;
+    }
+  }
+
   const completed = { ...normalized };
   if (options?.fillMissingLonghands !== false) {
     for (const [longhand, initialValue] of definition.longhands) {
