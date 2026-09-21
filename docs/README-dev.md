@@ -1,6 +1,6 @@
 # Developer Guide
 
-This document contains repository setup, workspace commands, architecture notes, and the workflow for extending CSS shorthand support. User-facing installation and API examples belong in [`README.md`](../README.md) and [`packages/css-expand-collapse/README.md`](../packages/css-expand-collapse/README.md).
+This document contains repository setup, workspace commands, architecture notes, and the workflow for extending CSS shorthand support. The repository-root [`README.md`](../README.md) is the single canonical source for the package README and all user-facing installation/API documentation.
 
 ## Repository structure
 
@@ -12,7 +12,7 @@ css-expand-collapse/
 │   └── README-dev.md                # repository/developer documentation
 ├── packages/
 │   └── css-expand-collapse/         # publishable npm package
-├── README.md                        # user-facing package overview
+├── README.md                        # canonical package README / single source of truth
 └── package.json                     # workspace scripts
 ```
 
@@ -22,6 +22,28 @@ The two workspaces are:
 - `apps/playground` — React + Vite playground for exercising the package against real CSS.
 
 The playground consumes package source directly during development, so the library does not need to be built before starting it.
+
+
+## Package README source of truth
+
+[`README.md`](../README.md) at the repository root is the **single source of truth** for the published package README.
+
+Never maintain or commit `packages/css-expand-collapse/README.md` separately. That file is generated only for npm packaging and is ignored by Git.
+
+During `npm pack` and `npm publish`, the package lifecycle temporarily creates the package-root README:
+
+```text
+README.md
+  -> packages/css-expand-collapse/README.md
+```
+
+The lifecycle is defined in `packages/css-expand-collapse/package.json`:
+
+- `prepack` runs `scripts/sync-package-readme.mjs`, which copies the root `README.md` to `packages/css-expand-collapse/README.md`, then builds the package.
+- npm automatically includes a package-root `README.md` in the generated tarball.
+- `postpack` runs the same script with `--clean` and removes the generated package README.
+
+To change package documentation, edit only the repository-root `README.md`.
 
 ## Repository setup
 
