@@ -21,6 +21,7 @@ const pkg = JSON.parse(
 );
 const tag = process.env.NPM_TAG || "latest";
 const access = process.env.NPM_ACCESS || "public";
+const registry = process.env.NPM_REGISTRY || pkg.publishConfig?.registry || "https://registry.npmjs.org";
 
 if (!["public", "restricted"].includes(access)) {
   throw new Error("NPM_ACCESS must be public or restricted.");
@@ -30,8 +31,8 @@ if (!/^[a-z][a-z0-9._-]*$/i.test(tag)) {
   throw new Error("NPM_TAG must be a valid distribution tag, such as latest or next.");
 }
 
-if (publish && !process.env.NPM_TOKEN?.trim()) {
-  throw new Error("Set NPM_TOKEN before publishing.");
+if (publish && !process.env.NODE_AUTH_TOKEN?.trim() && !process.env.NPM_TOKEN?.trim()) {
+  throw new Error("Set NODE_AUTH_TOKEN or NPM_TOKEN before publishing.");
 }
 
 function run(args, env = process.env) {
@@ -61,7 +62,7 @@ if (!publish) {
   try {
     writeFileSync(
       configFile,
-      "registry=https://registry.npmjs.org/\n//registry.npmjs.org/:_authToken=${NPM_TOKEN}\n",
+      `registry=${registry}\n//${new URL(registry).host}/:_authToken=\${NODE_AUTH_TOKEN}\n`,
       { mode: 0o600 },
     );
 
@@ -69,6 +70,7 @@ if (!publish) {
       ["publish", "--workspace", pkg.name, "--access", access, "--tag", tag],
       {
         ...process.env,
+        NODE_AUTH_TOKEN: process.env.NODE_AUTH_TOKEN || process.env.NPM_TOKEN,
         npm_config_userconfig: configFile,
       },
     );
