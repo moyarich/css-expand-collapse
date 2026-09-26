@@ -16,9 +16,9 @@
     "test": "npm run test --workspaces --if-present",
     "test:watch": "npm run test:watch --workspace @moyarich/css-expand-collapse",
     "pack:lib": "npm pack --workspace @moyarich/css-expand-collapse --dry-run",
-    "release:check": "node scripts/publish.mjs --dry-run",
-    "publish:lib": "node scripts/publish.mjs --publish",
-    "release": "node scripts/version.mjs"
+    "release:check": "bash scripts/publish.sh --dry-run",
+    "publish:lib": "bash scripts/publish.sh --publish",
+    "release": "bash scripts/version.sh"
   },
   "engines": {
     "node": ">=22.22.0"
