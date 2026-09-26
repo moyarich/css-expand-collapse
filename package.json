@@ -18,9 +18,7 @@
     "pack:lib": "npm pack --workspace @moyarich/css-expand-collapse --dry-run",
     "release:check": "node scripts/publish.mjs --dry-run",
     "publish:lib": "node scripts/publish.mjs --publish",
-    "release:patch": "npm version patch --workspace @moyarich/css-expand-collapse -m \"release: v%s\"",
-    "release:minor": "npm version minor --workspace @moyarich/css-expand-collapse -m \"release: v%s\"",
-    "release:major": "npm version major --workspace @moyarich/css-expand-collapse -m \"release: v%s\""
+    "release": "node scripts/version.mjs"
   },
   "engines": {
     "node": ">=22.22.0"
