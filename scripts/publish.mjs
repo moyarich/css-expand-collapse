@@ -10,19 +10,29 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseArgs } from "node:util";
+import { Command, Option } from "commander";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 
-const PUBLISH_USAGE = `Usage:
-  node scripts/publish.mjs --dry-run
-  node scripts/publish.mjs --publish
-
-Options:
-  --dry-run  Validate package(s) and preview package contents without publishing
-  --publish  Publish using PACKAGE_DIRECTORY and the configured publish target
-  --help     Show this help
-
+const program = new Command()
+  .name("publish")
+  .description("Validate or publish workspace packages.")
+  .addOption(
+    new Option(
+      "--dry-run",
+      "validate package(s) and preview package contents without publishing",
+    ).conflicts("publish"),
+  )
+  .addOption(
+    new Option(
+      "--publish",
+      "publish using PACKAGE_DIRECTORY and the configured publish target",
+    ).conflicts("dryRun"),
+  )
+  .showHelpAfterError()
+  .addHelpText(
+    "after",
+    `
 Environment:
   PACKAGE_DIRECTORY  Package directory, for example packages/css-expand-collapse
   PUBLISH_TARGET     github, npm, or both
@@ -31,39 +41,20 @@ Environment:
   NPM_ACCESS         public or restricted (default: public)
   _GITHUB_TOKEN      GitHub Packages credential
   _NPM_TOKEN         npmjs.org credential
-`;
 
-const {
-  values: {
-    "dry-run": dryRun,
-    publish,
-    help,
-  },
-} = parseArgs({
-  options: {
-    "dry-run": {
-      type: "boolean",
-    },
-    publish: {
-      type: "boolean",
-    },
-    help: {
-      type: "boolean",
-      short: "h",
-    },
-  },
-  strict: true,
-  allowPositionals: false,
-});
+Examples:
+  npm run release:check
+  npm run publish:lib
+`,
+  )
+  .parse();
 
-if (help) {
-  console.log(PUBLISH_USAGE);
-  process.exit(0);
+const { dryRun, publish } = program.opts();
+
+if (!dryRun && !publish) {
+  program.error("Specify either --dry-run or --publish.");
 }
 
-if (Boolean(dryRun) === Boolean(publish)) {
-  throw new Error(`${PUBLISH_USAGE}\nUse npm run release:check or npm run publish:lib.`);
-}
 const envFile = join(root, ".env");
 
 if (existsSync(envFile)) {
@@ -76,15 +67,14 @@ const publishTarget = process.env.PUBLISH_TARGET;
 const explicitRegistry = process.env.NPM_REGISTRY;
 
 if (!["public", "restricted"].includes(access)) {
-  throw new Error("NPM_ACCESS must be public or restricted.");
+  program.error("NPM_ACCESS must be public or restricted.");
 }
 
 if (!/^[a-z][a-z0-9._-]*$/i.test(tag)) {
-  throw new Error(
+  program.error(
     "NPM_TAG must be a valid distribution tag, such as latest or next.",
   );
 }
-
 
 function run(args, env = process.env, cwd = root) {
   const result = spawnSync(
@@ -113,7 +103,7 @@ function readPackage(packageDirectory) {
   const packageJsonPath = join(packagePath, "package.json");
 
   if (!existsSync(packageJsonPath)) {
-    throw new Error(`Package not found: ${packageDirectory}`);
+    program.error(`Package not found: ${packageDirectory}`);
   }
 
   return {
@@ -170,14 +160,14 @@ function validatePackage(pkg) {
   ]);
 }
 
-if (!publish) {
+if (dryRun) {
   const selectedDirectory = process.env.PACKAGE_DIRECTORY;
   const packages = selectedDirectory
     ? [readPackage(selectedDirectory)]
     : discoverPackages();
 
   if (packages.length === 0) {
-    throw new Error("No publishable packages were found under packages/*.");
+    program.error("No publishable packages were found under packages/*.");
   }
 
   for (const pkg of packages) {
@@ -193,7 +183,7 @@ if (!publish) {
 const packageDirectory = process.env.PACKAGE_DIRECTORY;
 
 if (!packageDirectory) {
-  throw new Error(
+  program.error(
     "PACKAGE_DIRECTORY is required for publishing, for example packages/css-expand-collapse.",
   );
 }
@@ -213,7 +203,7 @@ function publishToRegistry(target) {
       : process.env._NPM_TOKEN || process.env.NODE_AUTH_TOKEN;
 
   if (!authToken?.trim()) {
-    throw new Error(
+    program.error(
       target === "github"
         ? "Set _GITHUB_TOKEN before publishing to GitHub Packages."
         : "Set _NPM_TOKEN before staging a release on npmjs.org.",
@@ -288,9 +278,7 @@ if (publishTarget) {
       targets = ["github", "npm"];
       break;
     default:
-      throw new Error(
-        "PUBLISH_TARGET must be github, npm, or both.",
-      );
+      program.error("PUBLISH_TARGET must be github, npm, or both.");
   }
 } else if (explicitRegistry) {
   const registryHost = new URL(explicitRegistry).host;
@@ -303,12 +291,12 @@ if (publishTarget) {
       targets = ["npm"];
       break;
     default:
-      throw new Error(
+      program.error(
         `Unsupported registry: ${explicitRegistry}. Use GitHub Packages or npmjs.org.`,
       );
   }
 } else {
-  throw new Error(
+  program.error(
     "Set PUBLISH_TARGET to github, npm, or both, or set NPM_REGISTRY.",
   );
 }
