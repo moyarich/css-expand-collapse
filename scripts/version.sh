@@ -42,9 +42,9 @@ PACKAGE_DIRECTORY="packages/$PACKAGE_SELECTOR"
 PACKAGE_PATH="$ROOT/$PACKAGE_DIRECTORY"
 PACKAGE_JSON="$PACKAGE_PATH/package.json"
 
-case -f "$PACKAGE_JSON" in
-  1) ;;
-  *)
+case "$(test -f "$PACKAGE_JSON" && printf yes || printf no)" in
+  yes) ;;
+  no)
     echo "Package not found: $PACKAGE_DIRECTORY" >&2
     exit 1
     ;;
