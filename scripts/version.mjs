@@ -2,31 +2,27 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 
-function readOption(name) {
-  const prefix = `--${name}=`;
-  const matches = process.argv.slice(2).filter((arg) => arg.startsWith(prefix));
-
-  if (matches.length > 1) {
-    throw new Error(`Option --${name} may only be specified once.`);
-  }
-
-  return matches[0]?.slice(prefix.length);
-}
-
-const packageSelector = readOption("package");
-const versionSpec = readOption("version");
-const supportedOptions = new Set(["--package=", "--version="]);
-
-for (const arg of process.argv.slice(2)) {
-  if (![...supportedOptions].some((prefix) => arg.startsWith(prefix))) {
-    throw new Error(
-      `Unknown argument: ${arg}. Use --package=<name> and --version=<version-spec>.`,
-    );
-  }
-}
+const {
+  values: {
+    package: packageSelector,
+    version: versionSpec,
+  },
+} = parseArgs({
+  options: {
+    package: {
+      type: "string",
+    },
+    version: {
+      type: "string",
+    },
+  },
+  strict: true,
+  allowPositionals: false,
+});
 
 if (!packageSelector || !versionSpec) {
   throw new Error(
