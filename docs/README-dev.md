@@ -43,7 +43,7 @@ The lifecycle is defined in `packages/css-expand-collapse/package.json`:
 - npm automatically includes a package-root `README.md` in the generated tarball.
 - `postpack` runs the same script with `--clean` and removes the generated package README.
 
-The helper is reusable for any publishable workspace under `packages/*`:
+The helper is exposed as the `workspace-sync-readme` CLI and is reusable for any publishable workspace under `packages/*`:
 
 ```bash
 scripts/sync-package-readme.mjs --package-directory=packages/my-package
