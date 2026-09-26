@@ -79,13 +79,10 @@ jobs:
 
       - name: Publish to GitHub Packages
         env:
-          PRIMARY_GITHUB_TOKEN: ${{ secrets['_GITHUB_TOKEN'] }}
-          FALLBACK_GITHUB_TOKEN: ${{ secrets['_NODE_AUTH_TOKEN'] }}
-          NPM_REGISTRY: https://npm.pkg.github.com
+          _GITHUB_TOKEN: ${{ secrets['_GITHUB_TOKEN'] }}
+          PUBLISH_TARGET: github
           NPM_TAG: latest
-        run: |
-          export _GITHUB_TOKEN="${PRIMARY_GITHUB_TOKEN:-$FALLBACK_GITHUB_TOKEN}"
-          npm run publish:lib
+        run: npm run publish:lib
 
   publish-manual:
     if: github.event_name == 'workflow_dispatch'
@@ -93,10 +90,8 @@ jobs:
     env:
       PUBLISH_TARGET: ${{ github.event.inputs.registry }}
       NPM_TAG: ${{ github.event.inputs.tag }}
-      PRIMARY_GITHUB_TOKEN: ${{ secrets['_GITHUB_TOKEN'] }}
-      FALLBACK_GITHUB_TOKEN: ${{ secrets['_NODE_AUTH_TOKEN'] }}
-      PRIMARY_NPM_TOKEN: ${{ secrets['_NPM_TOKEN'] }}
-      FALLBACK_NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      _GITHUB_TOKEN: ${{ secrets['_GITHUB_TOKEN'] }}
+      _NPM_TOKEN: ${{ secrets['_NPM_TOKEN'] }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -131,32 +126,4 @@ jobs:
         run: npm ci --include=optional
 
       - name: Publish selected registry
-        run: |
-          publish_github() {
-            export _GITHUB_TOKEN="${PRIMARY_GITHUB_TOKEN:-$FALLBACK_GITHUB_TOKEN}"
-            export NPM_REGISTRY="https://npm.pkg.github.com"
-            npm run publish:lib
-          }
-
-          stage_npm() {
-            export _NPM_TOKEN="${PRIMARY_NPM_TOKEN:-$FALLBACK_NPM_TOKEN}"
-            export NPM_REGISTRY="https://registry.npmjs.org"
-            npm run publish:lib
-          }
-
-          case "$PUBLISH_TARGET" in
-            github)
-              publish_github
-              ;;
-            npm)
-              stage_npm
-              ;;
-            both)
-              publish_github
-              stage_npm
-              ;;
-            *)
-              echo "Unsupported publish target: $PUBLISH_TARGET"
-              exit 1
-              ;;
-          esac
+        run: npm run publish:lib
