@@ -46,9 +46,9 @@ The lifecycle is defined in `packages/css-expand-collapse/package.json`:
 The helper is exposed as the `workspace-sync-readme` CLI and is reusable for any publishable workspace under `packages/*`:
 
 ```bash
-scripts/sync-package-readme.mjs --package-directory=packages/my-package
-scripts/sync-package-readme.mjs --package-directory=packages/my-package --clean
-scripts/sync-package-readme.mjs --help
+npx workspace-sync-readme --package-directory=packages/my-package
+npx workspace-sync-readme --package-directory=packages/my-package --clean
+npx workspace-sync-readme --help
 ```
 
 To change package documentation, edit only the repository-root `README.md`.
@@ -123,9 +123,13 @@ The workflow verifies that the directory exists and that the tag version exactly
 
 The workflow can also be started manually. Manual runs accept:
 
+- `action` — `publish` to keep the existing package version, or `release` to create a new version commit and package-qualified tag;
 - `package` — the directory name under `packages/`, such as `css-expand-collapse`;
+- `version` — required only for `release`; accepts a SemVer version or npm version keyword such as `patch`, `minor`, or `major`;
 - `registry` — `github`, `npm`, or `both`;
 - `tag` — the npm distribution tag, such as `latest` or `next`.
+
+A manual `publish` does not modify `package.json` or create a Git tag; it publishes the version already present in the package. A manual `release` runs the release CLI, pushes the resulting release commit and `package@version` tag back to the selected branch, then publishes that released version.
 
 GitHub Packages uses `npm publish`. npmjs.org uses `npm stage publish`, executed from the selected package directory because `npm stage` is not workspace-aware.
 
