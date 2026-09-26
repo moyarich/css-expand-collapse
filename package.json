@@ -33,6 +33,7 @@
   },
   "bin": {
     "workspace-release": "./scripts/version.mjs",
-    "workspace-publish": "./scripts/publish.mjs"
+    "workspace-publish": "./scripts/publish.mjs",
+    "workspace-sync-readme": "./scripts/sync-package-readme.mjs"
   }
 }
