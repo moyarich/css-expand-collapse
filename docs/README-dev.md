@@ -74,18 +74,18 @@ Packages under `packages/*` are versioned independently. Release tags include th
 Use the generic release command from the repository root:
 
 ```bash
-npm run release -- <package> <version-spec>
+npm run release -- --package=<package> --version=<version-spec>
 ```
 
 Examples:
 
 ```bash
-npm run release -- css-expand-collapse patch
-npm run release -- css-expand-collapse minor
-npm run release -- css-expand-collapse 1.0.0
+npm run release -- --package=css-expand-collapse --version=patch
+npm run release -- --package=css-expand-collapse --version=minor
+npm run release -- --package=css-expand-collapse --version=1.0.0
 ```
 
-The release script resolves `packages/<package>/package.json`, requires a clean Git working tree, then runs npm's workspace-aware version command with Git tagging disabled:
+The release script parses explicit `--package=` and `--version=` options, resolves `packages/<package>/package.json`, requires a clean Git working tree, then runs npm's workspace-aware version command with Git tagging disabled:
 
 ```bash
 npm version <version-spec> --workspace <npm-package-name> --git-tag-version=false
