@@ -11,24 +11,20 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Command, Option } from "commander";
+import { Command } from "commander";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 
 const program = new Command()
   .name("publish")
   .description("Validate or publish workspace packages.")
-  .addOption(
-    new Option(
-      "--dry-run",
-      "validate package(s) and preview package contents without publishing",
-    ).conflicts("publish"),
+  .option(
+    "--dry-run",
+    "validate package(s) and preview package contents without publishing",
   )
-  .addOption(
-    new Option(
-      "--publish",
-      "publish using PACKAGE_DIRECTORY and the configured publish target",
-    ).conflicts("dryRun"),
+  .option(
+    "--publish",
+    "publish using PACKAGE_DIRECTORY and the configured publish target",
   )
   .showHelpAfterError()
   .addHelpText(
@@ -51,6 +47,10 @@ Examples:
   .parse();
 
 const { dryRun, publish } = program.opts();
+
+if (dryRun && publish) {
+  program.error("Options --dry-run and --publish cannot be used together.");
+}
 
 if (!dryRun && !publish) {
   program.error("Specify either --dry-run or --publish.");
