@@ -26,12 +26,11 @@ permissions:
   packages: write
 
 concurrency:
-  group: package-publish-${{ github.ref }}-${{ inputs.registry || 'github' }}
+  group: package-publish-${{ github.ref }}
   cancel-in-progress: false
 
 env:
   PACKAGE_DIRECTORY: packages/css-expand-collapse
-  NPM_TAG: ${{ inputs.tag || 'latest' }}
   NPM_ACCESS: public
 
 jobs:
@@ -73,9 +72,13 @@ jobs:
 
       - name: Publish to GitHub Packages
         env:
-          _GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN || secrets._NODE_AUTH_TOKEN }}
+          PRIMARY_GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN }}
+          FALLBACK_GITHUB_TOKEN: ${{ secrets._NODE_AUTH_TOKEN }}
           NPM_REGISTRY: https://npm.pkg.github.com
-        run: npm run publish:lib
+          NPM_TAG: ${{ inputs.tag }}
+        run: |
+          export _GITHUB_TOKEN="${PRIMARY_GITHUB_TOKEN:-$FALLBACK_GITHUB_TOKEN}"
+          npm run publish:lib
 
   stage-npm:
     needs: verify
@@ -101,6 +104,10 @@ jobs:
 
       - name: Stage package on npmjs.org
         env:
-          _NPM_TOKEN: ${{ secrets._NPM_TOKEN || secrets.NPM_TOKEN }}
+          PRIMARY_NPM_TOKEN: ${{ secrets._NPM_TOKEN }}
+          FALLBACK_NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_REGISTRY: https://registry.npmjs.org
-        run: npm run publish:lib
+          NPM_TAG: ${{ inputs.tag }}
+        run: |
+          export _NPM_TOKEN="${PRIMARY_NPM_TOKEN:-$FALLBACK_NPM_TOKEN}"
+          npm run publish:lib
