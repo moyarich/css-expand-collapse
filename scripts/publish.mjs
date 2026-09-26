@@ -10,16 +10,31 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const mode = process.argv[2];
-const allowedModes = ["--dry-run", "--publish"];
 
-if (process.argv.length !== 3 || !allowedModes.includes(mode)) {
+const {
+  values: {
+    "dry-run": dryRun,
+    publish,
+  },
+} = parseArgs({
+  options: {
+    "dry-run": {
+      type: "boolean",
+    },
+    publish: {
+      type: "boolean",
+    },
+  },
+  strict: true,
+  allowPositionals: false,
+});
+
+if (Boolean(dryRun) === Boolean(publish)) {
   throw new Error("Use npm run release:check or npm run publish:lib.");
 }
-
-const publish = mode === "--publish";
 const envFile = join(root, ".env");
 
 if (existsSync(envFile)) {
