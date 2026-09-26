@@ -31,7 +31,8 @@ const program = new Command()
     "after",
     `
 Environment:
-  PACKAGE_DIRECTORY  Package directory, for example packages/css-expand-collapse
+  PACKAGE_DIRECTORY  Relative path to the publishable package directory
+                     Example: packages/my-package
   PUBLISH_TARGET     github, npm, or both
   NPM_REGISTRY       Explicit registry alternative to PUBLISH_TARGET
   NPM_TAG            Distribution tag (default: latest)
@@ -185,7 +186,7 @@ const packageDirectory = process.env.PACKAGE_DIRECTORY;
 
 if (!packageDirectory) {
   program.error(
-    "PACKAGE_DIRECTORY is required for publishing, for example packages/css-expand-collapse.",
+    "PACKAGE_DIRECTORY is required for publishing, for example packages/my-package.",
   );
 }
 
