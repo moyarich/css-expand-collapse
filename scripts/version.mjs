@@ -4,11 +4,33 @@ import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const [packageSelector, versionSpec] = process.argv.slice(2);
+
+function readOption(name) {
+  const prefix = `--${name}=`;
+  const matches = process.argv.slice(2).filter((arg) => arg.startsWith(prefix));
+
+  if (matches.length > 1) {
+    throw new Error(`Option --${name} may only be specified once.`);
+  }
+
+  return matches[0]?.slice(prefix.length);
+}
+
+const packageSelector = readOption("package");
+const versionSpec = readOption("version");
+const supportedOptions = new Set(["--package=", "--version="]);
+
+for (const arg of process.argv.slice(2)) {
+  if (![...supportedOptions].some((prefix) => arg.startsWith(prefix))) {
+    throw new Error(
+      `Unknown argument: ${arg}. Use --package=<name> and --version=<version-spec>.`,
+    );
+  }
+}
 
 if (!packageSelector || !versionSpec) {
   throw new Error(
-    "Usage: npm run release -- <package-directory-name> <version|major|minor|patch|premajor|preminor|prepatch|prerelease>",
+    "Usage: npm run release -- --package=<package-directory-name> --version=<version|major|minor|patch|premajor|preminor|prepatch|prerelease>",
   );
 }
 
