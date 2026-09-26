@@ -27,5 +27,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/moyarich/css-expand-collapse.git"
+  },
+  "devDependencies": {
+    "commander": "^15.0.0"
   }
 }
