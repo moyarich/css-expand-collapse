@@ -78,7 +78,7 @@ const updatedPkg = JSON.parse(readFileSync(packageJsonPath, "utf8"));
 const version = updatedPkg.version;
 const tagName = `${basename(packageDirectory)}@${version}`;
 
-run("git", ["add", packageJsonPath, join(root, "package-lock.json")]);
+run("git", ["add", join(packageDirectory, "package.json"), "package-lock.json"]);
 run("git", ["commit", "-m", `release: ${tagName}`]);
 run("git", ["tag", tagName]);
 
