@@ -1,5 +1,11 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,37 +20,75 @@ if (process.argv.length !== 3 || !allowedModes.includes(mode)) {
 
 const publish = mode === "--publish";
 const envFile = join(root, ".env");
-if (existsSync(envFile)) process.loadEnvFile(envFile);
 
+if (existsSync(envFile)) {
+  process.loadEnvFile(envFile);
+}
+
+const packageDirectory =
+  process.env.PACKAGE_DIRECTORY || "packages/css-expand-collapse";
+const packagePath = join(root, packageDirectory);
 const pkg = JSON.parse(
-  readFileSync(join(root, "packages/css-expand-collapse/package.json"), "utf8"),
+  readFileSync(join(packagePath, "package.json"), "utf8"),
 );
+
 const tag = process.env.NPM_TAG || "latest";
 const access = process.env.NPM_ACCESS || "public";
-const registry = process.env.NPM_REGISTRY || pkg.publishConfig?.registry || "https://registry.npmjs.org";
+const registry =
+  process.env.NPM_REGISTRY || "https://registry.npmjs.org";
+const registryUrl = new URL(registry);
+const registryHost = registryUrl.host;
 
 if (!["public", "restricted"].includes(access)) {
   throw new Error("NPM_ACCESS must be public or restricted.");
 }
 
 if (!/^[a-z][a-z0-9._-]*$/i.test(tag)) {
-  throw new Error("NPM_TAG must be a valid distribution tag, such as latest or next.");
+  throw new Error(
+    "NPM_TAG must be a valid distribution tag, such as latest or next.",
+  );
 }
 
-if (publish && !process.env.NODE_AUTH_TOKEN?.trim() && !process.env.NPM_TOKEN?.trim()) {
-  throw new Error("Set NODE_AUTH_TOKEN or NPM_TOKEN before publishing.");
+const isGitHubPackages = registryHost === "npm.pkg.github.com";
+const isNpmRegistry = registryHost === "registry.npmjs.org";
+
+if (!isGitHubPackages && !isNpmRegistry) {
+  throw new Error(
+    `Unsupported registry: ${registry}. Use GitHub Packages or npmjs.org.`,
+  );
 }
 
-function run(args, env = process.env) {
-  const result = spawnSync(process.platform === "win32" ? "npm.cmd" : "npm", args, {
-    cwd: root,
-    env,
-    stdio: "inherit",
-  });
+const authToken = isGitHubPackages
+  ? process.env._GITHUB_TOKEN || process.env.NODE_AUTH_TOKEN
+  : process.env._NPM_TOKEN || process.env.NODE_AUTH_TOKEN;
 
-  if (result.error) throw result.error;
+if (publish && !authToken?.trim()) {
+  throw new Error(
+    isGitHubPackages
+      ? "Set _GITHUB_TOKEN before publishing to GitHub Packages."
+      : "Set _NPM_TOKEN before staging a release on npmjs.org.",
+  );
+}
+
+function run(args, env = process.env, cwd = root) {
+  const result = spawnSync(
+    process.platform === "win32" ? "npm.cmd" : "npm",
+    args,
+    {
+      cwd,
+      env,
+      stdio: "inherit",
+    },
+  );
+
+  if (result.error) {
+    throw result.error;
+  }
+
   if (result.status !== 0) {
-    throw new Error(`npm ${args.join(" ")} failed. Release stopped.`);
+    throw new Error(
+      `npm ${args.join(" ")} failed. Release stopped.`,
+    );
   }
 }
 
@@ -56,24 +100,54 @@ if (!publish) {
   run(["pack", "--workspace", pkg.name, "--dry-run"]);
   console.log("Release checks passed. Nothing was published.");
 } else {
-  const configDir = mkdtempSync(join(tmpdir(), "css-expand-collapse-npm-"));
+  const configDir = mkdtempSync(
+    join(tmpdir(), "css-expand-collapse-npm-"),
+  );
   const configFile = join(configDir, "npmrc");
 
   try {
     writeFileSync(
       configFile,
-      `registry=${registry}\n//${new URL(registry).host}/:_authToken=\${NODE_AUTH_TOKEN}\n`,
+      [
+        `registry=${registry}`,
+        `@moyarich:registry=${registry}`,
+        `//${registryHost}/:_authToken=\${NODE_AUTH_TOKEN}`,
+        "always-auth=true",
+        "",
+      ].join("\n"),
       { mode: 0o600 },
     );
 
-    run(
-      ["publish", "--workspace", pkg.name, "--access", access, "--tag", tag],
-      {
-        ...process.env,
-        NODE_AUTH_TOKEN: process.env.NODE_AUTH_TOKEN || process.env.NPM_TOKEN,
-        npm_config_userconfig: configFile,
-      },
-    );
+    const env = {
+      ...process.env,
+      NODE_AUTH_TOKEN: authToken,
+      npm_config_userconfig: configFile,
+    };
+
+    if (isGitHubPackages) {
+      run(
+        [
+          "publish",
+          "--workspace",
+          pkg.name,
+          "--access",
+          access,
+          "--tag",
+          tag,
+        ],
+        env,
+      );
+    } else {
+      run(
+        ["stage", "publish", "--access", access, "--tag", tag],
+        env,
+        packagePath,
+      );
+
+      console.log(
+        `Staged ${pkg.name}@${pkg.version} on npmjs.org. Approve the staged release with 2FA before it becomes public.`,
+      );
+    }
   } finally {
     rmSync(configDir, { recursive: true, force: true });
   }
