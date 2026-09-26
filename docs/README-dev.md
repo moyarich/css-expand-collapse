@@ -69,59 +69,67 @@ The package also exposes `check:registry`; package `test`, `typecheck`, and `bui
 
 ## Package versioning and registry releases
 
-Every published package release needs a unique SemVer version. This repository uses [`npm version`](https://docs.npmjs.com/cli/v7/commands/npm-version) as the versioning source of truth.
+Packages under `packages/*` are versioned independently. Release tags include the package directory name so multiple packages can use different versions without ambiguous `v1.2.3` tags.
 
-The package has a `preversion` lifecycle that runs tests, typecheck, and build before npm changes the version. From the repository root:
+Use the generic release command from the repository root:
 
 ```bash
-npm run release:patch   # 0.1.0 -> 0.1.1
-npm run release:minor   # 0.1.0 -> 0.2.0
-npm run release:major   # 0.1.0 -> 1.0.0
+npm run release -- <package> <version-spec>
 ```
 
-Before versioning, make sure `git status` is clean. After npm creates the release commit and tag:
+Examples:
+
+```bash
+npm run release -- css-expand-collapse patch
+npm run release -- css-expand-collapse minor
+npm run release -- css-expand-collapse 1.0.0
+```
+
+The release script resolves `packages/<package>/package.json`, requires a clean Git working tree, then runs npm's workspace-aware version command with Git tagging disabled:
+
+```bash
+npm version <version-spec> --workspace <npm-package-name> --git-tag-version=false
+```
+
+After npm updates the package version and lockfile, the script creates one release commit and a package-qualified tag:
+
+```text
+css-expand-collapse@0.1.1
+css-color-parser@1.3.1
+```
+
+Push the release commit and tag with:
 
 ```bash
 git push --follow-tags
 ```
 
-A pushed `v*` tag publishes to **GitHub Packages** automatically. The workflow verifies that the tag without the leading `v` matches the version in `packages/css-expand-collapse/package.json`.
-
-The workflow can also be started manually from GitHub Actions. Manual runs expose a registry choice:
+The publish workflow listens for `*@*` tags. For a tag such as `css-expand-collapse@0.1.1`, it derives:
 
 ```text
-github
-npm
-both
+PACKAGE_DIRECTORY=packages/css-expand-collapse
+version=0.1.1
 ```
 
-- `github` publishes directly to GitHub Packages with `npm publish`.
-- `npm` stages the package on npmjs.org with `npm stage publish`.
-- `both` publishes to GitHub Packages and stages the same version on npmjs.org.
+The workflow verifies that the directory exists and that the tag version exactly matches that package's `package.json` before publishing to GitHub Packages.
 
-npm staged publishing requires npm CLI 11.15.0 or newer, an existing package on npmjs.org, publish access, and 2FA enabled. Staging itself does not require 2FA; a maintainer must later approve the staged package with 2FA before it becomes public.
+The workflow can also be started manually. Manual runs accept:
 
-The npm staging commands operate from the package directory because `npm stage` is not workspace-aware:
+- `package` — the directory name under `packages/`, such as `css-expand-collapse`;
+- `registry` — `github`, `npm`, or `both`;
+- `tag` — the npm distribution tag, such as `latest` or `next`.
 
-```bash
-cd packages/css-expand-collapse
-npm stage publish --access public --tag latest
-npm stage list @moyarich/css-expand-collapse
-npm stage view <stage-id>
-npm stage approve <stage-id>
-```
+GitHub Packages uses `npm publish`. npmjs.org uses `npm stage publish`, executed from the selected package directory because `npm stage` is not workspace-aware.
 
 ### Release environment variables
 
-The release script uses explicit source credential names and maps the selected one to npm's conventional `NODE_AUTH_TOKEN` only for the child publish process:
+Local publishing uses an explicit package directory and registry-specific credential names:
 
 ```dotenv
+PACKAGE_DIRECTORY=packages/css-expand-collapse
 _GITHUB_TOKEN=...
 _NPM_TOKEN=...
-PACKAGE_DIRECTORY=packages/css-expand-collapse
 ```
-
-`_GITHUB_TOKEN` is used for `npm.pkg.github.com`. `_NPM_TOKEN` is used for `registry.npmjs.org`.
 
 Optional release configuration:
 
@@ -131,12 +139,22 @@ NPM_TAG=latest
 NPM_ACCESS=public
 ```
 
-The package metadata is registry-neutral; `publishConfig` controls public access but does not hard-code a registry. The release script selects and authenticates the registry at execution time.
+The release script maps the selected registry credential to `NODE_AUTH_TOKEN` only for the npm child process.
 
-For package/archive validation without creating a version or publishing:
+To validate a selected package without publishing:
 
 ```bash
-npm run release:check
+PACKAGE_DIRECTORY=packages/css-expand-collapse npm run release:check
+```
+
+For npm staged publishing:
+
+```bash
+cd packages/css-expand-collapse
+npm stage publish --access public --tag latest
+npm stage list @moyarich/css-expand-collapse
+npm stage view <stage-id>
+npm stage approve <stage-id>
 ```
 
 ## Playground deployment
