@@ -20,13 +20,14 @@ case "$MODE" in
     ;;
 esac
 
-case -f "$ROOT/.env" in
-  1)
+case "$(test -f "$ROOT/.env" && printf yes || printf no)" in
+  yes)
     set -a
     # shellcheck disable=SC1091
     source "$ROOT/.env"
     set +a
     ;;
+  no) ;;
 esac
 
 NPM_TAG="${NPM_TAG:-latest}"
@@ -75,9 +76,9 @@ validate_package() {
   local package_directory="$1"
   local package_path="$ROOT/$package_directory"
 
-  case -f "$package_path/package.json" in
-    1) ;;
-    *)
+  case "$(test -f "$package_path/package.json" && printf yes || printf no)" in
+    yes) ;;
+    no)
       echo "Package not found: $package_directory" >&2
       exit 1
       ;;
@@ -110,8 +111,8 @@ case "$PUBLISH" in
     case "${PACKAGE_DIRECTORY:-}" in
       "")
         for package_json in "$ROOT"/packages/*/package.json; do
-          case -f "$package_json" in
-            1)
+          case "$(test -f "$package_json" && printf yes || printf no)" in
+            yes)
               package_directory="${package_json#"$ROOT/"}"
               package_directory="${package_directory%/package.json}"
 
