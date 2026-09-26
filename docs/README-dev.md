@@ -71,27 +71,99 @@ The package also exposes `check:registry`; package `test`, `typecheck`, and `bui
 
 Packages under `packages/*` are versioned independently. Release tags include the package directory name so multiple packages can use different versions without ambiguous `v1.2.3` tags.
 
-Use the generic release command from the repository root:
+The root package exposes the release script both through npm and as the `workspace-release` bin.
+
+### Interactive release
+
+With `fzf` installed, the shortest command starts the complete interactive flow:
 
 ```bash
-npm run release -- --package=<package> --version=<version-spec>
+workspace-release
 ```
 
-Examples:
+The CLI:
+
+1. discovers publishable packages under `packages/*`;
+2. lets you select the workspace with `fzf`;
+3. reads its current `package.json` version;
+4. calculates every supported next version with `semver.inc()`;
+5. lets you select the release type with `fzf`;
+6. shows the release plan;
+7. asks for confirmation before any mutation.
+
+If the package is already known, skip the first chooser:
+
+```bash
+workspace-release css-expand-collapse
+```
+
+### Explicit release
+
+Explicit commands stay non-interactive and are suitable for scripts and CI:
+
+```bash
+workspace-release css-expand-collapse=patch
+workspace-release css-expand-collapse=minor
+workspace-release css-expand-collapse=1.0.0
+```
+
+The npm-script equivalent is:
+
+```bash
+npm run release -- css-expand-collapse=patch
+```
+
+The older explicit options remain supported:
 
 ```bash
 npm run release -- --package=css-expand-collapse --version=patch
-npm run release -- --package=css-expand-collapse --version=minor
-npm run release -- --package=css-expand-collapse --version=1.0.0
 ```
 
-The release script parses explicit `--package=` and `--version=` options, resolves `packages/<package>/package.json`, requires a clean Git working tree, then runs npm's workspace-aware version command with Git tagging disabled:
+### Dry run
+
+A release dry run calculates the target version before npm changes any files:
 
 ```bash
-npm version <version-spec> --workspace <npm-package-name> --git-tag-version=false
+workspace-release css-expand-collapse=minor --dry-run
 ```
 
-After npm updates the package version and lockfile, the script creates one release commit and a package-qualified tag:
+For example, if the current version is `0.1.0`, the plan reports `0.1.0 → 0.2.0`. Dry-run mode does not call `npm version`, update `package.json` or `package-lock.json`, create a commit, or create a tag.
+
+A dirty working tree is reported as a note during a dry run. A real release still requires a clean working tree.
+
+### Explain SemVer choices
+
+Use `--explain` to inspect the calculated choices without changing anything:
+
+```bash
+workspace-release css-expand-collapse --explain
+```
+
+When `fzf` is available, the choices are browsable interactively. Without `fzf`, explain mode prints the choices instead.
+
+Supported increments are:
+
+```text
+patch
+minor
+major
+prepatch
+preminor
+premajor
+prerelease
+```
+
+An explicit SemVer version such as `2.0.0` is also accepted. Use `--preid=beta` or `--preid=rc` when a prerelease identifier is needed.
+
+### Release mutation
+
+After the version has been selected, a real release runs npm's workspace-aware version command with Git tagging disabled:
+
+```bash
+npm version <calculated-version> --workspace <npm-package-name> --git-tag-version=false
+```
+
+The CLI then creates one release commit and a package-qualified tag:
 
 ```text
 css-expand-collapse@0.1.1
