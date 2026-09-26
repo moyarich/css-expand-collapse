@@ -3,9 +3,13 @@ name: Publish package
 on:
   push:
     tags:
-      - "v*"
+      - "*@*"
   workflow_dispatch:
     inputs:
+      package:
+        description: Package directory name under packages/
+        required: true
+        type: string
       registry:
         description: Publish destination
         required: true
@@ -30,7 +34,6 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  PACKAGE_DIRECTORY: packages/css-expand-collapse
   NPM_ACCESS: public
 
 jobs:
@@ -45,18 +48,34 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Install dependencies
-        run: npm ci --include=optional
-
-      - name: Verify version tag
+      - name: Resolve package from tag
         run: |
-          PACKAGE_VERSION="$(node -p "require('./${PACKAGE_DIRECTORY}/package.json').version")"
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          TAG_NAME="$GITHUB_REF_NAME"
+          PACKAGE_KEY="${TAG_NAME%@*}"
+          TAG_VERSION="${TAG_NAME##*@}"
+          PACKAGE_DIRECTORY="packages/$PACKAGE_KEY"
 
-          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
-            echo "Package version $PACKAGE_VERSION does not match tag $GITHUB_REF_NAME."
+          if ! [[ "$PACKAGE_KEY" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+            echo "Invalid package key in tag: $PACKAGE_KEY"
             exit 1
           fi
+
+          if [ ! -f "$PACKAGE_DIRECTORY/package.json" ]; then
+            echo "Package not found: $PACKAGE_DIRECTORY"
+            exit 1
+          fi
+
+          PACKAGE_VERSION="$(node -p "require('./$PACKAGE_DIRECTORY/package.json').version")"
+
+          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
+            echo "Package version $PACKAGE_VERSION does not match tag $TAG_NAME."
+            exit 1
+          fi
+
+          echo "PACKAGE_DIRECTORY=$PACKAGE_DIRECTORY" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: npm ci --include=optional
 
       - name: Publish to GitHub Packages
         env:
@@ -85,6 +104,24 @@ jobs:
         with:
           node-version: 24
           cache: npm
+
+      - name: Resolve package
+        env:
+          PACKAGE_KEY: ${{ github.event.inputs.package }}
+        run: |
+          if ! [[ "$PACKAGE_KEY" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+            echo "Invalid package directory name: $PACKAGE_KEY"
+            exit 1
+          fi
+
+          PACKAGE_DIRECTORY="packages/$PACKAGE_KEY"
+
+          if [ ! -f "$PACKAGE_DIRECTORY/package.json" ]; then
+            echo "Package not found: $PACKAGE_DIRECTORY"
+            exit 1
+          fi
+
+          echo "PACKAGE_DIRECTORY=$PACKAGE_DIRECTORY" >> "$GITHUB_ENV"
 
       - name: Ensure staged publishing CLI support
         if: github.event.inputs.registry != 'github'
