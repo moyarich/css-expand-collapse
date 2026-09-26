@@ -67,6 +67,59 @@ npm run pack:lib          # Preview npm package contents
 
 The package also exposes `check:registry`; package `test`, `typecheck`, and `build` run that freshness check automatically.
 
+## Package versioning and GitHub Packages releases
+
+GitHub Packages uses normal npm package versioning. Every published release of `@moyarich/css-expand-collapse` must have a unique valid SemVer version in `packages/css-expand-collapse/package.json`.
+
+Use npm's workspace-aware version command from the repository root:
+
+```bash
+npm version patch --workspace @moyarich/css-expand-collapse
+```
+
+Examples:
+
+```text
+patch: 0.1.0 -> 0.1.1
+minor: 0.1.0 -> 0.2.0
+major: 0.1.0 -> 1.0.0
+```
+
+Equivalent commands:
+
+```bash
+npm version patch --workspace @moyarich/css-expand-collapse
+npm version minor --workspace @moyarich/css-expand-collapse
+npm version major --workspace @moyarich/css-expand-collapse
+```
+
+`npm version` updates the package version and lockfile and normally creates a Git commit and version tag. After reviewing the changes, push both:
+
+```bash
+git push
+git push --tags
+```
+
+Package publishing should be tied to an intentional versioned release, not to every update of `main`. A normal merge to `main` may contain documentation, tests, playground work, or unreleased package changes and therefore should not automatically attempt to republish an existing package version.
+
+The preferred release trigger is a version tag such as:
+
+```text
+v0.1.1
+v0.2.0
+v1.0.0
+```
+
+A tag-triggered GitHub Actions workflow can then publish that exact version to GitHub Packages once.
+
+Before creating a release version, run:
+
+```bash
+npm run release:check
+```
+
+This performs the release validation and package dry run without publishing.
+
 ## Playground deployment
 
 The playground lives in `apps/playground` and is deployed to GitHub Pages by GitHub Actions.
