@@ -30,5 +30,9 @@
   },
   "devDependencies": {
     "commander": "^15.0.0"
+  },
+  "bin": {
+    "workspace-release": "./scripts/version.mjs",
+    "workspace-publish": "./scripts/publish.mjs"
   }
 }
