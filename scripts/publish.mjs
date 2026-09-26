@@ -28,10 +28,8 @@ if (existsSync(envFile)) {
 
 const tag = process.env.NPM_TAG || "latest";
 const access = process.env.NPM_ACCESS || "public";
-const registry =
-  process.env.NPM_REGISTRY || "https://registry.npmjs.org";
-const registryUrl = new URL(registry);
-const registryHost = registryUrl.host;
+const publishTarget = process.env.PUBLISH_TARGET;
+const explicitRegistry = process.env.NPM_REGISTRY;
 
 if (!["public", "restricted"].includes(access)) {
   throw new Error("NPM_ACCESS must be public or restricted.");
@@ -43,14 +41,6 @@ if (!/^[a-z][a-z0-9._-]*$/i.test(tag)) {
   );
 }
 
-const isGitHubPackages = registryHost === "npm.pkg.github.com";
-const isNpmRegistry = registryHost === "registry.npmjs.org";
-
-if (!isGitHubPackages && !isNpmRegistry) {
-  throw new Error(
-    `Unsupported registry: ${registry}. Use GitHub Packages or npmjs.org.`,
-  );
-}
 
 function run(args, env = process.env, cwd = root) {
   const result = spawnSync(
@@ -167,55 +157,65 @@ if (!packageDirectory) {
 const pkg = readPackage(packageDirectory);
 validatePackage(pkg);
 
-const authToken = isGitHubPackages
-  ? process.env._GITHUB_TOKEN || process.env.NODE_AUTH_TOKEN
-  : process.env._NPM_TOKEN || process.env.NODE_AUTH_TOKEN;
+function publishToRegistry(target) {
+  const registry =
+    target === "github"
+      ? "https://npm.pkg.github.com"
+      : "https://registry.npmjs.org";
+  const registryHost = new URL(registry).host;
+  const authToken =
+    target === "github"
+      ? process.env._GITHUB_TOKEN || process.env.NODE_AUTH_TOKEN
+      : process.env._NPM_TOKEN || process.env.NODE_AUTH_TOKEN;
 
-if (!authToken?.trim()) {
-  throw new Error(
-    isGitHubPackages
-      ? "Set _GITHUB_TOKEN before publishing to GitHub Packages."
-      : "Set _NPM_TOKEN before staging a release on npmjs.org.",
-  );
-}
-
-const configDir = mkdtempSync(
-  join(tmpdir(), "workspace-package-npm-"),
-);
-const configFile = join(configDir, "npmrc");
-
-try {
-  writeFileSync(
-    configFile,
-    [
-      `registry=${registry}`,
-      `@moyarich:registry=${registry}`,
-      `//${registryHost}/:_authToken=\${NODE_AUTH_TOKEN}`,
-      "",
-    ].join("\n"),
-    { mode: 0o600 },
-  );
-
-  const env = {
-    ...process.env,
-    NODE_AUTH_TOKEN: authToken,
-    npm_config_userconfig: configFile,
-  };
-
-  if (isGitHubPackages) {
-    run(
-      [
-        "publish",
-        "--workspace",
-        pkg.manifest.name,
-        "--access",
-        access,
-        "--tag",
-        tag,
-      ],
-      env,
+  if (!authToken?.trim()) {
+    throw new Error(
+      target === "github"
+        ? "Set _GITHUB_TOKEN before publishing to GitHub Packages."
+        : "Set _NPM_TOKEN before staging a release on npmjs.org.",
     );
-  } else {
+  }
+
+  const configDir = mkdtempSync(
+    join(tmpdir(), "workspace-package-npm-"),
+  );
+  const configFile = join(configDir, "npmrc");
+
+  try {
+    writeFileSync(
+      configFile,
+      [
+        `registry=${registry}`,
+        `@moyarich:registry=${registry}`,
+        `//${registryHost}/:_authToken=\${NODE_AUTH_TOKEN}`,
+        "",
+      ].join("\n"),
+      { mode: 0o600 },
+    );
+
+    const env = {
+      ...process.env,
+      NODE_AUTH_TOKEN: authToken,
+      NPM_REGISTRY: registry,
+      npm_config_userconfig: configFile,
+    };
+
+    if (target === "github") {
+      run(
+        [
+          "publish",
+          "--workspace",
+          pkg.manifest.name,
+          "--access",
+          access,
+          "--tag",
+          tag,
+        ],
+        env,
+      );
+      return;
+    }
+
     run(
       ["stage", "publish", "--access", access, "--tag", tag],
       env,
@@ -225,7 +225,50 @@ try {
     console.log(
       `Staged ${pkg.manifest.name}@${pkg.manifest.version} on npmjs.org. Approve the staged release with 2FA before it becomes public.`,
     );
+  } finally {
+    rmSync(configDir, { recursive: true, force: true });
   }
-} finally {
-  rmSync(configDir, { recursive: true, force: true });
+}
+
+let targets;
+
+if (publishTarget) {
+  switch (publishTarget) {
+    case "github":
+      targets = ["github"];
+      break;
+    case "npm":
+      targets = ["npm"];
+      break;
+    case "both":
+      targets = ["github", "npm"];
+      break;
+    default:
+      throw new Error(
+        "PUBLISH_TARGET must be github, npm, or both.",
+      );
+  }
+} else if (explicitRegistry) {
+  const registryHost = new URL(explicitRegistry).host;
+
+  switch (registryHost) {
+    case "npm.pkg.github.com":
+      targets = ["github"];
+      break;
+    case "registry.npmjs.org":
+      targets = ["npm"];
+      break;
+    default:
+      throw new Error(
+        `Unsupported registry: ${explicitRegistry}. Use GitHub Packages or npmjs.org.`,
+      );
+  }
+} else {
+  throw new Error(
+    "Set PUBLISH_TARGET to github, npm, or both, or set NPM_REGISTRY.",
+  );
+}
+
+for (const target of targets) {
+  publishToRegistry(target);
 }
