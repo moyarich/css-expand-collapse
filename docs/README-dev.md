@@ -69,23 +69,21 @@ The package also exposes `check:registry`; package `test`, `typecheck`, and `bui
 
 ## Package versioning and GitHub Packages releases
 
-GitHub Packages uses normal npm package versioning. Every published release of `@moyarich/css-expand-collapse` must have a unique valid SemVer version in `packages/css-expand-collapse/package.json`.
+GitHub Packages uses normal npm package versioning. Every published release of `@moyarich/css-expand-collapse` must have a unique SemVer version.
 
-Use npm's workspace-aware version command from the repository root:
+This repository uses [`npm version`](https://docs.npmjs.com/cli/v7/commands/npm-version) as the release/version source of truth. npm updates the package version and lockfile and, in a Git repository, creates the version commit and tag by default. The command requires a clean working tree unless forced.
+
+The package has a `preversion` lifecycle that runs its tests, typecheck, and build before npm changes the version. If validation fails, the version commit/tag is not created.
+
+From the repository root, use one of the release scripts:
 
 ```bash
-npm version patch --workspace @moyarich/css-expand-collapse
+npm run release:patch   # 0.1.0 -> 0.1.1
+npm run release:minor   # 0.1.0 -> 0.2.0
+npm run release:major   # 0.1.0 -> 1.0.0
 ```
 
-Examples:
-
-```text
-patch: 0.1.0 -> 0.1.1
-minor: 0.1.0 -> 0.2.0
-major: 0.1.0 -> 1.0.0
-```
-
-Equivalent commands:
+These wrap npm's workspace-aware commands:
 
 ```bash
 npm version patch --workspace @moyarich/css-expand-collapse
@@ -93,16 +91,13 @@ npm version minor --workspace @moyarich/css-expand-collapse
 npm version major --workspace @moyarich/css-expand-collapse
 ```
 
-`npm version` updates the package version and lockfile and normally creates a Git commit and version tag. After reviewing the changes, push both:
+Before versioning, make sure `git status` is clean. After npm creates the release commit and tag, inspect them and push both:
 
 ```bash
-git push
-git push --tags
+git push --follow-tags
 ```
 
-Package publishing should be tied to an intentional versioned release, not to every update of `main`. A normal merge to `main` may contain documentation, tests, playground work, or unreleased package changes and therefore should not automatically attempt to republish an existing package version.
-
-The preferred release trigger is a version tag such as:
+The publish workflow is triggered by version tags such as:
 
 ```text
 v0.1.1
@@ -110,15 +105,15 @@ v0.2.0
 v1.0.0
 ```
 
-A tag-triggered GitHub Actions workflow can then publish that exact version to GitHub Packages once.
+The workflow verifies that the pushed tag (without the leading `v`) exactly matches `packages/css-expand-collapse/package.json`. A mismatched tag fails instead of publishing the wrong version.
 
-Before creating a release version, run:
+Normal updates to `main` do **not** publish a package. Documentation, tests, playground changes, and unreleased package work can therefore merge without attempting to republish an existing GitHub Packages version.
+
+For a package/archive validation without creating a version or publishing anything:
 
 ```bash
 npm run release:check
 ```
-
-This performs the release validation and package dry run without publishing.
 
 ## Playground deployment
 
