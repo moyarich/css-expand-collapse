@@ -1,7 +1,7 @@
 {
   "name": "@moyarich/css-expand-collapse",
   "version": "0.1.0",
-  "description": "Expand CSS shorthands to longhands and collapse longhands back to safe shorthands.",
+  "description": "Expand CSS shorthands into longhands and safely collapse compatible longhands back into shorthands.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -52,15 +52,20 @@
   "bugs": {
     "url": "https://github.com/moyarich/css-expand-collapse/issues"
   },
-  "homepage": "https://github.com/moyarich/css-expand-collapse#readme",
+  "homepage": "https://moyarich.github.io/css-expand-collapse/",
   "keywords": [
     "css",
     "shorthand",
     "longhand",
+    "css-parser",
+    "css-transform",
     "css-tree",
     "computed-style",
     "chrome-extension",
     "browser-extension",
-    "transform"
-  ]
+    "stylesheet"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
 }
