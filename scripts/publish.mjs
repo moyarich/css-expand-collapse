@@ -14,10 +14,30 @@ import { parseArgs } from "node:util";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 
+const PUBLISH_USAGE = `Usage:
+  node scripts/publish.mjs --dry-run
+  node scripts/publish.mjs --publish
+
+Options:
+  --dry-run  Validate package(s) and preview package contents without publishing
+  --publish  Publish using PACKAGE_DIRECTORY and the configured publish target
+  --help     Show this help
+
+Environment:
+  PACKAGE_DIRECTORY  Package directory, for example packages/css-expand-collapse
+  PUBLISH_TARGET     github, npm, or both
+  NPM_REGISTRY       Explicit registry alternative to PUBLISH_TARGET
+  NPM_TAG            Distribution tag (default: latest)
+  NPM_ACCESS         public or restricted (default: public)
+  _GITHUB_TOKEN      GitHub Packages credential
+  _NPM_TOKEN         npmjs.org credential
+`;
+
 const {
   values: {
     "dry-run": dryRun,
     publish,
+    help,
   },
 } = parseArgs({
   options: {
@@ -27,13 +47,22 @@ const {
     publish: {
       type: "boolean",
     },
+    help: {
+      type: "boolean",
+      short: "h",
+    },
   },
   strict: true,
   allowPositionals: false,
 });
 
+if (help) {
+  console.log(PUBLISH_USAGE);
+  process.exit(0);
+}
+
 if (Boolean(dryRun) === Boolean(publish)) {
-  throw new Error("Use npm run release:check or npm run publish:lib.");
+  throw new Error(`${PUBLISH_USAGE}\nUse npm run release:check or npm run publish:lib.`);
 }
 const envFile = join(root, ".env");
 
