@@ -26,7 +26,7 @@ permissions:
   packages: write
 
 concurrency:
-  group: package-publish-${{ github.ref }}
+  group: package-publish
   cancel-in-progress: false
 
 env:
@@ -52,7 +52,7 @@ jobs:
 
   publish-github:
     needs: verify
-    if: github.event_name == 'push' || inputs.registry == 'github' || inputs.registry == 'both'
+    if: ${{ github.event_name == 'push' || github.event.inputs.registry == 'github' || github.event.inputs.registry == 'both' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -75,14 +75,14 @@ jobs:
           PRIMARY_GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN }}
           FALLBACK_GITHUB_TOKEN: ${{ secrets._NODE_AUTH_TOKEN }}
           NPM_REGISTRY: https://npm.pkg.github.com
-          NPM_TAG: ${{ inputs.tag }}
+          NPM_TAG: ${{ github.event.inputs.tag }}
         run: |
           export _GITHUB_TOKEN="${PRIMARY_GITHUB_TOKEN:-$FALLBACK_GITHUB_TOKEN}"
           npm run publish:lib
 
   stage-npm:
     needs: verify
-    if: github.event_name == 'workflow_dispatch' && (inputs.registry == 'npm' || inputs.registry == 'both')
+    if: ${{ github.event_name == 'workflow_dispatch' && (github.event.inputs.registry == 'npm' || github.event.inputs.registry == 'both') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -107,7 +107,7 @@ jobs:
           PRIMARY_NPM_TOKEN: ${{ secrets._NPM_TOKEN }}
           FALLBACK_NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_REGISTRY: https://registry.npmjs.org
-          NPM_TAG: ${{ inputs.tag }}
+          NPM_TAG: ${{ github.event.inputs.tag }}
         run: |
           export _NPM_TOKEN="${PRIMARY_NPM_TOKEN:-$FALLBACK_NPM_TOKEN}"
           npm run publish:lib
