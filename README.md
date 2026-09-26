@@ -2,7 +2,18 @@
 
 Expand CSS shorthands into longhands and safely collapse compatible longhands back into shorthands.
 
+[Playground](https://moyarich.github.io/css-expand-collapse/) · [Source](https://github.com/moyarich/css-expand-collapse) · [Issues](https://github.com/moyarich/css-expand-collapse/issues)
+
 The package works with individual CSS properties, declaration maps, declaration fragments, full stylesheets, browser computed styles, Node.js, and Chrome extension contexts. It uses [CSSTree](https://github.com/csstree/csstree) for parsing, generation, and CSS grammar matching; shorthand transforms do not require browser CSSOM.
+
+## Highlights
+
+- Expand supported CSS shorthands without depending on browser CSSOM.
+- Collapse compatible longhands while preserving cascade-sensitive behavior.
+- Transform complete stylesheets, declaration fragments, declaration maps, or individual properties.
+- Resolve known custom properties conservatively while preserving authored `var()` references.
+- Use the same package from ESM, CommonJS, browsers, Node.js, and Manifest V3 extension contexts.
+- Inspect and experiment with the API in the live playground.
 
 ## Install
 
@@ -436,15 +447,30 @@ System-font keywords such as `font: menu` are user-agent dependent and cannot be
 | Style declaration | `collapseStyleDeclarations(style, shorthands?, options?)` | Collapses multiple shorthands from a read-only style declaration. |
 | Utility | `resolveCustomProperties(value, customProperties, options?)` | Resolves nested `var()` references against a known case-sensitive custom-property map. |
 | Utility | `collectCustomProperties(declarations)` | Collects custom-property declarations without lowercasing their names. |
+| Utility | `mergeCustomProperties(...maps)` | Merges known custom-property maps while preserving CSS custom-property name casing. |
+| Utility | `isCustomProperty(property)` | Returns whether a property name is a CSS custom property. |
 | Utility | `hasCustomPropertyReference(value)` | Returns whether a CSS value contains a real `var()` reference outside strings/comments. |
 | Utility | `splitTopLevelWhitespace(value)` | Splits a CSS value on top-level whitespace while preserving strings, functions, brackets, commas, and slashes. |
 
-The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `ShorthandResult`, `ExpandShorthandResult`, `CollapseShorthandResult`, `TransformOptions`, `TransformCssOptions`, `TransformMode`, and `ReadonlyStyleDeclaration`.
+The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `ShorthandResult`, `ExpandShorthandResult`, `CollapseShorthandResult`, `TransformOptions`, `TransformCssOptions`, `TransformMode`, `ReadonlyStyleDeclaration`, `CustomPropertyMap`, and `ResolveCustomPropertiesOptions`.
 
 ## Playground
 
-https://moyarich.github.io/css-expand-collapse/
+Try the package interactively at https://moyarich.github.io/css-expand-collapse/.
 
+## Package development
+
+From the repository root:
+
+```bash
+npm ci
+npm run typecheck
+npm test
+npm run build:lib
+npm run release:check
+```
+
+`npm run release:check` runs the release validation and performs a dry-run package archive without publishing.
 
 ## License
 
