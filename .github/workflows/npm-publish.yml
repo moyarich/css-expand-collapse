@@ -1,4 +1,4 @@
-name: Publish GitHub package
+name: Publish package
 
 on:
   push:
@@ -6,6 +6,15 @@ on:
       - "v*"
   workflow_dispatch:
     inputs:
+      registry:
+        description: Publish destination
+        required: true
+        default: github
+        type: choice
+        options:
+          - github
+          - npm
+          - both
       tag:
         description: npm distribution tag
         required: true
@@ -17,11 +26,34 @@ permissions:
   packages: write
 
 concurrency:
-  group: github-package-publish-${{ github.ref }}
+  group: package-publish-${{ github.ref }}-${{ inputs.registry || 'github' }}
   cancel-in-progress: false
 
+env:
+  PACKAGE_DIRECTORY: packages/css-expand-collapse
+  NPM_TAG: ${{ inputs.tag || 'latest' }}
+  NPM_ACCESS: public
+
 jobs:
-  publish:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Verify version tag
+        if: github.event_name == 'push'
+        run: |
+          PACKAGE_VERSION="$(node -p "require('./${PACKAGE_DIRECTORY}/package.json').version")"
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+
+          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
+            echo "Package version $PACKAGE_VERSION does not match tag $GITHUB_REF_NAME."
+            exit 1
+          fi
+
+  publish-github:
+    needs: verify
+    if: github.event_name == 'push' || inputs.registry == 'github' || inputs.registry == 'both'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -36,24 +68,39 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=optional
 
-      - name: Verify version tag
-        if: github.event_name == 'push'
-        run: |
-          PACKAGE_VERSION="$(node -p "require('./packages/css-expand-collapse/package.json').version")"
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
+      - name: Show package version
+        run: node -p "'Publishing to GitHub Packages: ' + require('./${PACKAGE_DIRECTORY}/package.json').name + '@' + require('./${PACKAGE_DIRECTORY}/package.json').version"
 
-          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
-            echo "Package version $PACKAGE_VERSION does not match tag $GITHUB_REF_NAME."
-            exit 1
-          fi
+      - name: Publish to GitHub Packages
+        env:
+          _GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN || secrets._NODE_AUTH_TOKEN }}
+          NPM_REGISTRY: https://npm.pkg.github.com
+        run: npm run publish:lib
+
+  stage-npm:
+    needs: verify
+    if: github.event_name == 'workflow_dispatch' && (inputs.registry == 'npm' || inputs.registry == 'both')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Ensure staged publishing CLI support
+        run: npm install --global npm@">=11.15.0 <12"
+
+      - name: Install dependencies
+        run: npm ci --include=optional
 
       - name: Show package version
-        run: node -p "'Publishing @moyarich/css-expand-collapse@' + require('./packages/css-expand-collapse/package.json').version"
+        run: node -p "'Staging on npmjs.org: ' + require('./${PACKAGE_DIRECTORY}/package.json').name + '@' + require('./${PACKAGE_DIRECTORY}/package.json').version"
 
-      - name: Publish package
+      - name: Stage package on npmjs.org
         env:
-          NODE_AUTH_TOKEN: ${{ secrets._GITHUB_TOKEN || secrets._NODE_AUTH_TOKEN }}
-          NPM_REGISTRY: https://npm.pkg.github.com
-          NPM_TAG: ${{ inputs.tag || 'latest' }}
-          NPM_ACCESS: public
+          _NPM_TOKEN: ${{ secrets._NPM_TOKEN || secrets.NPM_TOKEN }}
+          NPM_REGISTRY: https://registry.npmjs.org
         run: npm run publish:lib
