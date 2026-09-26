@@ -39,16 +39,16 @@ README.md
 
 The lifecycle is defined in `packages/css-expand-collapse/package.json`:
 
-- `prepack` runs `scripts/sync-package-readme.sh --package-directory=packages/css-expand-collapse`, which copies the root `README.md` into the package, then builds the package.
+- `prepack` runs `scripts/sync-package-readme.mjs --package-directory=packages/css-expand-collapse`, which copies the root `README.md` into the package, then builds the package.
 - npm automatically includes a package-root `README.md` in the generated tarball.
 - `postpack` runs the same script with `--clean` and removes the generated package README.
 
 The helper is reusable for any publishable workspace under `packages/*`:
 
 ```bash
-scripts/sync-package-readme.sh --package-directory=packages/my-package
-scripts/sync-package-readme.sh --package-directory=packages/my-package --clean
-scripts/sync-package-readme.sh --help
+scripts/sync-package-readme.mjs --package-directory=packages/my-package
+scripts/sync-package-readme.mjs --package-directory=packages/my-package --clean
+scripts/sync-package-readme.mjs --help
 ```
 
 To change package documentation, edit only the repository-root `README.md`.
