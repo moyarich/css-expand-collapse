@@ -29,8 +29,8 @@
     "typecheck": "npm run check:registry && tsc --noEmit",
     "test": "npm run check:registry && vitest run",
     "test:watch": "vitest",
-    "prepack": "bash ../../scripts/sync-package-readme.sh --package-directory=packages/css-expand-collapse && npm run build",
-    "postpack": "bash ../../scripts/sync-package-readme.sh --package-directory=packages/css-expand-collapse --clean",
+    "prepack": "node ../../scripts/sync-package-readme.mjs --package-directory=packages/css-expand-collapse && npm run build",
+    "postpack": "node ../../scripts/sync-package-readme.mjs --package-directory=packages/css-expand-collapse --clean",
     "preversion": "npm run test && npm run typecheck && npm run build"
   },
   "dependencies": {
