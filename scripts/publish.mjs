@@ -25,8 +25,13 @@ if (existsSync(envFile)) {
   process.loadEnvFile(envFile);
 }
 
-const packageDirectory =
-  process.env.PACKAGE_DIRECTORY || "packages/css-expand-collapse";
+const packageDirectory = process.env.PACKAGE_DIRECTORY;
+
+if (!packageDirectory) {
+  throw new Error(
+    "PACKAGE_DIRECTORY is required, for example packages/css-expand-collapse.",
+  );
+}
 const packagePath = join(root, packageDirectory);
 const pkg = JSON.parse(
   readFileSync(join(packagePath, "package.json"), "utf8"),
@@ -92,16 +97,16 @@ function run(args, env = process.env, cwd = root) {
   }
 }
 
-run(["run", "typecheck"]);
-run(["test"]);
-run(["run", "build:lib"]);
+run(["run", "typecheck", "--workspace", pkg.name, "--if-present"]);
+run(["run", "test", "--workspace", pkg.name, "--if-present"]);
+run(["run", "build", "--workspace", pkg.name, "--if-present"]);
 
 if (!publish) {
   run(["pack", "--workspace", pkg.name, "--dry-run"]);
   console.log("Release checks passed. Nothing was published.");
 } else {
   const configDir = mkdtempSync(
-    join(tmpdir(), "css-expand-collapse-npm-"),
+    join(tmpdir(), "workspace-package-npm-"),
   );
   const configFile = join(configDir, "npmrc");
 
