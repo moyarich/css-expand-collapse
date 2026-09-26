@@ -6,10 +6,26 @@ import { parseArgs } from "node:util";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 
+const RELEASE_USAGE = `Usage:
+  npm run release -- --package=<package> --version=<version>
+
+Options:
+  --package=<package>  Package directory name under packages/
+  --version=<version> SemVer version or npm version keyword
+                      (major, minor, patch, premajor, preminor, prepatch, prerelease)
+  --help              Show this help
+
+Examples:
+  npm run release -- --package=css-expand-collapse --version=patch
+  npm run release -- --package=css-expand-collapse --version=minor
+  npm run release -- --package=css-expand-collapse --version=1.0.0
+`;
+
 const {
   values: {
     package: packageSelector,
     version: versionSpec,
+    help,
   },
 } = parseArgs({
   options: {
@@ -19,14 +35,23 @@ const {
     version: {
       type: "string",
     },
+    help: {
+      type: "boolean",
+      short: "h",
+    },
   },
   strict: true,
   allowPositionals: false,
 });
 
+if (help) {
+  console.log(RELEASE_USAGE);
+  process.exit(0);
+}
+
 if (!packageSelector || !versionSpec) {
   throw new Error(
-    "Usage: npm run release -- --package=<package-directory-name> --version=<version|major|minor|patch|premajor|preminor|prepatch|prerelease>",
+    RELEASE_USAGE,
   );
 }
 
