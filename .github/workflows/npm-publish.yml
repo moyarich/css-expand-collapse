@@ -31,7 +31,7 @@ on:
           - prerelease
           - manual
       manual-version:
-        description: Exact SemVer when version=manual (for example 1.0.0)
+        description: Exact SemVer when version=manual; publish override when action=publish
         required: false
         type: string
 
@@ -43,109 +43,26 @@ concurrency:
   group: package-release-publish
   cancel-in-progress: false
 
-env:
-  NPM_ACCESS: public
-
 jobs:
-  publish-manual:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'publish'
-    runs-on: ubuntu-latest
-    env:
-      PUBLISH_TARGET: github
-      NPM_TAG: latest
-      _GITHUB_TOKEN: ${{ secrets['_GITHUB_TOKEN'] }}
-      _NPM_TOKEN: ${{ secrets['_NPM_TOKEN'] }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+  publish:
+    if: github.event.inputs.action == 'publish'
+    uses: moyarich/dev-toolkit/.github/workflows/npm-publish.yml@main
+    with:
+      package-directory: ${{ github.event.inputs.package-directory }}
+      version: ${{ github.event.inputs.manual-version }}
+      registry: github
+      tag: latest
+    secrets:
+      github-token: ${{ secrets['_GITHUB_TOKEN'] }}
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Resolve package
-        env:
-          PACKAGE_DIRECTORY: ${{ github.event.inputs.package-directory }}
-        run: |
-          if [ ! -f "$PACKAGE_DIRECTORY/package.json" ]; then
-            echo "Package not found: $PACKAGE_DIRECTORY"
-            exit 1
-          fi
-          echo "PACKAGE_DIRECTORY=$PACKAGE_DIRECTORY" >> "$GITHUB_ENV"
-
-      - name: Install dependencies
-        run: npm ci --include=optional
-
-      - name: Publish existing version
-        run: npm run publish:lib
-
-  release-manual:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'release'
-    runs-on: ubuntu-latest
-    env:
-      PUBLISH_TARGET: github
-      NPM_TAG: latest
-      _GITHUB_TOKEN: ${{ secrets['_GITHUB_TOKEN'] }}
-      _NPM_TOKEN: ${{ secrets['_NPM_TOKEN'] }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Resolve release
-        env:
-          PACKAGE_DIRECTORY: ${{ github.event.inputs.package-directory }}
-          VERSION_STRATEGY: ${{ github.event.inputs.version }}
-          MANUAL_VERSION: ${{ github.event.inputs.manual-version }}
-        run: |
-          if [ "$GITHUB_REF_TYPE" != "branch" ]; then
-            echo "Manual releases must run from a branch."
-            exit 1
-          fi
-
-          if [ ! -f "$PACKAGE_DIRECTORY/package.json" ]; then
-            echo "Package not found: $PACKAGE_DIRECTORY"
-            exit 1
-          fi
-
-          PACKAGE_KEY="${PACKAGE_DIRECTORY#packages/}"
-          if [ "$PACKAGE_KEY" = "$PACKAGE_DIRECTORY" ] || [ -z "$PACKAGE_KEY" ]; then
-            echo "Package location must be under packages/: $PACKAGE_DIRECTORY"
-            exit 1
-          fi
-
-          if [ "$VERSION_STRATEGY" = "manual" ]; then
-            if [ -z "$MANUAL_VERSION" ]; then
-              echo "manual-version is required when version=manual."
-              exit 1
-            fi
-            RELEASE_VERSION="$MANUAL_VERSION"
-          else
-            RELEASE_VERSION="$VERSION_STRATEGY"
-          fi
-
-          echo "PACKAGE_DIRECTORY=$PACKAGE_DIRECTORY" >> "$GITHUB_ENV"
-          echo "PACKAGE_KEY=$PACKAGE_KEY" >> "$GITHUB_ENV"
-          echo "RELEASE_VERSION=$RELEASE_VERSION" >> "$GITHUB_ENV"
-
-      - name: Install dependencies
-        run: npm ci --include=optional
-
-      - name: Configure release author
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Create release commit and tag
-        run: npm run release -- "$PACKAGE_KEY=$RELEASE_VERSION"
-
-      - name: Push release commit and tag
-        run: git push origin "HEAD:$GITHUB_REF_NAME" --follow-tags
-
-      - name: Publish released version
-        run: npm run publish:lib
+  release:
+    if: github.event.inputs.action == 'release'
+    uses: moyarich/dev-toolkit/.github/workflows/npm-release.yml@main
+    with:
+      package-directory: ${{ github.event.inputs.package-directory }}
+      version: ${{ github.event.inputs.version == 'manual' && github.event.inputs.manual-version || github.event.inputs.version }}
+      auto-publish: true
+      registry: github
+      tag: latest
+    secrets:
+      github-token: ${{ secrets['_GITHUB_TOKEN'] }}
