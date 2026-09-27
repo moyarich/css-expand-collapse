@@ -2,7 +2,7 @@
 
 All notable changes to `@moyarich/css-expand-collapse` are documented here.
 
-## Unreleased
+## 0.1.1
 
 ### Added
 
