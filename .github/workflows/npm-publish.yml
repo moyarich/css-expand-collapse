@@ -11,27 +11,28 @@ on:
         options:
           - publish
           - release
-      package:
-        description: Package directory name under packages/
+      package-directory:
+        description: Package location
         required: true
+        default: packages/css-expand-collapse
         type: string
       version:
-        description: Version or npm version keyword; required for release
-        required: false
-        type: string
-      registry:
-        description: Publish destination
+        description: Release version strategy; ignored when publishing
         required: true
-        default: github
+        default: patch
         type: choice
         options:
-          - github
-          - npm
-          - both
-      tag:
-        description: npm distribution tag
-        required: true
-        default: latest
+          - patch
+          - minor
+          - major
+          - prepatch
+          - preminor
+          - premajor
+          - prerelease
+          - manual
+      manual-version:
+        description: Exact SemVer when version=manual; publish override when action=publish
+        required: false
         type: string
 
 permissions:
@@ -42,121 +43,26 @@ concurrency:
   group: package-release-publish
   cancel-in-progress: false
 
-env:
-  NPM_ACCESS: public
-
 jobs:
-  publish-manual:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'publish'
-    runs-on: ubuntu-latest
-    env:
-      PUBLISH_TARGET: ${{ github.event.inputs.registry }}
-      NPM_TAG: ${{ github.event.inputs.tag }}
-      _GITHUB_TOKEN: ${{ secrets['_GITHUB_TOKEN'] }}
-      _NPM_TOKEN: ${{ secrets['_NPM_TOKEN'] }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+  publish:
+    if: github.event.inputs.action == 'publish'
+    uses: moyarich/dev-toolkit/.github/workflows/npm-publish.yml@main
+    with:
+      package-directory: ${{ github.event.inputs.package-directory }}
+      version: ${{ github.event.inputs.manual-version }}
+      registry: github
+      tag: latest
+    secrets:
+      github-token: ${{ secrets['_GITHUB_TOKEN'] }}
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Resolve package
-        env:
-          PACKAGE_KEY: ${{ github.event.inputs.package }}
-        run: |
-          if ! [[ "$PACKAGE_KEY" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
-            echo "Invalid package directory name: $PACKAGE_KEY"
-            exit 1
-          fi
-
-          PACKAGE_DIRECTORY="packages/$PACKAGE_KEY"
-
-          if [ ! -f "$PACKAGE_DIRECTORY/package.json" ]; then
-            echo "Package not found: $PACKAGE_DIRECTORY"
-            exit 1
-          fi
-
-          echo "PACKAGE_DIRECTORY=$PACKAGE_DIRECTORY" >> "$GITHUB_ENV"
-
-      - name: Ensure staged publishing CLI support
-        if: github.event.inputs.registry != 'github'
-        run: npm install --global npm@">=11.15.0 <12"
-
-      - name: Install dependencies
-        run: npm ci --include=optional
-
-      - name: Publish existing version
-        run: npm run publish:lib
-
-  release-manual:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'release'
-    runs-on: ubuntu-latest
-    env:
-      PUBLISH_TARGET: ${{ github.event.inputs.registry }}
-      NPM_TAG: ${{ github.event.inputs.tag }}
-      _GITHUB_TOKEN: ${{ secrets['_GITHUB_TOKEN'] }}
-      _NPM_TOKEN: ${{ secrets['_NPM_TOKEN'] }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Validate release inputs
-        env:
-          PACKAGE_KEY: ${{ github.event.inputs.package }}
-          RELEASE_VERSION: ${{ github.event.inputs.version }}
-        run: |
-          if [ "$GITHUB_REF_TYPE" != "branch" ]; then
-            echo "Manual releases must run from a branch."
-            exit 1
-          fi
-
-          if ! [[ "$PACKAGE_KEY" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
-            echo "Invalid package directory name: $PACKAGE_KEY"
-            exit 1
-          fi
-
-          if [ -z "$RELEASE_VERSION" ]; then
-            echo "Version is required when action=release."
-            exit 1
-          fi
-
-          PACKAGE_DIRECTORY="packages/$PACKAGE_KEY"
-
-          if [ ! -f "$PACKAGE_DIRECTORY/package.json" ]; then
-            echo "Package not found: $PACKAGE_DIRECTORY"
-            exit 1
-          fi
-
-          echo "PACKAGE_DIRECTORY=$PACKAGE_DIRECTORY" >> "$GITHUB_ENV"
-
-      - name: Ensure staged publishing CLI support
-        if: github.event.inputs.registry != 'github'
-        run: npm install --global npm@">=11.15.0 <12"
-
-      - name: Install dependencies
-        run: npm ci --include=optional
-
-      - name: Configure release author
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Create release commit and tag
-        env:
-          PACKAGE_KEY: ${{ github.event.inputs.package }}
-          RELEASE_VERSION: ${{ github.event.inputs.version }}
-        run: npm run release -- --package="$PACKAGE_KEY" --version="$RELEASE_VERSION"
-
-      - name: Push release commit and tag
-        run: git push origin "HEAD:$GITHUB_REF_NAME" --follow-tags
-
-      - name: Publish released version
-        run: npm run publish:lib
+  release:
+    if: github.event.inputs.action == 'release'
+    uses: moyarich/dev-toolkit/.github/workflows/npm-release.yml@main
+    with:
+      package-directory: ${{ github.event.inputs.package-directory }}
+      version: ${{ github.event.inputs.version == 'manual' && github.event.inputs.manual-version || github.event.inputs.version }}
+      auto-publish: true
+      registry: github
+      tag: latest
+    secrets:
+      github-token: ${{ secrets['_GITHUB_TOKEN'] }}
