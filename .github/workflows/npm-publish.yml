@@ -93,6 +93,11 @@ jobs:
   release-manual:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'release'
     runs-on: ubuntu-latest
+    env:
+      PUBLISH_TARGET: ${{ github.event.inputs.registry }}
+      NPM_TAG: ${{ github.event.inputs.tag }}
+      _GITHUB_TOKEN: ${{ secrets['_GITHUB_TOKEN'] }}
+      _NPM_TOKEN: ${{ secrets['_NPM_TOKEN'] }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -132,6 +137,10 @@ jobs:
 
           echo "PACKAGE_DIRECTORY=$PACKAGE_DIRECTORY" >> "$GITHUB_ENV"
 
+      - name: Ensure staged publishing CLI support
+        if: github.event.inputs.registry != 'github'
+        run: npm install --global npm@">=11.15.0 <12"
+
       - name: Install dependencies
         run: npm ci --include=optional
 
@@ -148,3 +157,6 @@ jobs:
 
       - name: Push release commit and tag
         run: git push origin "HEAD:$GITHUB_REF_NAME" --follow-tags
+
+      - name: Publish released version
+        run: npm run publish:lib
