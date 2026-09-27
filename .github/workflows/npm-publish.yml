@@ -1,9 +1,6 @@
-name: Release and publish package
+name: Release or publish package
 
 on:
-  push:
-    tags:
-      - "*@*"
   workflow_dispatch:
     inputs:
       action:
@@ -49,53 +46,6 @@ env:
   NPM_ACCESS: public
 
 jobs:
-  publish-tag:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Resolve package from tag
-        run: |
-          TAG_NAME="$GITHUB_REF_NAME"
-          PACKAGE_KEY="${TAG_NAME%@*}"
-          TAG_VERSION="${TAG_NAME##*@}"
-          PACKAGE_DIRECTORY="packages/$PACKAGE_KEY"
-
-          if ! [[ "$PACKAGE_KEY" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
-            echo "Invalid package key in tag: $PACKAGE_KEY"
-            exit 1
-          fi
-
-          if [ ! -f "$PACKAGE_DIRECTORY/package.json" ]; then
-            echo "Package not found: $PACKAGE_DIRECTORY"
-            exit 1
-          fi
-
-          PACKAGE_VERSION="$(node -p "require('./$PACKAGE_DIRECTORY/package.json').version")"
-
-          if [ "$PACKAGE_VERSION" != "$TAG_VERSION" ]; then
-            echo "Package version $PACKAGE_VERSION does not match tag $TAG_NAME."
-            exit 1
-          fi
-
-          echo "PACKAGE_DIRECTORY=$PACKAGE_DIRECTORY" >> "$GITHUB_ENV"
-
-      - name: Install dependencies
-        run: npm ci --include=optional
-
-      - name: Publish to GitHub Packages
-        env:
-          _GITHUB_TOKEN: ${{ secrets['_GITHUB_TOKEN'] }}
-          PUBLISH_TARGET: github
-          NPM_TAG: latest
-        run: npm run publish:lib
-
   publish-manual:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'publish'
     runs-on: ubuntu-latest
