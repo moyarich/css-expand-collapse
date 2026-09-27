@@ -29,11 +29,11 @@
     "url": "git+https://github.com/moyarich/css-expand-collapse.git"
   },
   "devDependencies": {
-    "commander": "^15.0.0",
-    "semver": "^6.3.1"
+    "commander": "^15.0.0"
   },
   "bin": {
     "workspace-release": "./scripts/version.mjs",
-    "workspace-publish": "./scripts/publish.mjs"
+    "workspace-publish": "./scripts/publish.mjs",
+    "workspace-sync-readme": "./scripts/sync-package-readme.mjs"
   }
 }
