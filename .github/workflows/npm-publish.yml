@@ -11,8 +11,13 @@ on:
         options:
           - publish
           - release
+      package-directory:
+        description: Package location
+        required: true
+        default: packages/css-expand-collapse
+        type: string
       version:
-        description: Version bump used by release; ignored when publishing
+        description: Release version strategy; ignored when publishing
         required: true
         default: patch
         type: choice
@@ -24,6 +29,11 @@ on:
           - preminor
           - premajor
           - prerelease
+          - manual
+      manual-version:
+        description: Exact SemVer when version=manual (for example 1.0.0)
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -54,7 +64,14 @@ jobs:
           cache: npm
 
       - name: Resolve package
-        run: echo "PACKAGE_DIRECTORY=packages/css-expand-collapse" >> "$GITHUB_ENV"
+        env:
+          PACKAGE_DIRECTORY: ${{ github.event.inputs.package-directory }}
+        run: |
+          if [ ! -f "$PACKAGE_DIRECTORY/package.json" ]; then
+            echo "Package not found: $PACKAGE_DIRECTORY"
+            exit 1
+          fi
+          echo "PACKAGE_DIRECTORY=$PACKAGE_DIRECTORY" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: npm ci --include=optional
@@ -80,16 +97,41 @@ jobs:
           node-version: 24
           cache: npm
 
-      - name: Validate release inputs
+      - name: Resolve release
         env:
-          RELEASE_VERSION: ${{ github.event.inputs.version }}
+          PACKAGE_DIRECTORY: ${{ github.event.inputs.package-directory }}
+          VERSION_STRATEGY: ${{ github.event.inputs.version }}
+          MANUAL_VERSION: ${{ github.event.inputs.manual-version }}
         run: |
           if [ "$GITHUB_REF_TYPE" != "branch" ]; then
             echo "Manual releases must run from a branch."
             exit 1
           fi
 
-          echo "PACKAGE_DIRECTORY=packages/css-expand-collapse" >> "$GITHUB_ENV"
+          if [ ! -f "$PACKAGE_DIRECTORY/package.json" ]; then
+            echo "Package not found: $PACKAGE_DIRECTORY"
+            exit 1
+          fi
+
+          PACKAGE_KEY="${PACKAGE_DIRECTORY#packages/}"
+          if [ "$PACKAGE_KEY" = "$PACKAGE_DIRECTORY" ] || [ -z "$PACKAGE_KEY" ]; then
+            echo "Package location must be under packages/: $PACKAGE_DIRECTORY"
+            exit 1
+          fi
+
+          if [ "$VERSION_STRATEGY" = "manual" ]; then
+            if [ -z "$MANUAL_VERSION" ]; then
+              echo "manual-version is required when version=manual."
+              exit 1
+            fi
+            RELEASE_VERSION="$MANUAL_VERSION"
+          else
+            RELEASE_VERSION="$VERSION_STRATEGY"
+          fi
+
+          echo "PACKAGE_DIRECTORY=$PACKAGE_DIRECTORY" >> "$GITHUB_ENV"
+          echo "PACKAGE_KEY=$PACKAGE_KEY" >> "$GITHUB_ENV"
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: npm ci --include=optional
@@ -100,9 +142,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Create release commit and tag
-        env:
-          RELEASE_VERSION: ${{ github.event.inputs.version }}
-        run: npm run release -- css-expand-collapse="$RELEASE_VERSION"
+        run: npm run release -- "$PACKAGE_KEY=$RELEASE_VERSION"
 
       - name: Push release commit and tag
         run: git push origin "HEAD:$GITHUB_REF_NAME" --follow-tags
