@@ -10,6 +10,11 @@ permissions:
   contents: read
 
 jobs:
+  node:
+    uses: ./.github/workflows/node-ci.yml
+    with:
+      node-version: "24"
+
   validate:
     runs-on: ubuntu-latest
     steps:
@@ -18,21 +23,13 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - name: Install dependencies
-        run: npm ci --include=optional
-      - name: Audit high-severity dependencies
-        run: npm audit --audit-level=high
-      - name: Validate package and release archive
-        run: npm run release:check
-      - name: Build playground
-        run: npm run build:playground
-      - name: Install Playwright test runner
-        run: npm install --no-save --package-lock=false @playwright/test@1.63.0
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-      - name: Test Storybook
-        working-directory: apps/playground
+      - run: npm ci --include=optional
+      - run: npm audit --audit-level=high
+      - run: npm run release:check
+      - run: npm run build:playground
+      - run: npm install --no-save --package-lock=false @playwright/test@1.63.0
+      - run: npx playwright install --with-deps chromium
+      - working-directory: apps/playground
         run: npm run test-storybook
-      - name: Test nested console object layout
-        working-directory: apps/playground
+      - working-directory: apps/playground
         run: npm run test:browser
