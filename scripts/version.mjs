@@ -31,12 +31,17 @@ const releaseDescriptions = {
 
 const program = new Command()
   .name("workspace-release")
-  .description("Preview, version, commit, and tag a publishable workspace package.")
+  .description(
+    "Preview, version, commit, and tag a publishable workspace package.",
+  )
   .argument("[release]", "package name or package=version")
   .option("--package <package>", "package directory name under packages/")
   .option("--version <version>", "SemVer version or npm version keyword")
   .option("--preid <identifier>", "prerelease identifier, such as beta or rc")
-  .option("--dry-run", "show the release result without changing files or git state")
+  .option(
+    "--dry-run",
+    "show the release result without changing files or git state",
+  )
   .option(
     "--explain",
     "browse the available version choices without changing anything",
@@ -78,9 +83,7 @@ function parseReleaseArgument(value) {
 
 function run(command, args, options = {}) {
   const executable =
-    command === "npm" && process.platform === "win32"
-      ? "npm.cmd"
-      : command;
+    command === "npm" && process.platform === "win32" ? "npm.cmd" : command;
 
   const result = spawnSync(executable, args, {
     cwd: root,
@@ -98,9 +101,7 @@ function run(command, args, options = {}) {
       process.stderr.write(result.stderr);
     }
 
-    throw new Error(
-      `${command} ${args.join(" ")} failed. Release stopped.`,
-    );
+    throw new Error(`${command} ${args.join(" ")} failed. Release stopped.`);
   }
 
   return options.capture ? result.stdout.trim() : "";
@@ -188,7 +189,9 @@ function discoverPackages() {
   return readdirSync(packagesRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
-    .filter((selector) => existsSync(join(packagesRoot, selector, "package.json")))
+    .filter((selector) =>
+      existsSync(join(packagesRoot, selector, "package.json")),
+    )
     .map(readPackage)
     .filter(({ manifest }) => !manifest.private);
 }
@@ -249,9 +252,7 @@ function resolveVersion(spec) {
   const nextVersion = semver.inc(currentVersion, spec, options.preid);
 
   if (!nextVersion) {
-    program.error(
-      `Could not calculate ${spec} from ${currentVersion}.`,
-    );
+    program.error(`Could not calculate ${spec} from ${currentVersion}.`);
   }
 
   return nextVersion;
@@ -278,7 +279,9 @@ function printChoices() {
   }
 
   console.log("");
-  console.log("You may also provide an explicit SemVer version, such as 2.0.0.");
+  console.log(
+    "You may also provide an explicit SemVer version, such as 2.0.0.",
+  );
 }
 
 function chooseVersion() {
@@ -371,7 +374,9 @@ if (usedInteractiveSelection) {
   }
 
   const readline = createInterface({ input, output });
-  const answer = (await readline.question("\nContinue? [y/N] ")).trim().toLowerCase();
+  const answer = (await readline.question("\nContinue? [y/N] "))
+    .trim()
+    .toLowerCase();
   readline.close();
 
   if (answer !== "y" && answer !== "yes") {
@@ -388,11 +393,7 @@ run("npm", [
   "--git-tag-version=false",
 ]);
 
-run("git", [
-  "add",
-  join(pkg.directory, "package.json"),
-  "package-lock.json",
-]);
+run("git", ["add", join(pkg.directory, "package.json"), "package-lock.json"]);
 run("git", ["commit", "-m", `release: ${tagName}`]);
 run("git", ["tag", tagName]);
 

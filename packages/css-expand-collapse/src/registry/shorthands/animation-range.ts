@@ -35,9 +35,14 @@ export default {
     const start = declarations[longhandNames[0]];
     const end = declarations[longhandNames[1]];
     if (!start || !end) return null;
-    const candidates = end === initialValues[1]
-      ? [start, `${start} ${end}`]
-      : [`${start} ${end}`];
-    return candidates.find((candidate) => context.matchProperty("animation-range", candidate)) ?? null;
+    const candidates =
+      end === initialValues[1]
+        ? [start, `${start} ${end}`]
+        : [`${start} ${end}`];
+    return (
+      candidates.find((candidate) =>
+        context.matchProperty("animation-range", candidate),
+      ) ?? null
+    );
   },
 } satisfies ShorthandModule;

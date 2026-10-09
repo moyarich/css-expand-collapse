@@ -1,4 +1,8 @@
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["list-style-position", "outside"],
@@ -29,7 +33,8 @@ const expand: ShorthandExpander = (value, context) => {
   for (const token of tokens) {
     const priority = [longhandNames[0], longhandNames[1], longhandNames[2]];
     const candidates = priority.filter(
-      (property) => !assigned.has(property) && context.matchProperty(property, token),
+      (property) =>
+        !assigned.has(property) && context.matchProperty(property, token),
     );
     if (!candidates.length) return null;
     const property = candidates[0]!;
@@ -50,7 +55,8 @@ export default {
     const type = declarations[longhandNames[2]];
     if (!position || !image || !type) return null;
 
-    if (image === "none" && type === "none" && position === initialValues[0]) return "none";
+    if (image === "none" && type === "none" && position === initialValues[0])
+      return "none";
 
     const full = `${position} ${image} ${type}`;
     if (context.matchProperty("list-style", full)) return full;
@@ -59,7 +65,11 @@ export default {
       position === initialValues[0] ? "" : position,
       image === initialValues[1] ? "" : image,
       type === initialValues[2] ? "" : type,
-    ].filter(Boolean).join(" ");
-    return compact && context.matchProperty("list-style", compact) ? compact : null;
+    ]
+      .filter(Boolean)
+      .join(" ");
+    return compact && context.matchProperty("list-style", compact)
+      ? compact
+      : null;
   },
 } satisfies ShorthandModule;

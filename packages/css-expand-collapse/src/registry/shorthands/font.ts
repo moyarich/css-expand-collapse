@@ -1,4 +1,8 @@
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["font-family", "initial"],
@@ -10,7 +14,14 @@ const longhands = new Map([
   ["line-height", "normal"],
 ] as const);
 
-const SYSTEM_FONTS = new Set(["caption", "icon", "menu", "message-box", "small-caption", "status-bar"]);
+const SYSTEM_FONTS = new Set([
+  "caption",
+  "icon",
+  "menu",
+  "message-box",
+  "small-caption",
+  "status-bar",
+]);
 
 const expand: ShorthandExpander = (value, context) => {
   if (SYSTEM_FONTS.has(value)) return null;
@@ -42,11 +53,17 @@ const expand: ShorthandExpander = (value, context) => {
 
   const prefix = left.slice(0, sizeIndex);
   const assigned = new Set<string>();
-  const priority = ["font-style", "font-variant", "font-weight", "font-width"] as const;
+  const priority = [
+    "font-style",
+    "font-variant",
+    "font-weight",
+    "font-width",
+  ] as const;
   for (const token of prefix) {
     if (token === "normal") continue;
     const property = priority.find(
-      (candidate) => !assigned.has(candidate) && context.matchProperty(candidate, token),
+      (candidate) =>
+        !assigned.has(candidate) && context.matchProperty(candidate, token),
     );
     if (!property) return null;
     result[property] = token;
@@ -92,9 +109,20 @@ export default {
     const variant = declarations["font-variant"];
     const weight = declarations["font-weight"];
     const lineHeight = declarations["line-height"];
-    if (!family || !size || !width || !style || !variant || !weight || !lineHeight) return null;
+    if (
+      !family ||
+      !size ||
+      !width ||
+      !style ||
+      !variant ||
+      !weight ||
+      !lineHeight
+    )
+      return null;
 
-    const prefix = [style, variant, weight, width].filter((value) => value !== "normal").join(" ");
+    const prefix = [style, variant, weight, width]
+      .filter((value) => value !== "normal")
+      .join(" ");
     const candidate = `${prefix ? `${prefix} ` : ""}${size}/${lineHeight} ${family}`;
     return context.matchProperty("font", candidate) ? candidate : null;
   },

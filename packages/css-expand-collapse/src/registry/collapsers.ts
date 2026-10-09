@@ -1,19 +1,33 @@
 import { longhandNames } from "./helpers.js";
-import type { DeclarationMap, LonghandMap, ShorthandCollapser } from "./module.js";
+import type {
+  DeclarationMap,
+  LonghandMap,
+  ShorthandCollapser,
+} from "./module.js";
 
-const GLOBAL_VALUES = new Set(["inherit", "initial", "unset", "revert", "revert-layer"]);
+const GLOBAL_VALUES = new Set([
+  "inherit",
+  "initial",
+  "unset",
+  "revert",
+  "revert-layer",
+]);
 
 function concreteValues(
   longhands: LonghandMap,
   declarations: DeclarationMap,
 ): string[] | null {
-  const values = longhandNames(longhands).map((property) => declarations[property]?.trim());
-  return values.some((value) => !value) ? null : values as string[];
+  const values = longhandNames(longhands).map((property) =>
+    declarations[property]?.trim(),
+  );
+  return values.some((value) => !value) ? null : (values as string[]);
 }
 
 function globalValue(values: readonly string[]): string | null {
   const first = values[0];
-  return first && values.every((value) => value === first) && GLOBAL_VALUES.has(first)
+  return first &&
+    values.every((value) => value === first) &&
+    GLOBAL_VALUES.has(first)
     ? first
     : null;
 }
@@ -66,6 +80,8 @@ export function collapseSlashPair(longhands: LonghandMap): ShorthandCollapser {
     const global = globalValue(values);
     if (global) return global;
     const [first, second] = values;
-    return second === longhands.get(properties[1]!) ? first! : first + " / " + second;
+    return second === longhands.get(properties[1]!)
+      ? first!
+      : first + " / " + second;
   };
 }

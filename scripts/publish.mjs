@@ -94,9 +94,7 @@ function run(args, env = process.env, cwd = root) {
   }
 
   if (result.status !== 0) {
-    throw new Error(
-      `npm ${args.join(" ")} failed. Release stopped.`,
-    );
+    throw new Error(`npm ${args.join(" ")} failed. Release stopped.`);
   }
 }
 
@@ -121,9 +119,7 @@ function discoverPackages() {
   return readdirSync(packagesRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => `packages/${entry.name}`)
-    .filter((directory) =>
-      existsSync(join(root, directory, "package.json")),
-    )
+    .filter((directory) => existsSync(join(root, directory, "package.json")))
     .map(readPackage)
     .filter(({ manifest }) => !manifest.private);
 }
@@ -133,33 +129,10 @@ function validatePackage(pkg) {
     `\nValidating ${pkg.manifest.name}@${pkg.manifest.version} (${pkg.directory})`,
   );
 
-  run([
-    "run",
-    "typecheck",
-    "--workspace",
-    pkg.manifest.name,
-    "--if-present",
-  ]);
-  run([
-    "run",
-    "test",
-    "--workspace",
-    pkg.manifest.name,
-    "--if-present",
-  ]);
-  run([
-    "run",
-    "build",
-    "--workspace",
-    pkg.manifest.name,
-    "--if-present",
-  ]);
-  run([
-    "pack",
-    "--workspace",
-    pkg.manifest.name,
-    "--dry-run",
-  ]);
+  run(["run", "typecheck", "--workspace", pkg.manifest.name, "--if-present"]);
+  run(["run", "test", "--workspace", pkg.manifest.name, "--if-present"]);
+  run(["run", "build", "--workspace", pkg.manifest.name, "--if-present"]);
+  run(["pack", "--workspace", pkg.manifest.name, "--dry-run"]);
 }
 
 if (dryRun) {
@@ -212,9 +185,7 @@ function publishToRegistry(target) {
     );
   }
 
-  const configDir = mkdtempSync(
-    join(tmpdir(), "workspace-package-npm-"),
-  );
+  const configDir = mkdtempSync(join(tmpdir(), "workspace-package-npm-"));
   const configFile = join(configDir, "npmrc");
 
   try {
@@ -252,11 +223,7 @@ function publishToRegistry(target) {
       return;
     }
 
-    run(
-      ["stage", "publish", "--access", access, "--tag", tag],
-      env,
-      pkg.path,
-    );
+    run(["stage", "publish", "--access", access, "--tag", tag], env, pkg.path);
 
     console.log(
       `Staged ${pkg.manifest.name}@${pkg.manifest.version} on npmjs.org. Approve the staged release with 2FA before it becomes public.`,

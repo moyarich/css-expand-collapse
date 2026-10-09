@@ -10,46 +10,57 @@ import {
 
 describe("custom property resolution", () => {
   it("resolves nested var() references and fallbacks", () => {
-    expect(resolveCustomProperties(
-      "calc(var(--space) * 2)",
-      {
+    expect(
+      resolveCustomProperties("calc(var(--space) * 2)", {
         "--space": "var(--base)",
         "--base": "8px",
-      },
-    )).toBe("calc(8px * 2)");
+      }),
+    ).toBe("calc(8px * 2)");
 
-    expect(resolveCustomProperties(
-      "var(--missing, var(--fallback))",
-      { "--fallback": "red" },
-    )).toBe("red");
+    expect(
+      resolveCustomProperties("var(--missing, var(--fallback))", {
+        "--fallback": "red",
+      }),
+    ).toBe("red");
   });
 
   it("keeps custom property names case-sensitive", () => {
-    expect(resolveCustomProperties("var(--Color)", {
-      "--Color": "red",
-      "--color": "blue",
-    })).toBe("red");
+    expect(
+      resolveCustomProperties("var(--Color)", {
+        "--Color": "red",
+        "--color": "blue",
+      }),
+    ).toBe("red");
 
-    expect(resolveCustomProperties("var(--COLOR)", {
-      "--Color": "red",
-    }, {
-      allowFallbackForMissing: false,
-    })).toBeNull();
+    expect(
+      resolveCustomProperties(
+        "var(--COLOR)",
+        {
+          "--Color": "red",
+        },
+        {
+          allowFallbackForMissing: false,
+        },
+      ),
+    ).toBeNull();
   });
 
   it("uses a fallback for an explicitly invalid cyclic variable", () => {
-    expect(resolveCustomProperties(
-      "var(--color, rebeccapurple)",
-      { "--color": "var(--color)" },
-    )).toBe("rebeccapurple");
+    expect(
+      resolveCustomProperties("var(--color, rebeccapurple)", {
+        "--color": "var(--color)",
+      }),
+    ).toBe("rebeccapurple");
   });
 });
 
 describe("custom properties in property transforms", () => {
   it("expands a single-component custom property while preserving var()", () => {
-    expect(expandShorthand("border-color", "var(--color)", {
-      customProperties: { "--color": "red" },
-    })?.declarations).toEqual({
+    expect(
+      expandShorthand("border-color", "var(--color)", {
+        customProperties: { "--color": "red" },
+      })?.declarations,
+    ).toEqual({
       "border-top-color": "var(--color)",
       "border-right-color": "var(--color)",
       "border-bottom-color": "var(--color)",
@@ -58,40 +69,56 @@ describe("custom properties in property transforms", () => {
   });
 
   it("does not expand a multi-component variable into incompatible longhands", () => {
-    expect(expandShorthand("margin", "var(--space)", {
-      customProperties: { "--space": "8px 16px" },
-    })).toBeNull();
+    expect(
+      expandShorthand("margin", "var(--space)", {
+        customProperties: { "--space": "8px 16px" },
+      }),
+    ).toBeNull();
   });
 
   it("collapses variable longhands when the resolved value validates the shorthand", () => {
-    expect(collapseToShorthand("border-color", {
-      "border-top-color": "var(--color)",
-      "border-right-color": "var(--color)",
-      "border-bottom-color": "var(--color)",
-      "border-left-color": "var(--color)",
-    }, {
-      fillMissingLonghands: false,
-      customProperties: { "--color": "red" },
-    })?.value).toBe("var(--color)");
+    expect(
+      collapseToShorthand(
+        "border-color",
+        {
+          "border-top-color": "var(--color)",
+          "border-right-color": "var(--color)",
+          "border-bottom-color": "var(--color)",
+          "border-left-color": "var(--color)",
+        },
+        {
+          fillMissingLonghands: false,
+          customProperties: { "--color": "red" },
+        },
+      )?.value,
+    ).toBe("var(--color)");
   });
 
   it("does not collapse when a variable resolves to an invalid longhand value", () => {
-    expect(collapseToShorthand("margin", {
-      "margin-top": "var(--space)",
-      "margin-right": "var(--space)",
-      "margin-bottom": "var(--space)",
-      "margin-left": "var(--space)",
-    }, {
-      fillMissingLonghands: false,
-      customProperties: { "--space": "8px 16px" },
-    })).toBeNull();
+    expect(
+      collapseToShorthand(
+        "margin",
+        {
+          "margin-top": "var(--space)",
+          "margin-right": "var(--space)",
+          "margin-bottom": "var(--space)",
+          "margin-left": "var(--space)",
+        },
+        {
+          fillMissingLonghands: false,
+          customProperties: { "--space": "8px 16px" },
+        },
+      ),
+    ).toBeNull();
   });
 
   it("collects local custom properties from declaration maps without lowercasing them", () => {
-    expect(expandShorthands({
-      "--Color": "red",
-      "border-color": "var(--Color)",
-    })).toEqual({
+    expect(
+      expandShorthands({
+        "--Color": "red",
+        "border-color": "var(--Color)",
+      }),
+    ).toEqual({
       "--Color": "red",
       "border-top-color": "var(--Color)",
       "border-right-color": "var(--Color)",

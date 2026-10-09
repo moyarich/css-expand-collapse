@@ -9,7 +9,10 @@ const indexPath = fileURLToPath(
 );
 
 const files = (await readdir(shorthandsDirectory, { withFileTypes: true }))
-  .filter((entry) => entry.isFile() && entry.name.endsWith(".ts") && entry.name !== "index.ts")
+  .filter(
+    (entry) =>
+      entry.isFile() && entry.name.endsWith(".ts") && entry.name !== "index.ts",
+  )
   .map((entry) => entry.name)
   .sort();
 
@@ -38,7 +41,9 @@ const output = [
 if (process.argv.includes("--check")) {
   const current = await readFile(indexPath, "utf8");
   if (current !== output) {
-    console.error("Shorthand registry is out of date. Run npm run generate:registry.");
+    console.error(
+      "Shorthand registry is out of date. Run npm run generate:registry.",
+    );
     process.exitCode = 1;
   }
 } else {

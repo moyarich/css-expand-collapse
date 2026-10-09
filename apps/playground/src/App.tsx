@@ -17,13 +17,14 @@ const VIEW_COPY = {
   },
 } as const;
 
-const DEFAULT_CONVERTER_PATH =
-  `/converter/${DEFAULT_CSS_CONVERTER_EXAMPLE.key}`;
+const DEFAULT_CONVERTER_PATH = `/converter/${DEFAULT_CSS_CONVERTER_EXAMPLE.key}`;
 const DEFAULT_API_PATH = `/api/${DEFAULT_FUNCTION_EXAMPLE.id}`;
 
 export function App() {
   const { pathname } = useLocation();
-  const view = pathname.startsWith("/api") ? VIEW_COPY.api : VIEW_COPY.converter;
+  const view = pathname.startsWith("/api")
+    ? VIEW_COPY.api
+    : VIEW_COPY.converter;
 
   return (
     <main className="app-shell">
@@ -49,18 +50,24 @@ export function App() {
       </nav>
 
       <Routes>
-        <Route path="/" element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />} />
+        <Route
+          path="/"
+          element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />}
+        />
         <Route
           path="/converter"
           element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />}
         />
+        <Route path="/converter/:mode/:exampleId" element={<CSSConverter />} />
         <Route
-          path="/converter/:mode/:exampleId"
-          element={<CSSConverter />}
+          path="/api"
+          element={<Navigate to={DEFAULT_API_PATH} replace />}
         />
-        <Route path="/api" element={<Navigate to={DEFAULT_API_PATH} replace />} />
         <Route path="/api/:exampleId" element={<APIPlayground />} />
-        <Route path="*" element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />} />
+        <Route
+          path="*"
+          element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />}
+        />
       </Routes>
     </main>
   );

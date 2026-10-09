@@ -57,7 +57,13 @@ export interface CollapseShorthandResult extends ShorthandResult {
   consumed: string[];
 }
 
-const GLOBAL_VALUES = new Set(["inherit", "initial", "unset", "revert", "revert-layer"]);
+const GLOBAL_VALUES = new Set([
+  "inherit",
+  "initial",
+  "unset",
+  "revert",
+  "revert-layer",
+]);
 const normalizeProperty = (property: string) => property.trim().toLowerCase();
 const normalizeDeclarationProperty = (property: string) => {
   const trimmed = property.trim();
@@ -73,7 +79,10 @@ export function isLonghand(property: string): boolean {
 }
 
 export function getLonghands(shorthand: string): string[] {
-  return [...(SHORTHAND_DEFINITIONS[normalizeProperty(shorthand)]?.longhands.keys() ?? [])];
+  return [
+    ...(SHORTHAND_DEFINITIONS[normalizeProperty(shorthand)]?.longhands.keys() ??
+      []),
+  ];
 }
 
 export function getShorthands(longhand: string): string[] {
@@ -107,8 +116,11 @@ export function expandShorthand(
     : shorthandExpandContext;
   const declarations = GLOBAL_VALUES.has(normalizedValue)
     ? Object.fromEntries(
-      [...definition.longhands.keys()].map((longhand) => [longhand, normalizedValue]),
-    )
+        [...definition.longhands.keys()].map((longhand) => [
+          longhand,
+          normalizedValue,
+        ]),
+      )
     : definition.expand(normalizedValue, expandContext);
 
   if (!declarations) return null;
@@ -146,7 +158,9 @@ export function expandShorthands(
       continue;
     }
 
-    for (const [longhand, longhandValue] of Object.entries(expanded.declarations)) {
+    for (const [longhand, longhandValue] of Object.entries(
+      expanded.declarations,
+    )) {
       output[longhand] = longhandValue;
     }
   }
@@ -174,16 +188,19 @@ export function collapseToShorthand(
     options?.customProperties,
     collectCustomProperties(declarations),
   );
-  const collapseContext = customProperties && Object.keys(customProperties).length
-    ? createShorthandCollapseContext(customProperties)
-    : shorthandCollapseContext;
+  const collapseContext =
+    customProperties && Object.keys(customProperties).length
+      ? createShorthandCollapseContext(customProperties)
+      : shorthandCollapseContext;
   const normalized = Object.fromEntries(
     Object.entries(declarations).map(([key, value]) => [
       normalizeDeclarationProperty(key),
       value.trim(),
     ]),
   );
-  const consumed = [...definition.longhands.keys()].filter((longhand) => Object.hasOwn(normalized, longhand));
+  const consumed = [...definition.longhands.keys()].filter((longhand) =>
+    Object.hasOwn(normalized, longhand),
+  );
   if (!consumed.length) return null;
 
   // Validate each authored longhand before considering the shorthand as a whole.
@@ -203,17 +220,26 @@ export function collapseToShorthand(
   const completed = { ...normalized };
   if (options?.fillMissingLonghands !== false) {
     for (const [longhand, initialValue] of definition.longhands) {
-      if (!Object.hasOwn(completed, longhand)) completed[longhand] = initialValue;
+      if (!Object.hasOwn(completed, longhand))
+        completed[longhand] = initialValue;
     }
   }
 
-  const concrete = [...definition.longhands.keys()].map((longhand) => completed[longhand]);
+  const concrete = [...definition.longhands.keys()].map(
+    (longhand) => completed[longhand],
+  );
   const first = concrete[0];
-  const value = first && concrete.every((entry) => entry === first) && GLOBAL_VALUES.has(first)
-    ? first
-    : definition.collapse(completed, collapseContext);
+  const value =
+    first &&
+    concrete.every((entry) => entry === first) &&
+    GLOBAL_VALUES.has(first)
+      ? first
+      : definition.collapse(completed, collapseContext);
   if (!value) return null;
-  if (!GLOBAL_VALUES.has(value) && !collapseContext.matchProperty(property, value)) {
+  if (
+    !GLOBAL_VALUES.has(value) &&
+    !collapseContext.matchProperty(property, value)
+  ) {
     return null;
   }
 
@@ -221,7 +247,10 @@ export function collapseToShorthand(
     property,
     value,
     declarations: Object.fromEntries(
-      [...definition.longhands.keys()].map((longhand) => [longhand, completed[longhand]!]),
+      [...definition.longhands.keys()].map((longhand) => [
+        longhand,
+        completed[longhand]!,
+      ]),
     ),
     consumed,
   };
@@ -263,7 +292,8 @@ export function collapseLonghands(
 
   for (const result of findCollapsibleShorthands(output, scopedOptions)) {
     if (result.consumed.some((property) => consumed.has(property))) continue;
-    if (!result.consumed.every((property) => Object.hasOwn(output, property))) continue;
+    if (!result.consumed.every((property) => Object.hasOwn(output, property)))
+      continue;
     for (const property of result.consumed) {
       delete output[property];
       consumed.add(property);

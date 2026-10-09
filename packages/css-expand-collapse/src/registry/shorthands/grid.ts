@@ -36,7 +36,10 @@ const expand: ShorthandExpander = (value, context) => {
 
   if (leftFlow) {
     const dense = left.includes("dense");
-    const autoRows = left.filter((token) => token !== "auto-flow" && token !== "dense").join(" ") || "auto";
+    const autoRows =
+      left
+        .filter((token) => token !== "auto-flow" && token !== "dense")
+        .join(" ") || "auto";
     const columns = slash[1]!;
     const flow = dense ? "row dense" : "row";
     if (!context.matchProperty("grid-auto-flow", flow)) return null;
@@ -53,7 +56,10 @@ const expand: ShorthandExpander = (value, context) => {
   }
 
   const dense = right.includes("dense");
-  const autoColumns = right.filter((token) => token !== "auto-flow" && token !== "dense").join(" ") || "auto";
+  const autoColumns =
+    right
+      .filter((token) => token !== "auto-flow" && token !== "dense")
+      .join(" ") || "auto";
   const rows = slash[0]!;
   const flow = dense ? "column dense" : "column";
   if (!context.matchProperty("grid-auto-flow", flow)) return null;
@@ -80,27 +86,40 @@ export default {
     const areas = declarations["grid-template-areas"];
     const columns = declarations["grid-template-columns"];
     const rows = declarations["grid-template-rows"];
-    if (!autoColumns || !autoFlow || !autoRows || !areas || !columns || !rows) return null;
+    if (!autoColumns || !autoFlow || !autoRows || !areas || !columns || !rows)
+      return null;
 
     if (autoColumns === "auto" && autoRows === "auto" && autoFlow === "row") {
-      const candidate = gridTemplate.collapse?.({
-        "grid-template-areas": areas,
-        "grid-template-columns": columns,
-        "grid-template-rows": rows,
-      }, context);
-      if (candidate && context.matchProperty("grid", candidate)) return candidate;
+      const candidate = gridTemplate.collapse?.(
+        {
+          "grid-template-areas": areas,
+          "grid-template-columns": columns,
+          "grid-template-rows": rows,
+        },
+        context,
+      );
+      if (candidate && context.matchProperty("grid", candidate))
+        return candidate;
     }
 
     if (areas !== "none") return null;
 
-    if ((autoFlow === "row" || autoFlow === "row dense") && rows === "none" && autoColumns === "auto") {
+    if (
+      (autoFlow === "row" || autoFlow === "row dense") &&
+      rows === "none" &&
+      autoColumns === "auto"
+    ) {
       const dense = autoFlow.includes("dense") ? " dense" : "";
       const auto = autoRows === "auto" ? "" : ` ${autoRows}`;
       const candidate = `auto-flow${dense}${auto} / ${columns}`;
       return context.matchProperty("grid", candidate) ? candidate : null;
     }
 
-    if ((autoFlow === "column" || autoFlow === "column dense") && columns === "none" && autoRows === "auto") {
+    if (
+      (autoFlow === "column" || autoFlow === "column dense") &&
+      columns === "none" &&
+      autoRows === "auto"
+    ) {
       const dense = autoFlow.includes("dense") ? " dense" : "";
       const auto = autoColumns === "auto" ? "" : ` ${autoColumns}`;
       const candidate = `${rows} / auto-flow${dense}${auto}`;

@@ -9,14 +9,17 @@ const longhands = new Map([
 const longhandNames = [...longhands.keys()];
 
 function omittedValue(start: string): string {
-  return /^-?[_a-zA-Z][-_a-zA-Z0-9]*$/.test(start) && start !== "auto" && start !== "span"
+  return /^-?[_a-zA-Z][-_a-zA-Z0-9]*$/.test(start) &&
+    start !== "auto" &&
+    start !== "span"
     ? start
     : "auto";
 }
 
 const expand: ShorthandExpander = (value, context) => {
   const parts = context.splitSlash(value);
-  if (!parts.length || parts.length > 4 || parts.some((part) => !part)) return null;
+  if (!parts.length || parts.length > 4 || parts.some((part) => !part))
+    return null;
 
   const rowStart = parts[0]!;
   const columnStart = parts[1] ?? omittedValue(rowStart);
@@ -24,11 +27,18 @@ const expand: ShorthandExpander = (value, context) => {
   const columnEnd = parts[3] ?? omittedValue(columnStart);
   const values = [rowStart, columnStart, rowEnd, columnEnd] as const;
 
-  if (values.some((candidate, index) => !context.matchProperty(longhandNames[index]!, candidate))) {
+  if (
+    values.some(
+      (candidate, index) =>
+        !context.matchProperty(longhandNames[index]!, candidate),
+    )
+  ) {
     return null;
   }
 
-  return Object.fromEntries(longhandNames.map((longhand, index) => [longhand, values[index]!])) as Record<string, string>;
+  return Object.fromEntries(
+    longhandNames.map((longhand, index) => [longhand, values[index]!]),
+  ) as Record<string, string>;
 };
 
 export default {

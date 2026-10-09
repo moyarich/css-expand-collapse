@@ -1,4 +1,8 @@
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["mask-border-mode", "alpha"],
@@ -14,7 +18,8 @@ const initialValues = [...longhands.values()];
 const expand: ShorthandExpander = (value, context) => {
   if (!context.matchProperty("mask-border", value)) return null;
   const parts = context.splitSlash(value);
-  if (!parts.length || parts.length > 3 || parts.some((part) => !part)) return null;
+  if (!parts.length || parts.length > 3 || parts.some((part) => !part))
+    return null;
 
   const result: DeclarationMap = Object.fromEntries(
     longhandNames.map((longhand, index) => [longhand, initialValues[index]!]),
@@ -22,23 +27,27 @@ const expand: ShorthandExpander = (value, context) => {
   const repeatTokens: string[] = [];
   let modeAssigned = false;
 
-  const stripMetadata = (tokens: string[]) => tokens.filter((token) => {
-    if (context.matchProperty("mask-border-repeat", token)) {
-      repeatTokens.push(token);
-      return false;
-    }
-    if (!modeAssigned && context.matchProperty("mask-border-mode", token)) {
-      result["mask-border-mode"] = token;
-      modeAssigned = true;
-      return false;
-    }
-    return true;
-  });
+  const stripMetadata = (tokens: string[]) =>
+    tokens.filter((token) => {
+      if (context.matchProperty("mask-border-repeat", token)) {
+        repeatTokens.push(token);
+        return false;
+      }
+      if (!modeAssigned && context.matchProperty("mask-border-mode", token)) {
+        result["mask-border-mode"] = token;
+        modeAssigned = true;
+        return false;
+      }
+      return true;
+    });
 
   const first = stripMetadata(context.splitWhitespace(parts[0]!));
   const sliceTokens: string[] = [];
   for (const token of first) {
-    if (result["mask-border-source"] === initialValues[4] && context.matchProperty("mask-border-source", token)) {
+    if (
+      result["mask-border-source"] === initialValues[4] &&
+      context.matchProperty("mask-border-source", token)
+    ) {
       result["mask-border-source"] = token;
     } else {
       sliceTokens.push(token);

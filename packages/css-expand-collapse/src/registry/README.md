@@ -7,7 +7,10 @@ export interface ShorthandModule {
   readonly longhands: LonghandMap;
   readonly expand: ShorthandExpander;
   readonly collapse: ShorthandCollapser;
-  readonly equivalentLonghandValues?: ReadonlyMap<string, LonghandValueEquivalence>;
+  readonly equivalentLonghandValues?: ReadonlyMap<
+    string,
+    LonghandValueEquivalence
+  >;
   readonly safeToDropWhenFullyShadowed?: boolean;
 }
 ```
@@ -81,9 +84,7 @@ const expand: ShorthandExpander = (value, context) => {
 
 const collapse: ShorthandCollapser = (declarations, context) => {
   const candidate = buildCandidate(declarations);
-  return context.matchProperty("example", candidate)
-    ? candidate
-    : null;
+  return context.matchProperty("example", candidate) ? candidate : null;
 };
 
 export default {

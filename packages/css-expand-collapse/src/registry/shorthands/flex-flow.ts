@@ -1,6 +1,10 @@
 import { collapseComponents } from "../collapsers.js";
 
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["flex-direction", "row"],
@@ -11,7 +15,10 @@ const expandPure: ShorthandExpander = (value, context) => {
   const tokens = context.splitWhitespace(value);
   if (tokens.length < 1 || tokens.length > 2) return null;
 
-  const result: DeclarationMap = { "flex-direction": "row", "flex-wrap": "nowrap" };
+  const result: DeclarationMap = {
+    "flex-direction": "row",
+    "flex-wrap": "nowrap",
+  };
   for (const token of tokens) {
     const direction = context.matchProperty("flex-direction", token);
     const wrap = context.matchProperty("flex-wrap", token);

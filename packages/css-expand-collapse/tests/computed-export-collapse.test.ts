@@ -45,7 +45,9 @@ describe("computed export shorthand collapse", () => {
       }
     `);
 
-    expect(css).toContain("transition:translate 0.2s ease-out,scale 0.2s ease-out");
+    expect(css).toContain(
+      "transition:translate 0.2s ease-out,scale 0.2s ease-out",
+    );
     expect(css).not.toContain("transition-property");
     expect(css).not.toContain("transition-duration");
     expect(css).not.toContain("transition-timing-function");

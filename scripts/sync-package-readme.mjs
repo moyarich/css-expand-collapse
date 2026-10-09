@@ -29,10 +29,7 @@ Examples:
   )
   .parse();
 
-const {
-  packageDirectory,
-  clean,
-} = program.opts();
+const { packageDirectory, clean } = program.opts();
 
 if (!packageDirectory.startsWith("packages/")) {
   program.error(

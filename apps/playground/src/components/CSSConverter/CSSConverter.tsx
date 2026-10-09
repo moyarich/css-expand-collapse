@@ -21,18 +21,21 @@ const QUOTATIONMARK = 0x0022;
 const APOSTROPHE = 0x0027;
 const LEFTPARENTHESIS = 0x0028;
 const RIGHTPARENTHESIS = 0x0029;
-const COLON = 0x003A;
-const SEMICOLON = 0x003B;
-const LEFTCURLYBRACKET = 0x007B;
-const REVERSESOLIDUS = 0x005C;
-const RIGHTCURLYBRACKET = 0x007D;
-const CSS_WHITESPACE = new Set([0x0009, 0x000A, 0x000C, 0x000D, 0x0020]);
+const COLON = 0x003a;
+const SEMICOLON = 0x003b;
+const LEFTCURLYBRACKET = 0x007b;
+const REVERSESOLIDUS = 0x005c;
+const RIGHTCURLYBRACKET = 0x007d;
+const CSS_WHITESPACE = new Set([0x0009, 0x000a, 0x000c, 0x000d, 0x0020]);
 
-const MODE_META: Record<Mode, {
-  label: string;
-  inputLabel: string;
-  outputLabel: string;
-}> = {
+const MODE_META: Record<
+  Mode,
+  {
+    label: string;
+    inputLabel: string;
+    outputLabel: string;
+  }
+> = {
   expand: {
     label: "Expand",
     inputLabel: "Shorthand CSS",
@@ -139,7 +142,12 @@ function formatCss(css: string, inputKind: InputKind): string {
       continue;
     }
 
-    if (pendingSpace && output && !output.endsWith("\n") && !output.endsWith(" ")) {
+    if (
+      pendingSpace &&
+      output &&
+      !output.endsWith("\n") &&
+      !output.endsWith(" ")
+    ) {
       output += " ";
     }
     pendingSpace = false;
@@ -178,7 +186,9 @@ export function CSSConverter() {
 
   useEffect(() => {
     if (!routeExample) {
-      navigate(`/converter/${DEFAULT_CSS_CONVERTER_EXAMPLE.key}`, { replace: true });
+      navigate(`/converter/${DEFAULT_CSS_CONVERTER_EXAMPLE.key}`, {
+        replace: true,
+      });
       return;
     }
 
@@ -194,15 +204,17 @@ export function CSSConverter() {
     [mode],
   );
   const modeGroups = useMemo(
-    () => CSS_CONVERTER_GROUPS.filter((group) =>
-      modeExamples.some((example) => example.group === group),
-    ),
+    () =>
+      CSS_CONVERTER_GROUPS.filter((group) =>
+        modeExamples.some((example) => example.group === group),
+      ),
     [modeExamples],
   );
   const inputKind = useMemo<InputKind>(
-    () => source.indexOf(String.fromCharCode(LEFTCURLYBRACKET)) === -1
-      ? "declarations"
-      : "stylesheet",
+    () =>
+      source.indexOf(String.fromCharCode(LEFTCURLYBRACKET)) === -1
+        ? "declarations"
+        : "stylesheet",
     [source],
   );
 
@@ -211,13 +223,14 @@ export function CSSConverter() {
       const collapseOptions = fillMissingLonghands
         ? { fillMissingLonghands: "initial" as const }
         : undefined;
-      const css = inputKind === "declarations"
-        ? mode === "expand"
-          ? expandDeclarations(source)
-          : collapseDeclarations(source, collapseOptions)
-        : mode === "expand"
-          ? expandCss(source)
-          : collapseCss(source, collapseOptions);
+      const css =
+        inputKind === "declarations"
+          ? mode === "expand"
+            ? expandDeclarations(source)
+            : collapseDeclarations(source, collapseOptions)
+          : mode === "expand"
+            ? expandCss(source)
+            : collapseCss(source, collapseOptions);
 
       return { css: formatCss(css, inputKind), error: "" };
     } catch (error) {
@@ -229,7 +242,9 @@ export function CSSConverter() {
   }, [source, mode, inputKind, fillMissingLonghands]);
 
   const loadExample = (selection: string) => {
-    const example = CSS_CONVERTER_EXAMPLES.find((item) => item.key === selection);
+    const example = CSS_CONVERTER_EXAMPLES.find(
+      (item) => item.key === selection,
+    );
     if (!example) return;
 
     navigate(`/converter/${example.key}`);
@@ -264,7 +279,9 @@ export function CSSConverter() {
                 loadExample(event.target.value);
               }}
             >
-              <option value="" disabled>Choose an example…</option>
+              <option value="" disabled>
+                Choose an example…
+              </option>
               {modeGroups.map((group) => (
                 <optgroup
                   key={group}
@@ -308,13 +325,17 @@ export function CSSConverter() {
 
           <section className="sidebar-section options-section">
             <span className="sidebar-section-label">Options</span>
-            <label className={`switch-control ${mode !== "collapse" ? "disabled" : ""}`}>
+            <label
+              className={`switch-control ${mode !== "collapse" ? "disabled" : ""}`}
+            >
               <input
                 type="checkbox"
                 role="switch"
                 disabled={mode !== "collapse"}
                 checked={fillMissingLonghands}
-                onChange={(event) => setFillMissingLonghands(event.target.checked)}
+                onChange={(event) =>
+                  setFillMissingLonghands(event.target.checked)
+                }
               />
               <span className="switch-track" aria-hidden="true">
                 <span className="switch-thumb" />
@@ -336,7 +357,10 @@ export function CSSConverter() {
             <div className="panel-header">
               <div>
                 <h2>Source</h2>
-                <p>{meta.inputLabel} · {inputKind === "stylesheet" ? "Stylesheet" : "Declarations"}</p>
+                <p>
+                  {meta.inputLabel} ·{" "}
+                  {inputKind === "stylesheet" ? "Stylesheet" : "Declarations"}
+                </p>
               </div>
             </div>
 
@@ -349,7 +373,9 @@ export function CSSConverter() {
                   setSource(value ?? "");
                   setCopied(false);
                 }}
-                loading={<div className="editor-loading">Loading CSS editor…</div>}
+                loading={
+                  <div className="editor-loading">Loading CSS editor…</div>
+                }
                 options={{
                   ariaLabel: `${meta.inputLabel} input`,
                 }}
@@ -397,7 +423,9 @@ export function CSSConverter() {
                   path="output.css"
                   language="css"
                   value={result.css}
-                  loading={<div className="editor-loading">Loading CSS editor…</div>}
+                  loading={
+                    <div className="editor-loading">Loading CSS editor…</div>
+                  }
                   options={{
                     ariaLabel: `${meta.outputLabel} output`,
                     readOnly: true,
@@ -407,7 +435,9 @@ export function CSSConverter() {
                 />
               </div>
             ) : (
-              <div className="empty-state">Start typing CSS to see the transformed result.</div>
+              <div className="empty-state">
+                Start typing CSS to see the transformed result.
+              </div>
             )}
           </article>
         </section>

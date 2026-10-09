@@ -23,7 +23,6 @@ The two workspaces are:
 
 The playground consumes package source directly during development, so the library does not need to be built before starting it.
 
-
 ## Package README source of truth
 
 [`README.md`](../README.md) at the repository root is the **single source of truth** for the published package README.
@@ -311,7 +310,10 @@ export interface ShorthandModule {
   readonly longhands: LonghandMap;
   readonly expand: ShorthandExpander;
   readonly collapse: ShorthandCollapser;
-  readonly equivalentLonghandValues?: ReadonlyMap<string, LonghandValueEquivalence>;
+  readonly equivalentLonghandValues?: ReadonlyMap<
+    string,
+    LonghandValueEquivalence
+  >;
   readonly safeToDropWhenFullyShadowed?: boolean;
 }
 ```
@@ -398,9 +400,7 @@ A property-specific module should validate the shorthand candidate with CSSTree 
 ```ts
 const collapse: ShorthandCollapser = (declarations, context) => {
   const candidate = buildCandidate(declarations);
-  return context.matchProperty("example", candidate)
-    ? candidate
-    : null;
+  return context.matchProperty("example", candidate) ? candidate : null;
 };
 ```
 

@@ -1,5 +1,9 @@
 import { splitTopLevelComma } from "../context.js";
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["transition-property", "all"],
@@ -26,12 +30,18 @@ const expand: ShorthandExpander = (value, context) => {
     let timeCount = 0;
 
     for (const token of context.splitWhitespace(layer)) {
-      if (!timingAssigned && context.matchProperty("transition-timing-function", token)) {
+      if (
+        !timingAssigned &&
+        context.matchProperty("transition-timing-function", token)
+      ) {
         result["transition-timing-function"] = token;
         timingAssigned = true;
         continue;
       }
-      if (!behaviorAssigned && context.matchProperty("transition-behavior", token)) {
+      if (
+        !behaviorAssigned &&
+        context.matchProperty("transition-behavior", token)
+      ) {
         result["transition-behavior"] = token;
         behaviorAssigned = true;
         continue;
@@ -43,7 +53,10 @@ const expand: ShorthandExpander = (value, context) => {
         timeCount += 1;
         continue;
       }
-      if (!propertyAssigned && context.matchProperty("transition-property", token)) {
+      if (
+        !propertyAssigned &&
+        context.matchProperty("transition-property", token)
+      ) {
         result["transition-property"] = token;
         propertyAssigned = true;
         continue;
@@ -55,7 +68,10 @@ const expand: ShorthandExpander = (value, context) => {
   }
 
   return Object.fromEntries(
-    longhandNames.map((longhand) => [longhand, expanded.map((layer) => layer[longhand]).join(", ")]),
+    longhandNames.map((longhand) => [
+      longhand,
+      expanded.map((layer) => layer[longhand]).join(", "),
+    ]),
   );
 };
 
@@ -64,12 +80,16 @@ export default {
   safeToDropWhenFullyShadowed: false,
   expand,
   collapse(declarations, context) {
-    const values = longhandNames.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
+    const values = longhandNames.map((longhand) =>
+      splitTopLevelComma(declarations[longhand] ?? ""),
+    );
     const count = values[0]?.length ?? 0;
     if (!count || values.some((layers) => layers.length !== count)) return null;
 
-    const candidate = Array.from({ length: count }, (_, index) =>
-      `${values[0]![index]} ${values[1]![index]} ${values[2]![index]} ${values[3]![index]} ${values[4]![index]}`,
+    const candidate = Array.from(
+      { length: count },
+      (_, index) =>
+        `${values[0]![index]} ${values[1]![index]} ${values[2]![index]} ${values[3]![index]} ${values[4]![index]}`,
     ).join(", ");
     return context.matchProperty("transition", candidate) ? candidate : null;
   },

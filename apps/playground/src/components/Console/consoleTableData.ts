@@ -12,9 +12,7 @@ function wrapValue(value: unknown) {
 
 export function normalizeConsoleTableData(data: unknown): unknown {
   if (Array.isArray(data)) {
-    return allRowsAreRecords(data)
-      ? data
-      : data.map(wrapValue);
+    return allRowsAreRecords(data) ? data : data.map(wrapValue);
   }
 
   if (isTableRecord(data)) {

@@ -32,7 +32,10 @@ export interface ShorthandModule {
   readonly expand: ShorthandExpander;
   readonly collapse: ShorthandCollapser;
   /** Property-specific equivalence rules for alternate longhand serializations. */
-  readonly equivalentLonghandValues?: ReadonlyMap<string, LonghandValueEquivalence>;
+  readonly equivalentLonghandValues?: ReadonlyMap<
+    string,
+    LonghandValueEquivalence
+  >;
   /** False when a shorthand has cascade/reset effects beyond its registered longhands. */
   readonly safeToDropWhenFullyShadowed?: boolean;
 }

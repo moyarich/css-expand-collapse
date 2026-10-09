@@ -1,7 +1,4 @@
-function normalizeConsoleValue(
-  value: unknown,
-  seen: WeakSet<object>,
-): unknown {
+function normalizeConsoleValue(value: unknown, seen: WeakSet<object>): unknown {
   if (typeof value === "bigint") return `${value}n`;
   if (typeof value === "function") {
     return `[Function ${value.name || "anonymous"}]`;

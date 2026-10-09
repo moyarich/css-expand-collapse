@@ -13,6 +13,11 @@
     "build:lib": "npm run build --workspace @moyarich/css-expand-collapse",
     "build:playground": "npm run build --workspace @moyarich/css-expand-collapse-playground",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "checks": "npm run format && npm run lint && npm run typecheck",
     "test": "npm run test --workspaces --if-present",
     "test:watch": "npm run test:watch --workspace @moyarich/css-expand-collapse",
     "pack:lib": "npm pack --workspace @moyarich/css-expand-collapse --dry-run",
@@ -29,7 +34,15 @@
     "url": "git+https://github.com/moyarich/css-expand-collapse.git"
   },
   "devDependencies": {
-    "commander": "^15.0.0"
+    "commander": "^15.0.0",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "typescript-eslint": "^8.70.0",
+    "lint-staged": "^17.5.1",
+    "prettier": "^3.9.8",
+    "globals": "^17.12.0"
   },
   "bin": {
     "workspace-release": "./scripts/version.mjs",

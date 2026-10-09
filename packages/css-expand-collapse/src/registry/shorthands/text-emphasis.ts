@@ -21,10 +21,16 @@ const expand: ShorthandExpander = (value, context) => {
   for (let split = 1; split < tokens.length; split += 1) {
     const left = tokens.slice(0, split).join(" ");
     const right = tokens.slice(split).join(" ");
-    if (context.matchProperty(longhandNames[0], left) && context.matchProperty(longhandNames[1], right)) {
+    if (
+      context.matchProperty(longhandNames[0], left) &&
+      context.matchProperty(longhandNames[1], right)
+    ) {
       return { [longhandNames[0]]: left, [longhandNames[1]]: right };
     }
-    if (context.matchProperty(longhandNames[1], left) && context.matchProperty(longhandNames[0], right)) {
+    if (
+      context.matchProperty(longhandNames[1], left) &&
+      context.matchProperty(longhandNames[0], right)
+    ) {
       return { [longhandNames[0]]: right, [longhandNames[1]]: left };
     }
   }
@@ -45,6 +51,10 @@ export default {
       color === initialValues[1] ? style : "",
       style === initialValues[0] ? color : "",
     ].filter(Boolean);
-    return candidates.find((candidate) => context.matchProperty("text-emphasis", candidate)) ?? null;
+    return (
+      candidates.find((candidate) =>
+        context.matchProperty("text-emphasis", candidate),
+      ) ?? null
+    );
   },
 } satisfies ShorthandModule;

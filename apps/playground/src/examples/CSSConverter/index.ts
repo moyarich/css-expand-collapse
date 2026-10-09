@@ -27,23 +27,26 @@ const metadataModules = import.meta.glob("./*/*/meta.json", {
   eager: true,
 }) as Record<string, CSSConverterExampleMeta>;
 
-export const CSS_CONVERTER_EXAMPLES: readonly CSSConverterExample[] = Object.entries(metadataModules)
-  .map(([path, metadata]) => {
-    const parts = path.split("/");
-    const mode = parts.at(-3) as CSSConverterMode;
-    const id = parts.at(-2)!;
-    const key = `${mode}/${id}`;
-    const source = sourceModules[`./${mode}/${id}/source.css`];
+export const CSS_CONVERTER_EXAMPLES: readonly CSSConverterExample[] =
+  Object.entries(metadataModules)
+    .map(([path, metadata]) => {
+      const parts = path.split("/");
+      const mode = parts.at(-3) as CSSConverterMode;
+      const id = parts.at(-2)!;
+      const key = `${mode}/${id}`;
+      const source = sourceModules[`./${mode}/${id}/source.css`];
 
-    if (mode !== "expand" && mode !== "collapse") {
-      throw new Error(`Invalid CSS converter example mode: ${mode}`);
-    }
-    if (!source) throw new Error(`Missing source.css for CSS converter example: ${key}`);
-    if (metadata.id !== id) throw new Error(`CSS converter metadata id mismatch: ${key}`);
+      if (mode !== "expand" && mode !== "collapse") {
+        throw new Error(`Invalid CSS converter example mode: ${mode}`);
+      }
+      if (!source)
+        throw new Error(`Missing source.css for CSS converter example: ${key}`);
+      if (metadata.id !== id)
+        throw new Error(`CSS converter metadata id mismatch: ${key}`);
 
-    return { ...metadata, key, mode, source };
-  })
-  .sort((a, b) => a.order - b.order);
+      return { ...metadata, key, mode, source };
+    })
+    .sort((a, b) => a.order - b.order);
 
 const groupOrder = new Map<string, number>();
 for (const example of CSS_CONVERTER_EXAMPLES) {

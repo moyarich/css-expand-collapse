@@ -1,5 +1,9 @@
 import { splitTopLevelComma } from "../context.js";
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["mask-clip", "border-box"],
@@ -14,7 +18,10 @@ const longhands = new Map([
 const longhandNames = [...longhands.keys()];
 const initialValues = [...longhands.values()];
 
-function parseLayer(layer: string, context: Parameters<ShorthandExpander>[1]): DeclarationMap | null {
+function parseLayer(
+  layer: string,
+  context: Parameters<ShorthandExpander>[1],
+): DeclarationMap | null {
   const slash = context.splitSlash(layer);
   if (slash.length > 2 || slash.some((part) => !part)) return null;
 
@@ -111,7 +118,10 @@ const expand: ShorthandExpander = (value, context) => {
   if (!layers.length || parsed.some((layer) => !layer)) return null;
   const concrete = parsed as DeclarationMap[];
   return Object.fromEntries(
-    longhandNames.map((longhand) => [longhand, concrete.map((layer) => layer[longhand]).join(", ")]),
+    longhandNames.map((longhand) => [
+      longhand,
+      concrete.map((layer) => layer[longhand]).join(", "),
+    ]),
   );
 };
 
@@ -120,21 +130,25 @@ export default {
   safeToDropWhenFullyShadowed: false,
   expand,
   collapse(declarations, context) {
-    const values = longhandNames.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
+    const values = longhandNames.map((longhand) =>
+      splitTopLevelComma(declarations[longhand] ?? ""),
+    );
     const count = values[0]?.length ?? 0;
     if (!count || values.some((layers) => layers.length !== count)) return null;
 
-    const candidate = Array.from({ length: count }, (_, index) => [
-      values[2]![index],
-      values[3]![index],
-      values[5]![index],
-      "/",
-      values[7]![index],
-      values[6]![index],
-      values[4]![index],
-      values[0]![index],
-      values[1]![index],
-    ].join(" ")).join(", ");
+    const candidate = Array.from({ length: count }, (_, index) =>
+      [
+        values[2]![index],
+        values[3]![index],
+        values[5]![index],
+        "/",
+        values[7]![index],
+        values[6]![index],
+        values[4]![index],
+        values[0]![index],
+        values[1]![index],
+      ].join(" "),
+    ).join(", ");
 
     return context.matchProperty("mask", candidate) ? candidate : null;
   },

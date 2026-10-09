@@ -43,7 +43,7 @@ function skipComment(source: string, index: number): number {
 function findVarFunction(source: string, start: number): number {
   for (let index = start; index <= source.length - 4; index += 1) {
     const char = source[index]!;
-    if (char === "\"" || char === "'") {
+    if (char === '"' || char === "'") {
       index = skipQuoted(source, index);
       continue;
     }
@@ -67,7 +67,7 @@ function findClosingParenthesis(source: string, openIndex: number): number {
 
   for (let index = openIndex + 1; index < source.length; index += 1) {
     const char = source[index]!;
-    if (char === "\"" || char === "'") {
+    if (char === '"' || char === "'") {
       index = skipQuoted(source, index);
       continue;
     }
@@ -93,7 +93,7 @@ function splitVarArguments(source: string): {
 
   for (let index = 0; index < source.length; index += 1) {
     const char = source[index]!;
-    if (char === "\"" || char === "'") {
+    if (char === '"' || char === "'") {
       index = skipQuoted(source, index);
       continue;
     }
@@ -178,7 +178,9 @@ function resolveText(
     const close = findClosingParenthesis(source, start + 3);
     if (close === -1) return null;
 
-    const { name, fallback } = splitVarArguments(source.slice(start + 4, close));
+    const { name, fallback } = splitVarArguments(
+      source.slice(start + 4, close),
+    );
     if (!name.startsWith("--")) return null;
 
     const hasValue = Object.hasOwn(customProperties, name);
@@ -186,7 +188,9 @@ function resolveText(
 
     if (hasValue && !stack.has(name)) {
       const rawValue = customProperties[name]!;
-      const isCssWideKeyword = CSS_WIDE_KEYWORDS.has(rawValue.trim().toLowerCase());
+      const isCssWideKeyword = CSS_WIDE_KEYWORDS.has(
+        rawValue.trim().toLowerCase(),
+      );
 
       if (!isCssWideKeyword) {
         stack.add(name);

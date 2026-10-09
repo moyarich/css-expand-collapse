@@ -1,4 +1,8 @@
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["offset-anchor", "auto"],
@@ -10,7 +14,11 @@ const longhands = new Map([
 const longhandNames = [...longhands.keys()];
 const initialValues = [...longhands.values()];
 
-function parseTail(tokens: string[], context: Parameters<ShorthandExpander>[1], result: DeclarationMap): boolean {
+function parseTail(
+  tokens: string[],
+  context: Parameters<ShorthandExpander>[1],
+  result: DeclarationMap,
+): boolean {
   if (!tokens.length) return true;
   const whole = tokens.join(" ");
   if (context.matchProperty("offset-rotate", whole)) {
@@ -25,12 +33,18 @@ function parseTail(tokens: string[], context: Parameters<ShorthandExpander>[1], 
   for (let split = 1; split < tokens.length; split += 1) {
     const left = tokens.slice(0, split).join(" ");
     const right = tokens.slice(split).join(" ");
-    if (context.matchProperty("offset-distance", left) && context.matchProperty("offset-rotate", right)) {
+    if (
+      context.matchProperty("offset-distance", left) &&
+      context.matchProperty("offset-rotate", right)
+    ) {
       result["offset-distance"] = left;
       result["offset-rotate"] = right;
       return true;
     }
-    if (context.matchProperty("offset-rotate", left) && context.matchProperty("offset-distance", right)) {
+    if (
+      context.matchProperty("offset-rotate", left) &&
+      context.matchProperty("offset-distance", right)
+    ) {
       result["offset-rotate"] = left;
       result["offset-distance"] = right;
       return true;

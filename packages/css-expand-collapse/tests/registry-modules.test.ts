@@ -9,7 +9,9 @@ import { SHORTHAND_MODULES } from "../src/registry/index.js";
 
 describe("per-shorthand registry", () => {
   it("derives a unique property list from shorthand module filenames", () => {
-    expect(new Set(SHORTHAND_PROPERTIES).size).toBe(SHORTHAND_PROPERTIES.length);
+    expect(new Set(SHORTHAND_PROPERTIES).size).toBe(
+      SHORTHAND_PROPERTIES.length,
+    );
     expect(SHORTHAND_PROPERTIES).toContain("margin");
     expect(SHORTHAND_PROPERTIES).toContain("background");
     expect(SHORTHAND_PROPERTIES).toContain("all");
@@ -18,8 +20,16 @@ describe("per-shorthand registry", () => {
   it("requires every shorthand file to own expand and collapse behavior", () => {
     for (const module of Object.values(SHORTHAND_MODULES)) {
       expect(module.longhands).toBeInstanceOf(Map);
-      expect([...module.longhands.keys()].every((value) => typeof value === "string")).toBe(true);
-      expect([...module.longhands.values()].every((value) => typeof value === "string")).toBe(true);
+      expect(
+        [...module.longhands.keys()].every(
+          (value) => typeof value === "string",
+        ),
+      ).toBe(true);
+      expect(
+        [...module.longhands.values()].every(
+          (value) => typeof value === "string",
+        ),
+      ).toBe(true);
       expect("initialValues" in module).toBe(false);
       expect(typeof module.expand).toBe("function");
       expect(typeof module.collapse).toBe("function");

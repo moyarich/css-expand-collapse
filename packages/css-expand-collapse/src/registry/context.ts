@@ -9,19 +9,19 @@ import type {
   ShorthandExpandContext,
 } from "./module.js";
 
-const TAB = 0x0009;                // U+0009  -  \t
-const LINEFEED = 0x000a;           // U+000A  -  \n
-const FORMFEED = 0x000c;           // U+000C  -  \f
-const CARRIAGERETURN = 0x000d;     // U+000D  -  \r
-const SPACE = 0x0020;              // U+0020  -  space
-const QUOTATIONMARK = 0x0022;      // U+0022  -  "
-const APOSTROPHE = 0x0027;         // U+0027  -  '
-const LEFTPARENTHESIS = 0x0028;    // U+0028  -  (
-const RIGHTPARENTHESIS = 0x0029;   // U+0029  -  )
-const COMMA = 0x002c;              // U+002C  -  ,
-const SOLIDUS = 0x002f;            // U+002F  -  /
-const LEFTSQUAREBRACKET = 0x005b;  // U+005B  -  [
-const REVERSESOLIDUS = 0x005c;     // U+005C  -  \
+const TAB = 0x0009; // U+0009  -  \t
+const LINEFEED = 0x000a; // U+000A  -  \n
+const FORMFEED = 0x000c; // U+000C  -  \f
+const CARRIAGERETURN = 0x000d; // U+000D  -  \r
+const SPACE = 0x0020; // U+0020  -  space
+const QUOTATIONMARK = 0x0022; // U+0022  -  "
+const APOSTROPHE = 0x0027; // U+0027  -  '
+const LEFTPARENTHESIS = 0x0028; // U+0028  -  (
+const RIGHTPARENTHESIS = 0x0029; // U+0029  -  )
+const COMMA = 0x002c; // U+002C  -  ,
+const SOLIDUS = 0x002f; // U+002F  -  /
+const LEFTSQUAREBRACKET = 0x005b; // U+005B  -  [
+const REVERSESOLIDUS = 0x005c; // U+005C  -  \
 const RIGHTSQUAREBRACKET = 0x005d; // U+005D  -  ]
 
 /**
@@ -135,9 +135,7 @@ function splitTopLevel(
     const isSeparator =
       parenDepth === 0 &&
       bracketDepth === 0 &&
-      (separatorCode === null
-        ? isCssWhitespace(code)
-        : code === separatorCode);
+      (separatorCode === null ? isCssWhitespace(code) : code === separatorCode);
 
     if (isSeparator) {
       pushCurrent();

@@ -7,10 +7,10 @@ import {
 
 describe("CSSTree runtime-neutral shorthands", () => {
   it("expands a multi-layer background without CSSOM", () => {
-    expect(expandShorthand(
-      "background",
-      "url(a.png) center / cover no-repeat, red",
-    )?.declarations).toEqual({
+    expect(
+      expandShorthand("background", "url(a.png) center / cover no-repeat, red")
+        ?.declarations,
+    ).toEqual({
       "background-image": "url(a.png), none",
       "background-position": "center, 0% 0%",
       "background-size": "cover, auto auto",
@@ -23,7 +23,9 @@ describe("CSSTree runtime-neutral shorthands", () => {
   });
 
   it("expands transition layers without a DOM", () => {
-    expect(expandShorthand("transition", "opacity 200ms ease 50ms")?.declarations).toEqual({
+    expect(
+      expandShorthand("transition", "opacity 200ms ease 50ms")?.declarations,
+    ).toEqual({
       "transition-property": "opacity",
       "transition-duration": "200ms",
       "transition-timing-function": "ease",
@@ -34,7 +36,8 @@ describe("CSSTree runtime-neutral shorthands", () => {
 
   it("expands animation and resets animation-timeline", () => {
     expect(
-      expandShorthand("animation", "fade 200ms ease 50ms 2 reverse both paused")?.declarations,
+      expandShorthand("animation", "fade 200ms ease 50ms 2 reverse both paused")
+        ?.declarations,
     ).toEqual({
       "animation-name": "fade",
       "animation-duration": "200ms",
@@ -50,7 +53,8 @@ describe("CSSTree runtime-neutral shorthands", () => {
 
   it("expands explicit font shorthand without browser CSSOM", () => {
     expect(
-      expandShorthand("font", 'italic 700 16px/1.5 "Open Sans", sans-serif')?.declarations,
+      expandShorthand("font", 'italic 700 16px/1.5 "Open Sans", sans-serif')
+        ?.declarations,
     ).toEqual({
       "font-family": '"Open Sans", sans-serif',
       "font-size": "16px",
@@ -63,7 +67,9 @@ describe("CSSTree runtime-neutral shorthands", () => {
   });
 
   it("expands grid auto-flow without browser CSSOM", () => {
-    expect(expandShorthand("grid", "auto-flow 100px / 1fr 1fr")?.declarations).toEqual({
+    expect(
+      expandShorthand("grid", "auto-flow 100px / 1fr 1fr")?.declarations,
+    ).toEqual({
       "grid-auto-columns": "auto",
       "grid-auto-flow": "row",
       "grid-auto-rows": "100px",
@@ -74,7 +80,9 @@ describe("CSSTree runtime-neutral shorthands", () => {
   });
 
   it("supports elliptical border-radius without CSSOM fallback", () => {
-    expect(expandShorthand("border-radius", "10px 20px / 30px 40px")?.declarations).toEqual({
+    expect(
+      expandShorthand("border-radius", "10px 20px / 30px 40px")?.declarations,
+    ).toEqual({
       "border-top-left-radius": "10px 30px",
       "border-top-right-radius": "20px 40px",
       "border-bottom-right-radius": "10px 30px",
@@ -92,8 +100,9 @@ describe("CSSTree runtime-neutral shorthands", () => {
     });
     expect(collapsed?.property).toBe("transition");
     expect(collapsed?.value).toBeTruthy();
-    expect(expandShorthand("transition", collapsed!.value)?.declarations)
-      .toEqual(collapsed!.declarations);
+    expect(
+      expandShorthand("transition", collapsed!.value)?.declarations,
+    ).toEqual(collapsed!.declarations);
   });
 
   it("reports complex shorthands as supported transforms", () => {

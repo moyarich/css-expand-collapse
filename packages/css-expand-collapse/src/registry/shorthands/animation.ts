@@ -1,5 +1,9 @@
 import { splitTopLevelComma } from "../context.js";
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["animation-name", "none"],
@@ -45,7 +49,8 @@ const expand: ShorthandExpander = (value, context) => {
         "animation-name",
       ] as const;
       const property = priority.find(
-        (candidate) => !assigned.has(candidate) && context.matchProperty(candidate, token),
+        (candidate) =>
+          !assigned.has(candidate) && context.matchProperty(candidate, token),
       );
       if (!property) return null;
       result[property] = token;
@@ -59,7 +64,10 @@ const expand: ShorthandExpander = (value, context) => {
   }
 
   return Object.fromEntries(
-    longhandNames.map((longhand) => [longhand, expanded.map((layer) => layer[longhand]).join(", ")]),
+    longhandNames.map((longhand) => [
+      longhand,
+      expanded.map((layer) => layer[longhand]).join(", "),
+    ]),
   );
 };
 
@@ -68,21 +76,25 @@ export default {
   safeToDropWhenFullyShadowed: false,
   expand,
   collapse(declarations, context) {
-    const values = longhandNames.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
+    const values = longhandNames.map((longhand) =>
+      splitTopLevelComma(declarations[longhand] ?? ""),
+    );
     const count = values[0]?.length ?? 0;
     if (!count || values.some((layers) => layers.length !== count)) return null;
     if (values[8]!.some((timeline) => timeline !== "auto")) return null;
 
-    const candidate = Array.from({ length: count }, (_, index) => [
-      values[1]![index],
-      values[2]![index],
-      values[3]![index],
-      values[4]![index],
-      values[5]![index],
-      values[6]![index],
-      values[7]![index],
-      values[0]![index],
-    ].join(" ")).join(", ");
+    const candidate = Array.from({ length: count }, (_, index) =>
+      [
+        values[1]![index],
+        values[2]![index],
+        values[3]![index],
+        values[4]![index],
+        values[5]![index],
+        values[6]![index],
+        values[7]![index],
+        values[0]![index],
+      ].join(" "),
+    ).join(", ");
 
     return context.matchProperty("animation", candidate) ? candidate : null;
   },

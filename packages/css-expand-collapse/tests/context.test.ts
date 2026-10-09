@@ -7,11 +7,9 @@ import {
 
 describe("top-level CSS value splitting", () => {
   it("uses CSS whitespace and preserves nested functions and strings", () => {
-    expect(splitTopLevelWhitespace('calc(100% - 1rem)\t"Open Sans"\nsolid')).toEqual([
-      "calc(100% - 1rem)",
-      '"Open Sans"',
-      "solid",
-    ]);
+    expect(
+      splitTopLevelWhitespace('calc(100% - 1rem)\t"Open Sans"\nsolid'),
+    ).toEqual(["calc(100% - 1rem)", '"Open Sans"', "solid"]);
   });
 
   it("splits slash and comma only at the top level", () => {
@@ -19,10 +17,9 @@ describe("top-level CSS value splitting", () => {
       "calc(100% / 2)",
       "span 3",
     ]);
-    expect(splitTopLevelComma('url("a,b.png"), linear-gradient(red, blue)')).toEqual([
-      'url("a,b.png")',
-      "linear-gradient(red, blue)",
-    ]);
+    expect(
+      splitTopLevelComma('url("a,b.png"), linear-gradient(red, blue)'),
+    ).toEqual(['url("a,b.png")', "linear-gradient(red, blue)"]);
   });
 
   it("preserves escaped separators and escaped quotes", () => {

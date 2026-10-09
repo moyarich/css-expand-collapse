@@ -1,5 +1,10 @@
 import { expandTriple } from "../expanders.js";
-import type { DeclarationMap, ShorthandCollapser, ShorthandExpander, ShorthandModule } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandCollapser,
+  ShorthandExpander,
+  ShorthandModule,
+} from "../types.js";
 
 const longhands = new Map([
   ["border-top-width", "medium"],

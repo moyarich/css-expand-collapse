@@ -3,9 +3,7 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "noEmit": true,
-    "types": [
-      "vite/client"
-    ],
+    "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
       "@moyarich/css-expand-collapse": [

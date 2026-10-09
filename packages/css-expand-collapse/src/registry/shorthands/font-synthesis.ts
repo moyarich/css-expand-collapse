@@ -1,4 +1,8 @@
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["font-synthesis-weight", "auto"],
@@ -11,7 +15,9 @@ const initialValues = [...longhands.values()];
 
 const expand: ShorthandExpander = (value, context) => {
   if (value === "none") {
-    return Object.fromEntries(longhandNames.map((longhand) => [longhand, "none"]));
+    return Object.fromEntries(
+      longhandNames.map((longhand) => [longhand, "none"]),
+    );
   }
 
   const tokens = context.splitWhitespace(value);
@@ -24,7 +30,8 @@ const expand: ShorthandExpander = (value, context) => {
 
   for (const token of tokens) {
     const candidates = longhandNames.filter(
-      (property) => !assigned.has(property) && context.matchProperty(property, token),
+      (property) =>
+        !assigned.has(property) && context.matchProperty(property, token),
     );
     if (!candidates.length) return null;
 
@@ -47,7 +54,8 @@ export default {
     const candidate = values
       .filter((value, index) => value !== initialValues[index])
       .join(" ");
-    if (candidate && context.matchProperty("font-synthesis", candidate)) return candidate;
+    if (candidate && context.matchProperty("font-synthesis", candidate))
+      return candidate;
     const full = values.join(" ");
     return context.matchProperty("font-synthesis", full) ? full : null;
   },

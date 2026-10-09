@@ -44,7 +44,8 @@ describe("expandShorthand", () => {
 
   it("expands text-decoration regardless of component order", () => {
     expect(
-      expandShorthand("text-decoration", "wavy underline purple 25%")?.declarations,
+      expandShorthand("text-decoration", "wavy underline purple 25%")
+        ?.declarations,
     ).toEqual({
       "text-decoration-line": "underline",
       "text-decoration-style": "wavy",
@@ -70,10 +71,12 @@ describe("expandShorthand", () => {
 
 describe("declaration map transforms", () => {
   it("expands every supported shorthand in a declaration object", () => {
-    expect(expandShorthands({
-      margin: "10px 20px",
-      color: "red",
-    })).toEqual({
+    expect(
+      expandShorthands({
+        margin: "10px 20px",
+        color: "red",
+      }),
+    ).toEqual({
       "margin-top": "10px",
       "margin-right": "20px",
       "margin-bottom": "10px",
@@ -83,20 +86,24 @@ describe("declaration map transforms", () => {
   });
 
   it("preserves source order when shorthand and longhand entries overlap", () => {
-    expect(expandShorthands({
-      inset: "auto",
-      top: "0",
-    })).toEqual({
+    expect(
+      expandShorthands({
+        inset: "auto",
+        top: "0",
+      }),
+    ).toEqual({
       top: "0",
       right: "auto",
       bottom: "auto",
       left: "auto",
     });
 
-    expect(expandShorthands({
-      top: "0",
-      inset: "auto",
-    })).toEqual({
+    expect(
+      expandShorthands({
+        top: "0",
+        inset: "auto",
+      }),
+    ).toEqual({
       top: "auto",
       right: "auto",
       bottom: "auto",
@@ -164,11 +171,13 @@ describe("collapse", () => {
   });
 
   it("fills omitted object longhands with module-owned initial values by default", () => {
-    expect(collapseToShorthand("inset", {
-      top: "0",
-      right: "0",
-      bottom: "0",
-    })).toEqual({
+    expect(
+      collapseToShorthand("inset", {
+        top: "0",
+        right: "0",
+        bottom: "0",
+      }),
+    ).toEqual({
       property: "inset",
       value: "0 0 0 auto",
       declarations: {
@@ -182,32 +191,46 @@ describe("collapse", () => {
   });
 
   it("can require a complete object declaration map", () => {
-    expect(collapseToShorthand("inset", {
-      top: "0",
-      right: "0",
-      bottom: "0",
-    }, {
-      fillMissingLonghands: false,
-    })).toBeNull();
+    expect(
+      collapseToShorthand(
+        "inset",
+        {
+          top: "0",
+          right: "0",
+          bottom: "0",
+        },
+        {
+          fillMissingLonghands: false,
+        },
+      ),
+    ).toBeNull();
   });
 
   it("rejects invalid shorthand serialization from longhand maps", () => {
-    expect(collapseToShorthand("margin", {
-      "margin-top": "garbage",
-      "margin-right": "garbage",
-      "margin-bottom": "garbage",
-      "margin-left": "garbage",
-    }, {
-      fillMissingLonghands: false,
-    })).toBeNull();
+    expect(
+      collapseToShorthand(
+        "margin",
+        {
+          "margin-top": "garbage",
+          "margin-right": "garbage",
+          "margin-bottom": "garbage",
+          "margin-left": "garbage",
+        },
+        {
+          fillMissingLonghands: false,
+        },
+      ),
+    ).toBeNull();
   });
 
   it("collapses a partial margin object using margin-top's initial value", () => {
-    expect(collapseToShorthand("margin", {
-      "margin-right": "24px",
-      "margin-bottom": "12px",
-      "margin-left": "67px",
-    })).toEqual({
+    expect(
+      collapseToShorthand("margin", {
+        "margin-right": "24px",
+        "margin-bottom": "12px",
+        "margin-left": "67px",
+      }),
+    ).toEqual({
       property: "margin",
       value: "0 24px 12px 67px",
       declarations: {
@@ -398,15 +421,18 @@ describe("real CSS", () => {
   });
 
   it("can collapse partial inset longhands by explicitly assuming missing sides are initial", () => {
-    const css = collapseCss(`
+    const css = collapseCss(
+      `
       .example {
         top: 0;
         right: 0;
         bottom: 0;
       }
-    `, {
-      fillMissingLonghands: "initial",
-    });
+    `,
+      {
+        fillMissingLonghands: "initial",
+      },
+    );
 
     expect(css).toContain("inset:0 0 0 auto");
     expect(css).not.toContain("top:0");
@@ -415,16 +441,19 @@ describe("real CSS", () => {
   });
 
   it("does not fill missing partial values across an earlier shorthand", () => {
-    const css = collapseCss(`
+    const css = collapseCss(
+      `
       .example {
         inset: 1px 2px 3px 4px;
         top: 0;
         right: 0;
         bottom: 0;
       }
-    `, {
-      fillMissingLonghands: "initial",
-    });
+    `,
+      {
+        fillMissingLonghands: "initial",
+      },
+    );
 
     expect(css).toContain("inset:1px 2px 3px 4px");
     expect(css).toContain("top:0");

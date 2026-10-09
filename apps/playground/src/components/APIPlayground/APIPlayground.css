@@ -191,9 +191,8 @@
   position: absolute;
   inset: 8px 2px;
   border-radius: inherit;
-  background:
-    radial-gradient(circle, #718096 1.3px, transparent 1.5px)
-    center / 4px 7px repeat-y;
+  background: radial-gradient(circle, #718096 1.3px, transparent 1.5px) center /
+    4px 7px repeat-y;
   content: "";
 }
 
@@ -307,7 +306,6 @@
   .api-playground-layout {
     grid-template-columns: 230px minmax(0, 1fr);
   }
-
 }
 
 @media (max-width: 880px) {

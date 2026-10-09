@@ -1,5 +1,9 @@
 import { splitTopLevelComma } from "../context.js";
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["view-timeline-name", "none"],
@@ -24,11 +28,17 @@ const expand: ShorthandExpander = (value, context) => {
     const leftovers: string[] = [];
 
     for (const token of tokens) {
-      if (result[longhandNames[1]] === initialValues[1] && context.matchProperty(longhandNames[1], token)) {
+      if (
+        result[longhandNames[1]] === initialValues[1] &&
+        context.matchProperty(longhandNames[1], token)
+      ) {
         result[longhandNames[1]] = token;
         continue;
       }
-      if (result[longhandNames[0]] === initialValues[0] && context.matchProperty(longhandNames[0], token)) {
+      if (
+        result[longhandNames[0]] === initialValues[0] &&
+        context.matchProperty(longhandNames[0], token)
+      ) {
         result[longhandNames[0]] = token;
         continue;
       }
@@ -44,7 +54,10 @@ const expand: ShorthandExpander = (value, context) => {
   }
 
   return Object.fromEntries(
-    longhandNames.map((longhand) => [longhand, results.map((result) => result[longhand]).join(", ")]),
+    longhandNames.map((longhand) => [
+      longhand,
+      results.map((result) => result[longhand]).join(", "),
+    ]),
   );
 };
 
@@ -53,11 +66,16 @@ export default {
   safeToDropWhenFullyShadowed: false,
   expand,
   collapse(declarations, context) {
-    const values = longhandNames.map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
+    const values = longhandNames.map((longhand) =>
+      splitTopLevelComma(declarations[longhand] ?? ""),
+    );
     const layerCount = values[0]?.length ?? 0;
-    if (!layerCount || values.some((layers) => layers.length !== layerCount)) return null;
-    const candidate = Array.from({ length: layerCount }, (_, index) =>
-      `${values[0]![index]} ${values[1]![index]} ${values[2]![index]}`,
+    if (!layerCount || values.some((layers) => layers.length !== layerCount))
+      return null;
+    const candidate = Array.from(
+      { length: layerCount },
+      (_, index) =>
+        `${values[0]![index]} ${values[1]![index]} ${values[2]![index]}`,
     ).join(", ");
     return context.matchProperty("view-timeline", candidate) ? candidate : null;
   },

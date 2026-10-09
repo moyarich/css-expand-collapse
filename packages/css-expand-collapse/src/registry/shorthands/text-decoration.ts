@@ -1,4 +1,9 @@
-import type { DeclarationMap, ShorthandCollapser, ShorthandExpander, ShorthandModule } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandCollapser,
+  ShorthandExpander,
+  ShorthandModule,
+} from "../types.js";
 
 const longhands = new Map([
   ["text-decoration-line", "none"],
@@ -24,7 +29,11 @@ const expand: ShorthandExpander = (value, context) => {
       lineTokens.push(token);
       continue;
     }
-    const candidates = longhandNames.filter((property) => property !== "text-decoration-line" && !assigned.has(property))
+    const candidates = longhandNames
+      .filter(
+        (property) =>
+          property !== "text-decoration-line" && !assigned.has(property),
+      )
       .filter((property) => context.matchProperty(property, token));
     if (candidates.length !== 1) return null;
     result[candidates[0]!] = token;

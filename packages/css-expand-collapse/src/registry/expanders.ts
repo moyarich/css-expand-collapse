@@ -1,7 +1,4 @@
-import {
-  longhandInitialValues,
-  longhandNames,
-} from "./helpers.js";
+import { longhandInitialValues, longhandNames } from "./helpers.js";
 import type {
   DeclarationMap,
   LonghandMap,
@@ -22,7 +19,13 @@ export function expandQuad(longhands: LonghandMap): ShorthandExpander {
   const properties = longhandNames(longhands);
   return (value, context) => {
     const tokens = context.splitWhitespace(value);
-    if (tokens.includes("/") || tokens.length < 1 || tokens.length > 4 || properties.length !== 4) return null;
+    if (
+      tokens.includes("/") ||
+      tokens.length < 1 ||
+      tokens.length > 4 ||
+      properties.length !== 4
+    )
+      return null;
     const [a, b = a, c = a, d = b] = tokens;
     const values = tokens.length === 3 ? [a, b, c, b] : [a, b, c, d];
     const result = Object.fromEntries(
@@ -36,7 +39,8 @@ export function expandPair(longhands: LonghandMap): ShorthandExpander {
   const properties = longhandNames(longhands);
   return (value, context) => {
     const tokens = context.splitWhitespace(value);
-    if (tokens.length < 1 || tokens.length > 2 || properties.length !== 2) return null;
+    if (tokens.length < 1 || tokens.length > 2 || properties.length !== 2)
+      return null;
     const [first, second = first] = tokens;
     const result: DeclarationMap = {
       [properties[0]!]: first!,
@@ -63,7 +67,8 @@ export function expandTriple(longhands: LonghandMap): ShorthandExpander {
 
     for (const token of tokens) {
       const matches = properties.filter(
-        (property) => !assigned.has(property) && context.matchProperty(property, token),
+        (property) =>
+          !assigned.has(property) && context.matchProperty(property, token),
       );
       if (matches.length !== 1) return null;
       result[matches[0]!] = token;
@@ -98,9 +103,14 @@ export function expandComponents(longhands: LonghandMap): ShorthandExpander {
         continue;
       }
 
-      const initialMatches = candidates.filter((longhand) => longhands.get(longhand) === token);
+      const initialMatches = candidates.filter(
+        (longhand) => longhands.get(longhand) === token,
+      );
 
-      if (initialMatches.length === candidates.length && initialMatches.length > 1) {
+      if (
+        initialMatches.length === candidates.length &&
+        initialMatches.length > 1
+      ) {
         for (const longhand of initialMatches) {
           result[longhand] = token;
           assigned.add(longhand);
@@ -121,7 +131,13 @@ export function expandSlashPair(longhands: LonghandMap): ShorthandExpander {
 
   return (value, context) => {
     const parts = context.splitSlash(value);
-    if (properties.length !== 2 || parts.length < 1 || parts.length > 2 || parts.some((part) => !part)) return null;
+    if (
+      properties.length !== 2 ||
+      parts.length < 1 ||
+      parts.length > 2 ||
+      parts.some((part) => !part)
+    )
+      return null;
 
     const result: DeclarationMap = {
       [properties[0]!]: parts[0]!,

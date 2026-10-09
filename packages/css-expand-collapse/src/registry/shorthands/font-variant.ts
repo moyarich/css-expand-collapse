@@ -1,4 +1,8 @@
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["font-variant-alternates", "normal"],
@@ -13,21 +17,32 @@ const longhandNames = [...longhands.keys()];
 
 const expand: ShorthandExpander = (value, context) => {
   if (value === "normal") {
-    return Object.fromEntries(longhandNames.map((longhand) => [longhand, "normal"]));
+    return Object.fromEntries(
+      longhandNames.map((longhand) => [longhand, "normal"]),
+    );
   }
   if (value === "none") {
     return Object.fromEntries(
-      longhandNames.map((longhand) => [longhand, longhand === "font-variant-ligatures" ? "none" : "normal"]),
+      longhandNames.map((longhand) => [
+        longhand,
+        longhand === "font-variant-ligatures" ? "none" : "normal",
+      ]),
     );
   }
 
-  const result = Object.fromEntries(longhandNames.map((longhand) => [longhand, "normal"])) as DeclarationMap;
+  const result = Object.fromEntries(
+    longhandNames.map((longhand) => [longhand, "normal"]),
+  ) as DeclarationMap;
   const assigned = new Set<string>();
 
   for (const token of context.splitWhitespace(value)) {
     const candidates = longhandNames.flatMap((longhand) => {
-      const candidate = assigned.has(longhand) ? `${result[longhand]} ${token}` : token;
-      return context.matchProperty(longhand, candidate) ? [{ longhand, candidate }] : [];
+      const candidate = assigned.has(longhand)
+        ? `${result[longhand]} ${token}`
+        : token;
+      return context.matchProperty(longhand, candidate)
+        ? [{ longhand, candidate }]
+        : [];
     });
     if (!candidates.length) return null;
 
@@ -49,12 +64,15 @@ export default {
     if (values.every((value) => value === "normal")) return "normal";
     if (
       declarations["font-variant-ligatures"] === "none" &&
-      longhandNames.filter((longhand) => longhand !== "font-variant-ligatures")
+      longhandNames
+        .filter((longhand) => longhand !== "font-variant-ligatures")
         .every((longhand) => declarations[longhand] === "normal")
-    ) return "none";
+    )
+      return "none";
 
     const compact = values.filter((value) => value !== "normal").join(" ");
-    if (compact && context.matchProperty("font-variant", compact)) return compact;
+    if (compact && context.matchProperty("font-variant", compact))
+      return compact;
     const full = values.join(" ");
     return context.matchProperty("font-variant", full) ? full : null;
   },

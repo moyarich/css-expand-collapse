@@ -86,7 +86,10 @@ function parseLayer(
       imageAssigned = true;
       continue;
     }
-    if (!attachmentAssigned && context.matchProperty("background-attachment", token)) {
+    if (
+      !attachmentAssigned &&
+      context.matchProperty("background-attachment", token)
+    ) {
       result["background-attachment"] = token;
       attachmentAssigned = true;
       continue;
@@ -99,7 +102,11 @@ function parseLayer(
       boxes.push(token);
       continue;
     }
-    if (finalLayer && !colorAssigned && context.matchProperty("background-color", token)) {
+    if (
+      finalLayer &&
+      !colorAssigned &&
+      context.matchProperty("background-color", token)
+    ) {
       result["background-color"] = token;
       colorAssigned = true;
       continue;
@@ -136,18 +143,34 @@ const expand: ShorthandExpander = (value, context) => {
   const layers = splitTopLevelComma(value);
   if (!layers.length || layers.some((layer) => !layer)) return null;
 
-  const parsed = layers.map((layer, index) => parseLayer(layer, index === layers.length - 1, context));
+  const parsed = layers.map((layer, index) =>
+    parseLayer(layer, index === layers.length - 1, context),
+  );
   if (parsed.some((layer) => !layer)) return null;
   const concrete = parsed as DeclarationMap[];
 
   return {
-    "background-image": concrete.map((layer) => layer["background-image"]).join(", "),
-    "background-position": concrete.map((layer) => layer["background-position"]).join(", "),
-    "background-size": concrete.map((layer) => layer["background-size"]).join(", "),
-    "background-repeat": concrete.map((layer) => layer["background-repeat"]).join(", "),
-    "background-origin": concrete.map((layer) => layer["background-origin"]).join(", "),
-    "background-clip": concrete.map((layer) => layer["background-clip"]).join(", "),
-    "background-attachment": concrete.map((layer) => layer["background-attachment"]).join(", "),
+    "background-image": concrete
+      .map((layer) => layer["background-image"])
+      .join(", "),
+    "background-position": concrete
+      .map((layer) => layer["background-position"])
+      .join(", "),
+    "background-size": concrete
+      .map((layer) => layer["background-size"])
+      .join(", "),
+    "background-repeat": concrete
+      .map((layer) => layer["background-repeat"])
+      .join(", "),
+    "background-origin": concrete
+      .map((layer) => layer["background-origin"])
+      .join(", "),
+    "background-clip": concrete
+      .map((layer) => layer["background-clip"])
+      .join(", "),
+    "background-attachment": concrete
+      .map((layer) => layer["background-attachment"])
+      .join(", "),
     "background-color": concrete.at(-1)!["background-color"]!,
   };
 };
@@ -158,9 +181,12 @@ export default {
   equivalentLonghandValues,
   expand,
   collapse(declarations, context) {
-    const layered = longhandNames.slice(0, 7).map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
+    const layered = longhandNames
+      .slice(0, 7)
+      .map((longhand) => splitTopLevelComma(declarations[longhand] ?? ""));
     const count = layered[0]?.length ?? 0;
-    if (!count || layered.some((values) => values.length !== count)) return null;
+    if (!count || layered.some((values) => values.length !== count))
+      return null;
     const color = declarations["background-color"];
     if (!color) return null;
 

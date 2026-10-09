@@ -66,7 +66,8 @@ async function replaceEditorSource(page: import("@playwright/test").Page) {
   await expect(editor).toBeFocused();
 
   const selectAll = process.platform === "darwin" ? "Meta+A" : "Control+A";
-  const runShortcut = process.platform === "darwin" ? "Meta+Enter" : "Control+Enter";
+  const runShortcut =
+    process.platform === "darwin" ? "Meta+Enter" : "Control+Enter";
 
   await page.keyboard.press(selectAll);
   await page.keyboard.insertText(SOURCE);
@@ -78,9 +79,7 @@ async function expandObject(
   propertyKey?: string,
 ) {
   const summary = propertyKey
-    ? page
-        .locator(`summary[data-console-object-key="${propertyKey}"]`)
-        .last()
+    ? page.locator(`summary[data-console-object-key="${propertyKey}"]`).last()
     : page.locator(
         '.console-object-shell[data-depth="0"] > .console-object > summary',
       );
@@ -96,7 +95,9 @@ test.describe("nested console objects", () => {
     await page.goto("/#/api/expand-shorthand");
     await replaceEditorSource(page);
 
-    await expect(page.locator(".console-object-shell[data-depth='0']")).toBeVisible();
+    await expect(
+      page.locator(".console-object-shell[data-depth='0']"),
+    ).toBeVisible();
 
     await expandObject(page);
     await expandObject(page, "divisions");
@@ -119,14 +120,18 @@ test.describe("nested console objects", () => {
     const departmentHeadValue = departmentHeadRow.locator(".console-string");
 
     await expect(departmentHeadValue).toHaveText('"Sarah Jenkins"');
-    const departmentHeadKey = departmentHeadRow.locator(".console-property-key");
+    const departmentHeadKey = departmentHeadRow.locator(
+      ".console-property-key",
+    );
     await expect(departmentHeadKey).toHaveText("departmentHead");
 
-    const departmentHeadKeyMetrics = await departmentHeadKey.evaluate((element) => ({
-      clientWidth: element.clientWidth,
-      scrollWidth: element.scrollWidth,
-      textOverflow: getComputedStyle(element).textOverflow,
-    }));
+    const departmentHeadKeyMetrics = await departmentHeadKey.evaluate(
+      (element) => ({
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+        textOverflow: getComputedStyle(element).textOverflow,
+      }),
+    );
 
     expect(departmentHeadKeyMetrics.scrollWidth).toBeLessThanOrEqual(
       departmentHeadKeyMetrics.clientWidth + 1,
@@ -167,7 +172,6 @@ test.describe("nested console objects", () => {
     expect(deploymentKeyMetrics.width).toBeGreaterThan(100);
     expect(deploymentKeyMetrics.height).toBeLessThan(24);
 
-
     const valueBox = await departmentHeadValue.boundingBox();
     expect(valueBox).not.toBeNull();
     expect(valueBox!.width).toBeGreaterThan(80);
@@ -201,7 +205,9 @@ test.describe("nested console objects", () => {
 
     expect(previewBox).not.toBeNull();
     expect(copyBox).not.toBeNull();
-    expect(previewBox!.x + previewBox!.width).toBeLessThanOrEqual(copyBox!.x + 1);
+    expect(previewBox!.x + previewBox!.width).toBeLessThanOrEqual(
+      copyBox!.x + 1,
+    );
 
     const consoleSurface = page.locator(".console-surface");
     const surfaceMetrics = await consoleSurface.evaluate((element) => ({

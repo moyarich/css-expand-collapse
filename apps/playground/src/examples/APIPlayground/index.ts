@@ -23,12 +23,15 @@ const metadataModules = import.meta.glob("./*/meta.json", {
   eager: true,
 }) as Record<string, FunctionExampleMeta>;
 
-export const FUNCTION_EXAMPLES: readonly FunctionExample[] = Object.entries(metadataModules)
+export const FUNCTION_EXAMPLES: readonly FunctionExample[] = Object.entries(
+  metadataModules,
+)
   .map(([path, metadata]) => {
     const id = path.split("/").at(-2)!;
     const source = sourceModules[`./${id}/source.tsx`];
     if (!source) throw new Error(`Missing source.tsx for API example: ${id}`);
-    if (metadata.id !== id) throw new Error(`API example metadata id mismatch: ${id}`);
+    if (metadata.id !== id)
+      throw new Error(`API example metadata id mismatch: ${id}`);
     return { ...metadata, source };
   })
   .sort((a, b) => a.order - b.order)

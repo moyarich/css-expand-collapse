@@ -29,10 +29,7 @@ export {
   transformCss,
 } from "./css.js";
 
-export type {
-  TransformCssOptions,
-  TransformMode,
-} from "./css.js";
+export type { TransformCssOptions, TransformMode } from "./css.js";
 
 export {
   collectCustomProperties,

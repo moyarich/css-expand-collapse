@@ -27,7 +27,9 @@ const expand: ShorthandExpander = (value, context) => {
   const parts = context.splitSlash(value);
   if (parts.length > 2 || parts.some((part) => !part)) return null;
   const horizontal = expandQuadValues(context.splitWhitespace(parts[0]!));
-  const vertical = expandQuadValues(context.splitWhitespace(parts[1] ?? parts[0]!));
+  const vertical = expandQuadValues(
+    context.splitWhitespace(parts[1] ?? parts[0]!),
+  );
   if (!horizontal || !vertical) return null;
 
   return Object.fromEntries(
@@ -50,7 +52,9 @@ export default {
     for (const longhand of longhandNames) {
       const value = declarations[longhand];
       if (!value) return null;
-      const tokens = context.matchProperty(longhand, value) ? value.trim().split(/\s+/) : [];
+      const tokens = context.matchProperty(longhand, value)
+        ? value.trim().split(/\s+/)
+        : [];
       if (tokens.length < 1 || tokens.length > 2) return null;
       horizontal.push(tokens[0]!);
       vertical.push(tokens[1] ?? tokens[0]!);

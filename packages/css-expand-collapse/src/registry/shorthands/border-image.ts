@@ -1,4 +1,8 @@
-import type { DeclarationMap, ShorthandModule, ShorthandExpander } from "../types.js";
+import type {
+  DeclarationMap,
+  ShorthandModule,
+  ShorthandExpander,
+} from "../types.js";
 
 const longhands = new Map([
   ["border-image-source", "none"],
@@ -13,25 +17,30 @@ const initialValues = [...longhands.values()];
 const expand: ShorthandExpander = (value, context) => {
   if (!context.matchProperty("border-image", value)) return null;
   const parts = context.splitSlash(value);
-  if (!parts.length || parts.length > 3 || parts.some((part) => !part)) return null;
+  if (!parts.length || parts.length > 3 || parts.some((part) => !part))
+    return null;
 
   const result: DeclarationMap = Object.fromEntries(
     longhandNames.map((longhand, index) => [longhand, initialValues[index]!]),
   );
   const repeatTokens: string[] = [];
 
-  const stripRepeat = (tokens: string[]) => tokens.filter((token) => {
-    if (context.matchProperty("border-image-repeat", token)) {
-      repeatTokens.push(token);
-      return false;
-    }
-    return true;
-  });
+  const stripRepeat = (tokens: string[]) =>
+    tokens.filter((token) => {
+      if (context.matchProperty("border-image-repeat", token)) {
+        repeatTokens.push(token);
+        return false;
+      }
+      return true;
+    });
 
   const first = stripRepeat(context.splitWhitespace(parts[0]!));
   const sliceTokens: string[] = [];
   for (const token of first) {
-    if (result["border-image-source"] === initialValues[0] && context.matchProperty("border-image-source", token)) {
+    if (
+      result["border-image-source"] === initialValues[0] &&
+      context.matchProperty("border-image-source", token)
+    ) {
       result["border-image-source"] = token;
     } else {
       sliceTokens.push(token);

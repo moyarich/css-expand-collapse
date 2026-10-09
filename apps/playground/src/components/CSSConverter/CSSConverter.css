@@ -166,7 +166,10 @@
   font-size: 0.82rem;
   font-weight: 780;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
+  transition:
+    background 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .css-converter .segmented-control button:hover:not(.active) {
@@ -177,7 +180,9 @@
 .css-converter .segmented-control button.active {
   background: #fff;
   color: #3346b4;
-  box-shadow: 0 1px 2px rgb(29 42 67 / 0.08), 0 0 0 1px rgb(97 119 231 / 0.16);
+  box-shadow:
+    0 1px 2px rgb(29 42 67 / 0.08),
+    0 0 0 1px rgb(97 119 231 / 0.16);
 }
 
 /* ==========================================================================
@@ -218,7 +223,9 @@
   border-radius: 999px;
   padding: 3px;
   background: #cbd5e1;
-  transition: background 140ms ease, box-shadow 140ms ease;
+  transition:
+    background 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .css-converter .switch-thumb {
@@ -347,14 +354,21 @@
   font-weight: 900;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 9px 22px rgb(51 70 180 / 0.3), 0 2px 6px rgb(15 23 42 / 0.14);
-  transition: transform 140ms ease, background 140ms ease, box-shadow 140ms ease;
+  box-shadow:
+    0 9px 22px rgb(51 70 180 / 0.3),
+    0 2px 6px rgb(15 23 42 / 0.14);
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .css-converter .conversion-arrow:hover:not(:disabled) {
   transform: translateX(-50%) scale(1.08);
   background: #293aa2;
-  box-shadow: 0 13px 28px rgb(51 70 180 / 0.36), 0 3px 8px rgb(15 23 42 / 0.18);
+  box-shadow:
+    0 13px 28px rgb(51 70 180 / 0.36),
+    0 3px 8px rgb(15 23 42 / 0.18);
 }
 
 .css-converter .conversion-arrow:active:not(:disabled) {
@@ -365,7 +379,6 @@
   outline: 3px solid rgb(97 119 231 / 0.35);
   outline-offset: 3px;
 }
-
 
 /* ==========================================================================
    Responsive

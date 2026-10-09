@@ -19,7 +19,10 @@ export type {
   ShorthandExpander,
 } from "./types.js";
 
-const shorthandEntries = Object.entries(SHORTHANDS) as [string, ShorthandModule][];
+const shorthandEntries = Object.entries(SHORTHANDS) as [
+  string,
+  ShorthandModule,
+][];
 
 function buildDefinitions(): ShorthandModuleMap {
   const definitions: Record<string, ShorthandModule> = {};
@@ -31,7 +34,9 @@ function buildDefinitions(): ShorthandModuleMap {
 }
 
 export const SHORTHAND_MODULES: ShorthandModuleMap = Object.freeze(SHORTHANDS);
-export const SHORTHAND_PROPERTIES = Object.freeze(Object.keys(SHORTHAND_MODULES));
+export const SHORTHAND_PROPERTIES = Object.freeze(
+  Object.keys(SHORTHAND_MODULES),
+);
 export const SHORTHAND_DEFINITIONS = buildDefinitions();
 export const SHORTHAND_SET = new Set<string>(SHORTHAND_PROPERTIES);
 
@@ -50,7 +55,8 @@ export const LONGHAND_TO_SHORTHANDS = (() => {
 export const LONGHAND_VALUE_EQUIVALENCE = (() => {
   const map = new Map<string, LonghandValueEquivalence[]>();
   for (const [, module] of shorthandEntries) {
-    for (const [longhand, equivalent] of module.equivalentLonghandValues ?? []) {
+    for (const [longhand, equivalent] of module.equivalentLonghandValues ??
+      []) {
       const rules = map.get(longhand) ?? [];
       rules.push(equivalent);
       map.set(longhand, rules);

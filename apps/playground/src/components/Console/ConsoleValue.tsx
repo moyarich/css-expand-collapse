@@ -32,7 +32,8 @@ function isInspectableObject(value: unknown): value is object {
 function typeClass(value: unknown): string {
   if (value === null) return "console-null";
   if (typeof value === "string") return "console-string";
-  if (typeof value === "number" || typeof value === "bigint") return "console-number";
+  if (typeof value === "number" || typeof value === "bigint")
+    return "console-number";
   if (typeof value === "boolean") return "console-boolean";
   if (typeof value === "undefined") return "console-undefined";
   if (typeof value === "symbol") return "console-symbol";
@@ -46,9 +47,7 @@ function renderPrimitive(value: unknown): ReactNode {
 
   if (typeof value === "function") {
     return (
-      <span className="console-function">
-        ƒ {value.name || "anonymous"}()
-      </span>
+      <span className="console-function">ƒ {value.name || "anonymous"}()</span>
     );
   }
 
@@ -153,7 +152,9 @@ function ConsoleObjectValue({
         <button
           type="button"
           className="console-object-copy-button"
-          aria-label={propertyKey ? `Copy ${propertyKey} object` : "Copy object"}
+          aria-label={
+            propertyKey ? `Copy ${propertyKey} object` : "Copy object"
+          }
           title={propertyKey ? `Copy ${propertyKey} object` : "Copy object"}
           onClick={(event) => {
             event.stopPropagation();
@@ -204,7 +205,9 @@ function ConsoleObjectValue({
                 );
               })
             ) : (
-              <div className="console-object-empty">No enumerable properties</div>
+              <div className="console-object-empty">
+                No enumerable properties
+              </div>
             )}
           </div>
         )}

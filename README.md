@@ -65,10 +65,7 @@ collapseToShorthand("inset", {
 ES modules:
 
 ```js
-import {
-  expandShorthand,
-  collapseCss,
-} from "@moyarich/css-expand-collapse";
+import { expandShorthand, collapseCss } from "@moyarich/css-expand-collapse";
 
 console.log(expandShorthand("padding", "8px 16px"));
 ```
@@ -349,15 +346,18 @@ For computed/export CSS, missing constituents can explicitly use module-owned in
 ```js
 import { collapseCss } from "@moyarich/css-expand-collapse";
 
-collapseCss(`
+collapseCss(
+  `
 .box {
   top: 0;
   right: 0;
   bottom: 0;
 }
-`, {
-  fillMissingLonghands: "initial",
-});
+`,
+  {
+    fillMissingLonghands: "initial",
+  },
+);
 
 // .box{inset:0 0 0 auto}
 ```
@@ -424,33 +424,33 @@ System-font keywords such as `font: menu` are user-agent dependent and cannot be
 
 ## Public API
 
-| Category | Function | Purpose |
-| --- | --- | --- |
-| Registry | `isShorthand(property)` | Returns whether a property is a recognized CSS shorthand. |
-| Registry | `isLonghand(property)` | Returns whether a property is registered as a longhand of one or more shorthands. |
-| Registry | `getLonghands(shorthand)` | Returns the registered longhand property names for a shorthand. |
-| Registry | `getShorthands(longhand)` | Returns shorthands that include the supplied longhand. |
-| Registry | `supportsTransform(property)` | Returns whether the package implements expansion/collapse for the shorthand. |
-| Property | `expandShorthand(property, value)` | Expands one shorthand value into a structured result containing the represented longhand declarations. |
-| Property | `collapseToShorthand(shorthand, declarations, options?)` | Collapses a declaration object into one requested shorthand. |
-| Declaration map | `expandShorthands(declarations)` | Expands every supported shorthand in a declaration object while preserving entry-order override semantics. |
-| Declaration map | `collapseLonghands(declarations, options?)` | Collapses compatible longhand groups across a declaration object. |
-| Discovery | `findCollapsibleShorthands(declarations, options?)` | Finds every shorthand that can be produced from a declaration object. |
-| Stylesheet | `expandCss(css)` | Expands supported shorthand declarations in a stylesheet. |
-| Stylesheet | `collapseCss(css, options?)` | Collapses compatible longhands in a stylesheet while preserving cascade semantics. |
-| Stylesheet | `transformCss(css, { mode, ...options })` | Runs the generic stylesheet transformer in `expand` or `collapse` mode. |
-| Declarations | `expandDeclarations(css)` | Expands shorthand declarations in declaration-only CSS text. |
-| Declarations | `collapseDeclarations(css, options?)` | Collapses longhands in declaration-only CSS text. |
-| Style declaration | `styleToDeclarations(style, properties?)` | Converts a read-only style declaration into a plain declaration object. |
-| Style declaration | `getStyleLonghands(style, shorthand)` | Reads the registered longhands for one shorthand from a read-only style declaration. |
-| Style declaration | `collapseStyleDeclaration(style, shorthand, options?)` | Collapses one shorthand from a read-only style declaration. |
-| Style declaration | `collapseStyleDeclarations(style, shorthands?, options?)` | Collapses multiple shorthands from a read-only style declaration. |
-| Utility | `resolveCustomProperties(value, customProperties, options?)` | Resolves nested `var()` references against a known case-sensitive custom-property map. |
-| Utility | `collectCustomProperties(declarations)` | Collects custom-property declarations without lowercasing their names. |
-| Utility | `mergeCustomProperties(...maps)` | Merges known custom-property maps while preserving CSS custom-property name casing. |
-| Utility | `isCustomProperty(property)` | Returns whether a property name is a CSS custom property. |
-| Utility | `hasCustomPropertyReference(value)` | Returns whether a CSS value contains a real `var()` reference outside strings/comments. |
-| Utility | `splitTopLevelWhitespace(value)` | Splits a CSS value on top-level whitespace while preserving strings, functions, brackets, commas, and slashes. |
+| Category          | Function                                                     | Purpose                                                                                                        |
+| ----------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Registry          | `isShorthand(property)`                                      | Returns whether a property is a recognized CSS shorthand.                                                      |
+| Registry          | `isLonghand(property)`                                       | Returns whether a property is registered as a longhand of one or more shorthands.                              |
+| Registry          | `getLonghands(shorthand)`                                    | Returns the registered longhand property names for a shorthand.                                                |
+| Registry          | `getShorthands(longhand)`                                    | Returns shorthands that include the supplied longhand.                                                         |
+| Registry          | `supportsTransform(property)`                                | Returns whether the package implements expansion/collapse for the shorthand.                                   |
+| Property          | `expandShorthand(property, value)`                           | Expands one shorthand value into a structured result containing the represented longhand declarations.         |
+| Property          | `collapseToShorthand(shorthand, declarations, options?)`     | Collapses a declaration object into one requested shorthand.                                                   |
+| Declaration map   | `expandShorthands(declarations)`                             | Expands every supported shorthand in a declaration object while preserving entry-order override semantics.     |
+| Declaration map   | `collapseLonghands(declarations, options?)`                  | Collapses compatible longhand groups across a declaration object.                                              |
+| Discovery         | `findCollapsibleShorthands(declarations, options?)`          | Finds every shorthand that can be produced from a declaration object.                                          |
+| Stylesheet        | `expandCss(css)`                                             | Expands supported shorthand declarations in a stylesheet.                                                      |
+| Stylesheet        | `collapseCss(css, options?)`                                 | Collapses compatible longhands in a stylesheet while preserving cascade semantics.                             |
+| Stylesheet        | `transformCss(css, { mode, ...options })`                    | Runs the generic stylesheet transformer in `expand` or `collapse` mode.                                        |
+| Declarations      | `expandDeclarations(css)`                                    | Expands shorthand declarations in declaration-only CSS text.                                                   |
+| Declarations      | `collapseDeclarations(css, options?)`                        | Collapses longhands in declaration-only CSS text.                                                              |
+| Style declaration | `styleToDeclarations(style, properties?)`                    | Converts a read-only style declaration into a plain declaration object.                                        |
+| Style declaration | `getStyleLonghands(style, shorthand)`                        | Reads the registered longhands for one shorthand from a read-only style declaration.                           |
+| Style declaration | `collapseStyleDeclaration(style, shorthand, options?)`       | Collapses one shorthand from a read-only style declaration.                                                    |
+| Style declaration | `collapseStyleDeclarations(style, shorthands?, options?)`    | Collapses multiple shorthands from a read-only style declaration.                                              |
+| Utility           | `resolveCustomProperties(value, customProperties, options?)` | Resolves nested `var()` references against a known case-sensitive custom-property map.                         |
+| Utility           | `collectCustomProperties(declarations)`                      | Collects custom-property declarations without lowercasing their names.                                         |
+| Utility           | `mergeCustomProperties(...maps)`                             | Merges known custom-property maps while preserving CSS custom-property name casing.                            |
+| Utility           | `isCustomProperty(property)`                                 | Returns whether a property name is a CSS custom property.                                                      |
+| Utility           | `hasCustomPropertyReference(value)`                          | Returns whether a CSS value contains a real `var()` reference outside strings/comments.                        |
+| Utility           | `splitTopLevelWhitespace(value)`                             | Splits a CSS value on top-level whitespace while preserving strings, functions, brackets, commas, and slashes. |
 
 The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `ShorthandResult`, `ExpandShorthandResult`, `CollapseShorthandResult`, `TransformOptions`, `TransformCssOptions`, `TransformMode`, `ReadonlyStyleDeclaration`, `CustomPropertyMap`, and `ResolveCustomPropertiesOptions`.
 
