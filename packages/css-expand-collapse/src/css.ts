@@ -3,7 +3,6 @@ import {
   List,
   parse,
   walk,
-  type Block,
   type CssNode,
   type Declaration,
   type StyleSheet,
