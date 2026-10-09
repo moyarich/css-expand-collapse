@@ -2,7 +2,7 @@
 
 All notable changes to `@moyarich/css-expand-collapse` are documented here.
 
-## Unreleased
+## 0.1.1
 
 ### Added
 
@@ -16,10 +16,6 @@ All notable changes to `@moyarich/css-expand-collapse` are documented here.
 
 - Local custom-property values take precedence over root-scoped values when validating shorthand transformations.
 - Simplified parser/scanner internals and removed compatibility-only API/shim paths while keeping the package API focused.
-
-### Tests
-
-- Added regression coverage for scoped variables, nested resolution, fallbacks, cycles, case sensitivity, expansion, collapse, and multi-component values.
 
 ## 0.1.0
 
