@@ -53,7 +53,7 @@ function parseLayer(
     longhandNames.map((longhand, index) => [longhand, initialValues[index]!]),
   );
 
-  let before = context.splitWhitespace(slash[0]!);
+  const before = context.splitWhitespace(slash[0]!);
   let after = slash[1] ? context.splitWhitespace(slash[1]) : [];
 
   if (after.length) {

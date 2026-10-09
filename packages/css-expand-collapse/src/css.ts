@@ -73,7 +73,9 @@ function shouldReplaceCustomProperty(
   return candidate.order >= current.order;
 }
 
-function collectBlockCustomProperties(children: CssNode[]): Record<string, string> {
+function collectBlockCustomProperties(
+  children: CssNode[],
+): Record<string, string> {
   const cascade = new Map<string, CascadedCustomProperty>();
 
   for (let index = 0; index < children.length; index += 1) {
@@ -118,7 +120,9 @@ function globalSelectorSpecificity(selectorText: string): number | null {
   return scores.length ? Math.max(...scores) : null;
 }
 
-function collectGlobalCustomProperties(ast: StyleSheet): Record<string, string> {
+function collectGlobalCustomProperties(
+  ast: StyleSheet,
+): Record<string, string> {
   const cascade = new Map<string, CascadedCustomProperty>();
   const topLevel = ast.children?.toArray?.() ?? [];
 
@@ -192,7 +196,10 @@ function valuesEquivalent(
   );
 }
 
-function expandBlock(children: CssNode[], options?: TransformOptions): CssNode[] {
+function expandBlock(
+  children: CssNode[],
+  options?: TransformOptions,
+): CssNode[] {
   const output: CssNode[] = [];
   for (const child of children) {
     if (child.type !== "Declaration") {
@@ -454,7 +461,10 @@ function tryCollapseAt(
   return null;
 }
 
-function collapseBlock(children: CssNode[], options?: TransformOptions): CssNode[] {
+function collapseBlock(
+  children: CssNode[],
+  options?: TransformOptions,
+): CssNode[] {
   const consumed = new Set<number>();
   const replacements = new Map<number, Declaration>();
 
