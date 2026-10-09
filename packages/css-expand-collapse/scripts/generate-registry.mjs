@@ -23,7 +23,8 @@ const imports = files.map((file, index) => {
 
 const entries = files.map((file, index) => {
   const property = file.replace(/\.ts$/, "");
-  return `  ${JSON.stringify(property)}: shorthand${index},`;
+  const key = /^[$A-Z_a-z][$\w]*$/.test(property) ? property : JSON.stringify(property);
+  return `  ${key}: shorthand${index},`;
 });
 
 const output = [
