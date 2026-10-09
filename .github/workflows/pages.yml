@@ -8,7 +8,6 @@ on:
       - "packages/css-expand-collapse/**"
       - "package.json"
       - "package-lock.json"
-      - ".github/workflows/github-pages.yml"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -19,7 +18,7 @@ permissions:
 
 jobs:
   pages:
-    uses: ./.github/workflows/github-pages.yml
+    uses: moyarich/reusable-workflows/.github/workflows/reusable_github-pages.yml@v0.2.0
     with:
       node-version: "24"
       build-command: npm run build:playground

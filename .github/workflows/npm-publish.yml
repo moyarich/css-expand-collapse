@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: Release a new version or publish the existing version
+        description: Release a new version or publish an existing release
         required: true
         default: publish
         type: choice
@@ -17,7 +17,7 @@ on:
         default: packages/css-expand-collapse
         type: string
       version:
-        description: Release version strategy; ignored when publishing
+        description: Release bump strategy (ignored for publish)
         required: true
         default: patch
         type: choice
@@ -31,9 +31,14 @@ on:
           - prerelease
           - manual
       manual-version:
-        description: Exact SemVer when version=manual; publish override when action=publish
+        description: Exact version for manual release or publish
         required: false
         type: string
+      dry-run:
+        description: Preview without creating a release or publishing
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -45,24 +50,22 @@ concurrency:
 
 jobs:
   publish:
-    if: github.event.inputs.action == 'publish'
-    uses: moyarich/dev-toolkit/.github/workflows/npm-publish.yml@main
+    if: inputs.action == 'publish'
+    uses: moyarich/reusable-workflows/.github/workflows/reusable_npm-publish.yml@v0.2.0
     with:
-      package-directory: ${{ github.event.inputs.package-directory }}
-      version: ${{ github.event.inputs.manual-version }}
+      package-directory: ${{ inputs.package-directory }}
+      version-mode: ${{ inputs.manual-version != '' && 'exact' || 'package-json' }}
+      exact-version: ${{ inputs.manual-version }}
+      dry-run: ${{ inputs.dry-run }}
       registry: github
       tag: latest
-    secrets:
-      github-token: ${{ secrets['_GITHUB_TOKEN'] }}
 
   release:
-    if: github.event.inputs.action == 'release'
-    uses: moyarich/dev-toolkit/.github/workflows/npm-release.yml@main
+    if: inputs.action == 'release'
+    uses: moyarich/reusable-workflows/.github/workflows/reusable_npm-release.yml@v0.2.0
     with:
-      package-directory: ${{ github.event.inputs.package-directory }}
-      version: ${{ github.event.inputs.version == 'manual' && github.event.inputs.manual-version || github.event.inputs.version }}
-      auto-publish: true
-      registry: github
-      tag: latest
-    secrets:
-      github-token: ${{ secrets['_GITHUB_TOKEN'] }}
+      package: ${{ inputs.package-directory }}
+      version-mode: ${{ inputs.version == 'manual' && 'exact' || 'bump' }}
+      version-bump: ${{ inputs.version == 'manual' && 'patch' || inputs.version }}
+      exact-version: ${{ inputs.manual-version }}
+      dry-run: ${{ inputs.dry-run }}
