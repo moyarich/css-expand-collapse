@@ -1,4 +1,13 @@
-import { generate, List, parse, walk } from "css-tree";
+import {
+  generate,
+  List,
+  parse,
+  walk,
+  type Block,
+  type CssNode,
+  type Declaration,
+  type StyleSheet,
+} from "css-tree";
 import {
   isCustomProperty,
   mergeCustomProperties,
@@ -38,13 +47,13 @@ function makeDeclaration(
   property: string,
   value: string,
   important = false,
-): any {
+): Declaration {
   return parse(`${property}:${value}${important ? "!important" : ""}`, {
     context: "declaration",
-  });
+  }) as Declaration;
 }
 
-function declarationValue(node: any): string {
+function declarationValue(node: Declaration): string {
   return generate(node.value).trim();
 }
 
@@ -65,7 +74,7 @@ function shouldReplaceCustomProperty(
   return candidate.order >= current.order;
 }
 
-function collectBlockCustomProperties(children: any[]): Record<string, string> {
+function collectBlockCustomProperties(children: CssNode[]): Record<string, string> {
   const cascade = new Map<string, CascadedCustomProperty>();
 
   for (let index = 0; index < children.length; index += 1) {
@@ -110,7 +119,7 @@ function globalSelectorSpecificity(selectorText: string): number | null {
   return scores.length ? Math.max(...scores) : null;
 }
 
-function collectGlobalCustomProperties(ast: any): Record<string, string> {
+function collectGlobalCustomProperties(ast: StyleSheet): Record<string, string> {
   const cascade = new Map<string, CascadedCustomProperty>();
   const topLevel = ast.children?.toArray?.() ?? [];
 
@@ -184,8 +193,8 @@ function valuesEquivalent(
   );
 }
 
-function expandBlock(children: any[], options?: TransformOptions): any[] {
-  const output: any[] = [];
+function expandBlock(children: CssNode[], options?: TransformOptions): CssNode[] {
+  const output: CssNode[] = [];
   for (const child of children) {
     if (child.type !== "Declaration") {
       output.push(child);
@@ -230,10 +239,10 @@ function declarationWouldApply(
  * cascade proves that shorthand is fully overridden.
  */
 function removeRedundantDeclarations(
-  children: any[],
+  children: CssNode[],
   options?: TransformOptions,
-): any[] {
-  const output: any[] = [];
+): CssNode[] {
+  const output: CssNode[] = [];
   const effective = new Map<string, EffectiveDeclaration>();
 
   for (const child of children) {
@@ -318,7 +327,7 @@ function overlapsCandidate(property: string, expected: Set<string>): boolean {
 }
 
 function findFullyShadowedEarlierShorthands(
-  children: any[],
+  children: CssNode[],
   beforeIndex: number,
   expected: Set<string>,
   replacementImportant: boolean,
@@ -360,11 +369,11 @@ function findFullyShadowedEarlierShorthands(
  * previously omitted values.
  */
 function tryCollapseAt(
-  children: any[],
+  children: CssNode[],
   index: number,
   consumed: Set<number>,
   options?: TransformOptions,
-): { node: any; indices: number[]; shadowedIndices: number[] } | null {
+): { node: Declaration; indices: number[]; shadowedIndices: number[] } | null {
   const first = children[index];
   if (!first || first.type !== "Declaration" || consumed.has(index))
     return null;
@@ -375,7 +384,7 @@ function tryCollapseAt(
     if (!definition.longhands.has(firstProperty)) continue;
 
     const expected = new Set(definition.longhands.keys());
-    const matches = new Map<string, { node: any; index: number }>();
+    const matches = new Map<string, { node: Declaration; index: number }>();
     const important = Boolean(first.important);
     const canFillMissing = options?.fillMissingLonghands === "initial";
     let blocked = false;
@@ -446,9 +455,9 @@ function tryCollapseAt(
   return null;
 }
 
-function collapseBlock(children: any[], options?: TransformOptions): any[] {
+function collapseBlock(children: CssNode[], options?: TransformOptions): CssNode[] {
   const consumed = new Set<number>();
-  const replacements = new Map<number, any>();
+  const replacements = new Map<number, Declaration>();
 
   for (let index = 0; index < children.length; index += 1) {
     if (consumed.has(index)) continue;
@@ -462,7 +471,7 @@ function collapseBlock(children: any[], options?: TransformOptions): any[] {
       consumed.add(shadowedIndex);
   }
 
-  const collapsedOutput: any[] = [];
+  const collapsedOutput: CssNode[] = [];
   for (let index = 0; index < children.length; index += 1) {
     const replacement = replacements.get(index);
     if (replacement) {
@@ -479,20 +488,20 @@ export function transformCss(
   css: string,
   options: TransformCssOptions,
 ): string {
-  const ast: any = parse(css, { context: "stylesheet" });
+  const ast = parse(css, { context: "stylesheet" }) as StyleSheet;
   const globalCustomProperties = collectGlobalCustomProperties(ast);
   const ruleBlocks = new WeakSet<object>();
 
   walk(ast, {
     visit: "Rule",
-    enter(rule: any) {
+    enter(rule) {
       if (rule.block) ruleBlocks.add(rule.block);
     },
   });
 
   walk(ast, {
     visit: "Block",
-    enter(block: any) {
+    enter(block) {
       const children = block.children.toArray();
       const localCustomProperties = collectBlockCustomProperties(children);
       const customProperties = mergeCustomProperties(
@@ -505,7 +514,7 @@ export function transformCss(
         options.mode === "expand"
           ? expandBlock(children, blockOptions)
           : collapseBlock(children, blockOptions);
-      const list = new List();
+      const list = new List<CssNode>();
       for (const child of transformed) list.appendData(child);
       block.children = list;
     },
