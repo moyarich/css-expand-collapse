@@ -221,7 +221,7 @@ function choosePackage() {
 }
 
 const parsed = parseReleaseArgument(releaseArg);
-let packageSelector = options.package ?? parsed.packageSelector;
+const packageSelector = options.package ?? parsed.packageSelector;
 let versionSpec = options.version ?? parsed.versionSpec;
 let usedInteractiveSelection = false;
 
@@ -231,7 +231,6 @@ if (packageSelector) {
   pkg = readPackage(packageSelector);
 } else {
   pkg = choosePackage();
-  packageSelector = pkg.selector;
   usedInteractiveSelection = true;
 }
 
