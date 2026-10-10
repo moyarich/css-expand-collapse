@@ -18,7 +18,9 @@ jobs:
         with:
           node-version: '24'
       - name: Refresh lockfile for updated manifests
-        run: npm install --package-lock-only --ignore-scripts
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          npm audit fix --package-lock-only --ignore-scripts
       - name: Commit lockfile
         run: |
           if git diff --quiet -- package-lock.json; then
