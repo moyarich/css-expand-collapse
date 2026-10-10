@@ -3,54 +3,70 @@
    ========================================================================== */
 
 .console-panel {
-  --console-background: #1e1e1e;
-  --console-foreground: #d8dee9;
-  --console-border: #303030;
+  --_console-header-background: var(--console-header-background, #fafafa);
+  --_console-header-foreground: var(--console-header-foreground, #202c40);
+  --_console-background: var(--console-background, #1e1e1e);
+  --_console-foreground: var(--console-foreground, #d8dee9);
+  --_console-border: var(--console-border, #303030);
 
-  --console-warning-border: #5e4d00;
-  --console-warning-background: #332b00;
-  --console-warning-foreground: #ffd99a;
+  --_console-warning-border: var(--console-warning-border, #5e4d00);
+  --_console-warning-background: var(--console-warning-background, #332b00);
+  --_console-warning-foreground: var(--console-warning-foreground, #ffd99a);
 
-  --console-error-border: #5b0000;
-  --console-error-background: #290000;
-  --console-error-foreground: #ff9b9b;
+  --_console-error-border: var(--console-error-border, #5b0000);
+  --_console-error-background: var(--console-error-background, #290000);
+  --_console-error-foreground: var(--console-error-foreground, #ff9b9b);
 
-  --console-info: #a8c7fa;
-  --console-debug: #8ab4f8;
+  --_console-info: var(--console-info, #a8c7fa);
+  --_console-debug: var(--console-debug, #8ab4f8);
 
-  --console-string: #f28b82;
-  --console-number: #8ab4f8;
-  --console-null: #c58af9;
-  --console-symbol: #81c995;
-  --console-circular: #fdd663;
+  --_console-string: var(--console-string, #f28b82);
+  --_console-number: var(--console-number, #8ab4f8);
+  --_console-null: var(--console-null, #c58af9);
+  --_console-symbol: var(--console-symbol, #81c995);
+  --_console-circular: var(--console-circular, #fdd663);
 
-  --console-muted: #a8aeb8;
-  --console-subtle: #80868b;
-  --console-group-marker: #9aa0a6;
+  --_console-muted: var(--console-muted, #a8aeb8);
+  --_console-subtle: var(--console-subtle, #80868b);
+  --_console-group-marker: var(--console-group-marker, #9aa0a6);
 
-  --console-object-border: #3a3a3a;
+  --_console-object-border: var(--console-object-border, #3a3a3a);
 
-  --console-table-border: #4a4a4a;
-  --console-table-header-background: #292929;
-  --console-table-even-background: #232a31;
-
-  --console-empty-foreground: #8e9aab;
-  --console-header-icon: #5266c9;
-
-  --console-property-key: color-mix(in oklab, var(--console-null), black 10%);
-  --console-object-property-key: color-mix(
-    in oklab,
-    var(--console-null),
-    white 20%
+  --_console-table-border: var(--console-table-border, #4a4a4a);
+  --_console-table-header-background: var(
+    --console-table-header-background,
+    #292929
+  );
+  --_console-table-even-background: var(
+    --console-table-even-background,
+    #232a31
   );
 
-  --console-font-family:
-    "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-  --console-font-size: 13px;
-  --console-line-height: 1.55;
+  --_console-empty-foreground: var(--console-empty-foreground, #8e9aab);
+  --_console-header-icon: var(--console-header-icon, #5266c9);
 
-  --console-min-height: 488px;
-  --console-mobile-min-height: 360px;
+  --_console-property-key: var(
+    --console-property-key,
+    color-mix(in oklab, var(--_console-null), black 10%)
+  );
+  --_console-object-property-key: var(
+    --console-object-property-key,
+    color-mix(in oklab, var(--_console-null), white 20%)
+  );
+
+  --_console-font-family: var(
+    --console-font-family,
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    monospace
+  );
+  --_console-font-size: var(--console-font-size, 13px);
+  --_console-line-height: var(--console-line-height, 1.55);
+
+  --_console-min-height: var(--console-min-height, 488px);
+  --_console-mobile-min-height: var(--console-mobile-min-height, 360px);
   min-width: 0;
 }
 
@@ -66,21 +82,21 @@
 
 .console-panel .console-heading-icon {
   flex: 0 0 auto;
-  color: var(--console-header-icon);
+  color: var(--_console-header-icon);
 }
 
 .console-panel .console-surface {
   width: 100%;
   min-width: 0;
-  min-height: var(--console-min-height);
+  min-height: var(--_console-min-height);
   flex: 1;
   overflow: auto;
-  background: var(--console-background);
-  color: var(--console-foreground);
+  background: var(--_console-background);
+  color: var(--_console-foreground);
   color-scheme: dark;
-  font-family: var(--console-font-family);
-  font-size: var(--console-font-size);
-  line-height: var(--console-line-height);
+  font-family: var(--_console-font-family);
+  font-size: var(--_console-font-size);
+  line-height: var(--_console-line-height);
 }
 
 .console-panel .console-message {
@@ -88,7 +104,7 @@
   min-width: 0;
   align-items: flex-start;
   gap: 7px;
-  border-bottom: 1px solid var(--console-border);
+  border-bottom: 1px solid var(--_console-border);
   padding-top: 7px;
   padding-right: 12px;
   padding-bottom: 7px;
@@ -96,24 +112,24 @@
 
 .console-panel .console-message[data-method="warn"],
 .console-panel .console-message[data-method="assert"] {
-  border-color: var(--console-warning-border);
-  background: var(--console-warning-background);
-  color: var(--console-warning-foreground);
+  border-color: var(--_console-warning-border);
+  background: var(--_console-warning-background);
+  color: var(--_console-warning-foreground);
 }
 
 .console-panel .console-message[data-method="error"] {
-  border-color: var(--console-error-border);
-  background: var(--console-error-background);
-  color: var(--console-error-foreground);
+  border-color: var(--_console-error-border);
+  background: var(--_console-error-background);
+  color: var(--_console-error-foreground);
 }
 
 .console-panel .console-message[data-method="info"] {
-  color: var(--console-info);
+  color: var(--_console-info);
 }
 
 .console-panel .console-message[data-method="debug"],
 .console-panel .console-message[data-method="trace"] {
-  color: var(--console-debug);
+  color: var(--_console-debug);
 }
 
 .console-panel .console-message[data-method="group"],
@@ -151,26 +167,26 @@
    ========================================================================== */
 
 .console-panel .console-string {
-  color: var(--console-string);
+  color: var(--_console-string);
 }
 
 .console-panel .console-number,
 .console-panel .console-boolean {
-  color: var(--console-number);
+  color: var(--_console-number);
 }
 
 .console-panel .console-null,
 .console-panel .console-undefined {
-  color: var(--console-null);
+  color: var(--_console-null);
 }
 
 .console-panel .console-symbol,
 .console-panel .console-function {
-  color: var(--console-symbol);
+  color: var(--_console-symbol);
 }
 
 .console-panel .console-circular {
-  color: var(--console-circular);
+  color: var(--_console-circular);
 }
 
 .console-panel .console-stack {
@@ -221,7 +237,7 @@
 .console-panel .console-object-chevron {
   width: 14px;
   flex: 0 0 14px;
-  color: var(--console-group-marker);
+  color: var(--_console-group-marker);
   transition: transform 120ms ease;
 }
 
@@ -231,7 +247,7 @@
 
 .console-panel .console-object-type {
   flex: 0 0 auto;
-  color: var(--console-foreground);
+  color: var(--_console-foreground);
   font-style: italic;
   white-space: nowrap;
 }
@@ -240,7 +256,7 @@
   min-width: 0;
   flex: 1 1 auto;
   overflow: hidden;
-  color: var(--console-muted);
+  color: var(--_console-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -258,7 +274,7 @@
   border-radius: 5px;
   padding: 0;
   background: transparent;
-  color: var(--console-subtle);
+  color: var(--_console-subtle);
   cursor: pointer;
   opacity: 0;
   transition:
@@ -278,15 +294,15 @@
 .console-panel .console-object-copy-button:hover,
 .console-panel .console-object-copy-button:focus-visible {
   outline: none;
-  background: var(--console-object-border);
-  color: var(--console-foreground);
+  background: var(--_console-object-border);
+  color: var(--_console-foreground);
   opacity: 1;
 }
 
 .console-panel .console-object-properties {
   min-width: 0;
   margin: 4px 0 2px 7px;
-  border-left: 1px solid var(--console-object-border);
+  border-left: 1px solid var(--_console-object-border);
   padding-left: 8px;
 }
 
@@ -303,7 +319,7 @@
 }
 
 .console-panel .console-property-key {
-  color: var(--console-property-key);
+  color: var(--_console-property-key);
 }
 .console-panel .console-property-key,
 .console-panel .console-object-property-key {
@@ -324,12 +340,12 @@
   flex: 0 0 auto;
   white-space: nowrap;
   overflow-wrap: normal;
-  color: var(--console-object-property-key);
+  color: var(--_console-object-property-key);
 }
 
 .console-panel .console-property-separator {
   flex: 0 0 auto;
-  color: var(--console-subtle);
+  color: var(--_console-subtle);
   text-align: center;
 }
 
@@ -353,7 +369,7 @@
 }
 
 .console-panel .console-object-empty {
-  color: var(--console-subtle);
+  color: var(--_console-subtle);
   font-style: italic;
 }
 
@@ -372,10 +388,10 @@
 .console-panel .console-table-actions {
   display: flex;
   justify-content: flex-end;
-  border: 1px solid var(--console-table-border);
+  border: 1px solid var(--_console-table-border);
   border-bottom: 0;
   padding: 3px;
-  background: var(--console-table-header-background);
+  background: var(--_console-table-header-background);
 }
 
 .console-panel .console-table-copy-button {
@@ -387,7 +403,7 @@
   border-radius: 5px;
   padding: 4px 7px;
   background: transparent;
-  color: var(--console-muted);
+  color: var(--_console-muted);
   font: inherit;
   font-size: 11px;
   cursor: pointer;
@@ -399,8 +415,8 @@
 .console-panel .console-table-copy-button:hover,
 .console-panel .console-table-copy-button:focus-visible {
   outline: none;
-  background: var(--console-object-border);
-  color: var(--console-foreground);
+  background: var(--_console-object-border);
+  color: var(--_console-foreground);
 }
 
 .console-panel .console-table-scroll {
@@ -422,7 +438,7 @@
 .console-panel .console-table th,
 .console-panel .console-table td {
   max-width: 280px;
-  border: 1px solid var(--console-table-border);
+  border: 1px solid var(--_console-table-border);
   padding: 3px 7px;
   vertical-align: top;
   text-align: left;
@@ -432,17 +448,17 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--console-table-header-background);
-  color: var(--console-foreground);
+  background: var(--_console-table-header-background);
+  color: var(--_console-foreground);
   font-weight: 600;
 }
 
 .console-panel .console-table tbody tr:nth-child(even) {
-  background: var(--console-table-even-background);
+  background: var(--_console-table-even-background);
 }
 
 .console-panel .console-table-index {
-  color: var(--console-muted);
+  color: var(--_console-muted);
 }
 
 /* ==========================================================================
@@ -451,23 +467,73 @@
 
 .console-panel .console-empty {
   display: flex;
-  min-height: var(--console-min-height);
+  min-height: var(--_console-min-height);
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 18px;
-  color: var(--console-empty-foreground);
+  color: var(--_console-empty-foreground);
   font-size: 0.86rem;
   text-align: center;
 }
 
 .console-panel .console-empty-icon {
-  color: var(--console-subtle);
+  color: var(--_console-subtle);
 }
 
 @media (max-width: 700px) {
   .console-panel {
-    --console-min-height: var(--console-mobile-min-height);
+    --_console-min-height: var(
+      --console-min-height,
+      var(--_console-mobile-min-height)
+    );
   }
+}
+
+.console-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--_console-border);
+  border-radius: 8px;
+  background: var(--_console-background);
+}
+.console-panel .panel-header {
+  background: var(--_console-header-background);
+  color: var(--_console-header-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 64px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--_console-border);
+}
+.console-panel .panel-header h2 {
+  margin: 0 0 3px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.console-panel .panel-header p {
+  margin: 0;
+  color: var(--_console-muted);
+  font-size: 12px;
+}
+.console-panel .console-clear-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--_console-border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  background: var(--_console-background);
+  color: var(--_console-foreground);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.console-panel .console-clear-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

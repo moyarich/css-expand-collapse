@@ -1,6 +1,0 @@
-{
-  "id": "get-style-longhands",
-  "label": "getStyleLonghands()",
-  "description": "Read the registered longhands for one shorthand from a read-only style declaration.",
-  "order": 15
-}

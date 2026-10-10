@@ -1,9 +1,0 @@
-{
-  "id": "mask",
-  "label": "mask",
-  "description": "Expand the mask shorthand into its longhand declarations.",
-  "group": "Visual effects",
-  "groupOrder": 5,
-  "order": 46,
-  "fillMissingLonghands": false
-}

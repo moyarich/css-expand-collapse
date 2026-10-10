@@ -1,13 +1,14 @@
+import { MarkdownProvider } from "../Markdown/MarkdownProvider";
+import { ResizableWorkspace } from "../ResizableWorkspace/ResizableWorkspace";
 import "./APIPlayground.css";
-import { Navigate, useNavigate, useParams } from "react-router";
+import { Navigate, useParams } from "react-router";
 import {
   DEFAULT_FUNCTION_EXAMPLE,
   FUNCTION_EXAMPLES,
-} from "../../examples/APIPlayground";
-import { APIRunner } from "./APIRunner";
+} from "../../../../../examples/APIPlayground";
+import { APIRunner } from "../APIRunner";
 
 export function APIPlayground() {
-  const navigate = useNavigate();
   const { exampleId } = useParams<{ exampleId: string }>();
   const example = FUNCTION_EXAMPLES.find((item) => item.id === exampleId);
 
@@ -15,40 +16,25 @@ export function APIPlayground() {
     return <Navigate to={`/api/${DEFAULT_FUNCTION_EXAMPLE.id}`} replace />;
   }
 
+  const ExamplePage = example.Component;
+
   return (
     <div className="api-playground">
+      <article id="overview" className="example-documentation">
+        <MarkdownProvider>
+          <ExamplePage />
+        </MarkdownProvider>
+      </article>
+      <h2 id="playground" className="workspace-title">
+        Try it yourself
+      </h2>
+      <p className="workspace-description">
+        Edit the example and press Run, ⌘ Enter, or Ctrl Enter.
+      </p>
       <div className="api-playground-layout">
-        <aside
-          className="settings-sidebar api-sidebar"
-          aria-label="API playground examples"
-        >
-          <section className="sidebar-section example-section">
-            <span className="sidebar-section-label">Load example</span>
-            <select
-              className="example-select"
-              value={example.id}
-              aria-label="Load function example"
-              onChange={(event) => navigate(`/api/${event.target.value}`)}
-            >
-              {FUNCTION_EXAMPLES.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </section>
-
-          <section className="sidebar-section">
-            <span className="sidebar-section-label">Run</span>
-            <p className="sidebar-help">
-              Press <kbd>⌘ Enter</kbd> on macOS or <kbd>Ctrl Enter</kbd> on
-              Windows/Linux. Standard <code>console.*()</code> output appears in
-              the console panel.
-            </p>
-          </section>
-        </aside>
-
-        <APIRunner key={example.id} initialSource={example.source} />
+        <ResizableWorkspace key={example.id}>
+          <APIRunner initialSource={example.source} />
+        </ResizableWorkspace>
       </div>
     </div>
   );

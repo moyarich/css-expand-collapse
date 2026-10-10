@@ -1,9 +1,0 @@
-{
-  "id": "scroll-timeline",
-  "label": "scroll-timeline",
-  "description": "Expand the scroll-timeline shorthand into its longhand declarations.",
-  "group": "Animation & scrolling",
-  "groupOrder": 4,
-  "order": 64,
-  "fillMissingLonghands": false
-}

@@ -1,6 +1,0 @@
-{
-  "id": "collapse-longhands",
-  "label": "collapseLonghands()",
-  "description": "Collapse longhand declaration maps, including values read from getComputedStyle().",
-  "order": 8
-}

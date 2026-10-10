@@ -1,9 +1,11 @@
+import "./setup";
 import Editor, { type EditorProps } from "@monaco-editor/react";
 
 export type MonacoEditorProps = EditorProps;
 
 const DEFAULT_OPTIONS: NonNullable<EditorProps["options"]> = {
   automaticLayout: true,
+  fixedOverflowWidgets: true,
   minimap: { enabled: false },
   fontSize: 14,
   lineHeight: 22,

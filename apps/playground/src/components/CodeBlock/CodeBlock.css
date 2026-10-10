@@ -1,0 +1,40 @@
+.code-block {
+  --_code-block-background: var(--code-block-background, #f6f6f7);
+  --_code-block-border: var(--code-block-border, #e2e2e5);
+  --_code-block-muted: var(--code-block-muted, #777780);
+  --_code-block-radius: var(--code-block-radius, 10px);
+  position: relative;
+  margin: 20px 0;
+  border: 1px solid var(--_code-block-border);
+  border-radius: var(--_code-block-radius);
+  overflow: hidden;
+}
+.code-block pre {
+  margin: 0;
+  padding: 24px 52px 24px 24px;
+  overflow: auto;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.code-block pre.shiki {
+  background-color: var(--_code-block-background) !important;
+}
+.code-block-copy {
+  position: absolute;
+  top: 16px;
+  right: 12px;
+  display: flex;
+  padding: 5px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--_code-block-background);
+  color: var(--_code-block-muted);
+  cursor: pointer;
+}
+.code-block-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

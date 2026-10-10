@@ -1,9 +1,0 @@
-{
-  "id": "scroll-padding-inline",
-  "label": "scroll-padding-inline",
-  "description": "Expand the scroll-padding-inline shorthand into its longhand declarations.",
-  "group": "Animation & scrolling",
-  "groupOrder": 4,
-  "order": 62,
-  "fillMissingLonghands": false
-}

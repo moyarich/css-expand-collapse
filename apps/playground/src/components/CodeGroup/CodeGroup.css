@@ -1,0 +1,40 @@
+.code-group {
+  --_code-group-background: var(--code-group-background, #f6f6f7);
+  --_code-group-border: var(--code-group-border, #e2e2e5);
+  --_code-group-muted: var(--code-group-muted, #777780);
+  --_code-group-accent: var(--code-group-accent, #c58a00);
+  border: 1px solid var(--_code-group-border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 20px 0;
+  background: var(--_code-group-background);
+}
+.code-group-tabs {
+  display: flex;
+  gap: 24px;
+  padding: 0 24px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--_code-group-border);
+}
+.code-group-tabs button {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 14px 0;
+  background: transparent;
+  color: var(--_code-group-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.code-group-tabs button[aria-selected="true"] {
+  color: var(--_code-group-accent);
+  border-bottom-color: var(--_code-group-accent);
+}
+.code-group .code-block {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+.code-group [hidden] {
+  display: none;
+}

@@ -1,9 +1,0 @@
-{
-  "id": "transition",
-  "label": "transition",
-  "description": "Expand the transition shorthand into its longhand declarations.",
-  "group": "Animation & scrolling",
-  "groupOrder": 4,
-  "order": 69,
-  "fillMissingLonghands": false
-}

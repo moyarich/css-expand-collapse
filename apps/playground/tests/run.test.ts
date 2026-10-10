@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { runFunctionSource } from "../src/components/APIPlayground/run";
+import { runFunctionSource } from "../src/components/APIRunner/run";
 
 describe("runFunctionSource console capture", () => {
   it("captures primitive console.log values", () => {

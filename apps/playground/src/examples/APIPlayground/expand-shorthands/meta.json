@@ -1,6 +1,0 @@
-{
-  "id": "expand-shorthands",
-  "label": "expandShorthands()",
-  "description": "Expand shorthand declaration maps, including shorthand values read from an element's inline style.",
-  "order": 7.5
-}

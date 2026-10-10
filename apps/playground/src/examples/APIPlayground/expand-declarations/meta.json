@@ -1,6 +1,0 @@
-{
-  "id": "expand-declarations",
-  "label": "expandDeclarations()",
-  "description": "Expand shorthand declarations without wrapping them in a selector.",
-  "order": 12
-}

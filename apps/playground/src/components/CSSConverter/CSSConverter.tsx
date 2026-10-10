@@ -1,3 +1,6 @@
+import { formatCss, type InputKind } from "./formatCss";
+import { MarkdownProvider } from "../Markdown/MarkdownProvider";
+import { ResizableWorkspace } from "../ResizableWorkspace/ResizableWorkspace";
 import "./CSSConverter.css";
 import { MonacoEditor } from "../MonacoEditor";
 import { useEffect, useMemo, useState } from "react";
@@ -10,23 +13,10 @@ import {
 } from "@moyarich/css-expand-collapse";
 import {
   CSS_CONVERTER_EXAMPLES,
-  CSS_CONVERTER_GROUPS,
   DEFAULT_CSS_CONVERTER_EXAMPLE,
-} from "../../examples/CSSConverter";
+} from "../../../../../examples/CSSConverter";
 
 type Mode = "expand" | "collapse";
-type InputKind = "stylesheet" | "declarations";
-
-const QUOTATIONMARK = 0x0022;
-const APOSTROPHE = 0x0027;
-const LEFTPARENTHESIS = 0x0028;
-const RIGHTPARENTHESIS = 0x0029;
-const COLON = 0x003a;
-const SEMICOLON = 0x003b;
-const LEFTCURLYBRACKET = 0x007b;
-const REVERSESOLIDUS = 0x005c;
-const RIGHTCURLYBRACKET = 0x007d;
-const CSS_WHITESPACE = new Set([0x0009, 0x000a, 0x000c, 0x000d, 0x0020]);
 
 const MODE_META: Record<
   Mode,
@@ -47,123 +37,6 @@ const MODE_META: Record<
     outputLabel: "Shorthand CSS",
   },
 };
-
-function formatCss(css: string, inputKind: InputKind): string {
-  const source = css.trim();
-  if (!source) return "";
-
-  let output = "";
-  let indent = 0;
-  let quoteCode = 0;
-  let escaped = false;
-  let parenDepth = 0;
-  let pendingSpace = false;
-
-  const writeIndent = () => {
-    output += "  ".repeat(Math.max(0, indent));
-  };
-
-  for (let index = 0; index < source.length; index += 1) {
-    const code = source.charCodeAt(index);
-    const char = source[index]!;
-
-    if (escaped) {
-      output += char;
-      escaped = false;
-      continue;
-    }
-
-    if (code === REVERSESOLIDUS) {
-      output += char;
-      escaped = true;
-      continue;
-    }
-
-    if (quoteCode) {
-      output += char;
-      if (code === quoteCode) quoteCode = 0;
-      continue;
-    }
-
-    if (code === APOSTROPHE || code === QUOTATIONMARK) {
-      if (pendingSpace) {
-        output += " ";
-        pendingSpace = false;
-      }
-      quoteCode = code;
-      output += char;
-      continue;
-    }
-
-    if (code === LEFTPARENTHESIS) parenDepth += 1;
-    if (code === RIGHTPARENTHESIS) parenDepth = Math.max(0, parenDepth - 1);
-
-    if (CSS_WHITESPACE.has(code) && parenDepth === 0) {
-      pendingSpace = true;
-      continue;
-    }
-
-    if (code === LEFTCURLYBRACKET && parenDepth === 0) {
-      output = output.trimEnd();
-      output += " {\n";
-      indent += 1;
-      writeIndent();
-      pendingSpace = false;
-      continue;
-    }
-
-    if (code === SEMICOLON && parenDepth === 0) {
-      output = output.trimEnd();
-      output += ";\n";
-      writeIndent();
-      pendingSpace = false;
-      continue;
-    }
-
-    if (code === RIGHTCURLYBRACKET && parenDepth === 0) {
-      output = output.trimEnd();
-      indent = Math.max(0, indent - 1);
-      output += "\n";
-      writeIndent();
-      output += "}\n";
-      writeIndent();
-      pendingSpace = false;
-      continue;
-    }
-
-    if (
-      code === COLON &&
-      parenDepth === 0 &&
-      (inputKind === "declarations" || indent > 0)
-    ) {
-      output = output.trimEnd();
-      output += ": ";
-      pendingSpace = false;
-      continue;
-    }
-
-    if (
-      pendingSpace &&
-      output &&
-      !output.endsWith("\n") &&
-      !output.endsWith(" ")
-    ) {
-      output += " ";
-    }
-    pendingSpace = false;
-    output += char;
-  }
-
-  const formatted = output
-    .split("\n")
-    .map((line) => line.trimEnd())
-    .join("\n")
-    .trim();
-
-  return inputKind === "declarations"
-    ? formatted.replace(/^\s{2}/gm, "")
-    : formatted;
-}
 
 export function CSSConverter() {
   const navigate = useNavigate();
@@ -198,23 +71,10 @@ export function CSSConverter() {
     setCopied(false);
   }, [navigate, routeExample]);
 
+  const ExamplePage = initialExample.Component;
   const meta = MODE_META[mode];
-  const modeExamples = useMemo(
-    () => CSS_CONVERTER_EXAMPLES.filter((example) => example.mode === mode),
-    [mode],
-  );
-  const modeGroups = useMemo(
-    () =>
-      CSS_CONVERTER_GROUPS.filter((group) =>
-        modeExamples.some((example) => example.group === group),
-      ),
-    [modeExamples],
-  );
   const inputKind = useMemo<InputKind>(
-    () =>
-      source.indexOf(String.fromCharCode(LEFTCURLYBRACKET)) === -1
-        ? "declarations"
-        : "stylesheet",
+    () => (source.indexOf("{") === -1 ? "declarations" : "stylesheet"),
     [source],
   );
 
@@ -241,15 +101,6 @@ export function CSSConverter() {
     }
   }, [source, mode, inputKind, fillMissingLonghands]);
 
-  const loadExample = (selection: string) => {
-    const example = CSS_CONVERTER_EXAMPLES.find(
-      (item) => item.key === selection,
-    );
-    if (!example) return;
-
-    navigate(`/converter/${example.key}`);
-  };
-
   const copyResult = async () => {
     if (!result.css) return;
     await navigator.clipboard.writeText(result.css);
@@ -257,48 +108,31 @@ export function CSSConverter() {
     window.setTimeout(() => setCopied(false), 1400);
   };
 
-  const useResultAsInput = () => {
-    if (!result.css) return;
-    setSource(result.css);
-    setMode(mode === "expand" ? "collapse" : "expand");
+  const changeMode = (nextMode: Mode) => {
+    if (nextMode === mode) return;
+    if (result.css && !result.error) setSource(result.css);
+    setMode(nextMode);
     setCopied(false);
+  };
+
+  const useResultAsInput = () => {
+    if (!result.css || result.error) return;
+    changeMode(mode === "expand" ? "collapse" : "expand");
   };
 
   return (
     <div className="css-converter">
+      <article id="overview" className="example-documentation">
+        <MarkdownProvider>
+          <ExamplePage />
+        </MarkdownProvider>
+      </article>
       <div className="playground-layout">
-        <aside className="settings-sidebar" aria-label="Conversion settings">
-          <section className="sidebar-section example-section">
-            <span className="sidebar-section-label">Load example</span>
-            <select
-              className="example-select"
-              value={routeExample?.mode === mode ? routeExample.key : ""}
-              aria-label="Load example"
-              onChange={(event) => {
-                if (!event.target.value) return;
-                loadExample(event.target.value);
-              }}
-            >
-              <option value="" disabled>
-                Choose an example…
-              </option>
-              {modeGroups.map((group) => (
-                <optgroup
-                  key={group}
-                  label={group === "Real-world CSS" ? group : `MDN · ${group}`}
-                >
-                  {modeExamples
-                    .filter((example) => example.group === group)
-                    .map((example) => (
-                      <option key={example.key} value={example.key}>
-                        {example.label}
-                      </option>
-                    ))}
-                </optgroup>
-              ))}
-            </select>
-          </section>
-
+        <aside
+          id="conversion-settings"
+          className="settings-sidebar"
+          aria-label="Conversion settings"
+        >
           <section className="sidebar-section">
             <span className="sidebar-section-label">Conversion</span>
             <div
@@ -312,10 +146,7 @@ export function CSSConverter() {
                   type="button"
                   className={`direction-button ${mode === option ? "active" : ""}`}
                   aria-pressed={mode === option}
-                  onClick={() => {
-                    setMode(option);
-                    setCopied(false);
-                  }}
+                  onClick={() => changeMode(option)}
                 >
                   {MODE_META[option].label}
                 </button>
@@ -352,95 +183,101 @@ export function CSSConverter() {
           </section>
         </aside>
 
-        <section className="workspace" aria-label="CSS conversion workspace">
-          <article className="panel source-panel">
-            <div className="panel-header">
-              <div>
-                <h2>Source</h2>
-                <p>
-                  {meta.inputLabel} ·{" "}
-                  {inputKind === "stylesheet" ? "Stylesheet" : "Declarations"}
-                </p>
-              </div>
-            </div>
-
-            <div className="editor-surface">
-              <MonacoEditor
-                path="input.css"
-                language="css"
-                value={source}
-                onChange={(value) => {
-                  setSource(value ?? "");
-                  setCopied(false);
-                }}
-                loading={
-                  <div className="editor-loading">Loading CSS editor…</div>
-                }
-                options={{
-                  ariaLabel: `${meta.inputLabel} input`,
-                }}
-              />
-            </div>
-          </article>
-
-          <button
-            type="button"
-            className="conversion-arrow"
-            disabled={!result.css}
-            onClick={useResultAsInput}
-            aria-label="Use result as input and reverse conversion"
-            title="Use result as input and reverse conversion"
+        <ResizableWorkspace>
+          <section
+            id="playground"
+            className="workspace"
+            aria-label="CSS conversion workspace"
           >
-            <span aria-hidden="true">⇄</span>
-          </button>
+            <article className="panel source-panel">
+              <div className="panel-header">
+                <div>
+                  <h2>Source</h2>
+                  <p>
+                    {meta.inputLabel} ·{" "}
+                    {inputKind === "stylesheet" ? "Stylesheet" : "Declarations"}
+                  </p>
+                </div>
+              </div>
 
-          <article className="panel result-panel">
-            <div className="panel-header">
-              <div>
-                <h2>Result</h2>
-                <p>{meta.outputLabel}</p>
-              </div>
-              <div className="result-actions">
-                <button
-                  type="button"
-                  className="copy-button"
-                  disabled={!result.css}
-                  onClick={copyResult}
-                >
-                  {copied ? "Copied" : "Copy"}
-                </button>
-              </div>
-            </div>
-
-            {result.error ? (
-              <div className="error-state">
-                <strong>Couldn’t transform this CSS</strong>
-                <pre>{result.error}</pre>
-              </div>
-            ) : result.css ? (
               <div className="editor-surface">
                 <MonacoEditor
-                  path="output.css"
+                  path="input.css"
                   language="css"
-                  value={result.css}
+                  value={source}
+                  onChange={(value) => {
+                    setSource(value ?? "");
+                    setCopied(false);
+                  }}
                   loading={
                     <div className="editor-loading">Loading CSS editor…</div>
                   }
                   options={{
-                    ariaLabel: `${meta.outputLabel} output`,
-                    readOnly: true,
-                    domReadOnly: true,
-                    renderLineHighlight: "none",
+                    ariaLabel: `${meta.inputLabel} input`,
                   }}
                 />
               </div>
-            ) : (
-              <div className="empty-state">
-                Start typing CSS to see the transformed result.
+            </article>
+
+            <button
+              type="button"
+              className="conversion-arrow"
+              disabled={!result.css}
+              onClick={useResultAsInput}
+              aria-label="Use result as input and reverse conversion"
+              title="Use result as input and reverse conversion"
+            >
+              <span aria-hidden="true">⇄</span>
+            </button>
+
+            <article className="panel result-panel">
+              <div className="panel-header">
+                <div>
+                  <h2>Result</h2>
+                  <p>{meta.outputLabel}</p>
+                </div>
+                <div className="result-actions">
+                  <button
+                    type="button"
+                    className="copy-button"
+                    disabled={!result.css}
+                    onClick={copyResult}
+                  >
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
               </div>
-            )}
-          </article>
-        </section>
+
+              {result.error ? (
+                <div className="error-state">
+                  <strong>Couldn’t transform this CSS</strong>
+                  <pre>{result.error}</pre>
+                </div>
+              ) : result.css ? (
+                <div className="editor-surface">
+                  <MonacoEditor
+                    path="output.css"
+                    language="css"
+                    value={result.css}
+                    loading={
+                      <div className="editor-loading">Loading CSS editor…</div>
+                    }
+                    options={{
+                      ariaLabel: `${meta.outputLabel} output`,
+                      readOnly: true,
+                      domReadOnly: true,
+                      renderLineHighlight: "none",
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="empty-state">
+                  Start typing CSS to see the transformed result.
+                </div>
+              )}
+            </article>
+          </section>
+        </ResizableWorkspace>
       </div>
     </div>
   );

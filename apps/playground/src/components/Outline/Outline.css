@@ -1,0 +1,24 @@
+.outline-headings {
+  --_outline-muted: var(--outline-muted, #777780);
+  --_outline-accent: var(--outline-accent, #b34426);
+  --_outline-border: var(--outline-border, #e9e9ec);
+}
+
+.outline-headings ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.outline-headings .outline-headings {
+  padding-left: 12px;
+}
+
+.outline-headings a {
+  display: block;
+  padding: 6px 0;
+  color: var(--_outline-muted);
+  text-decoration: none;
+}
+.outline-headings a:hover {
+  color: var(--_outline-accent);
+}

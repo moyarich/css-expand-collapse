@@ -1,9 +1,0 @@
-{
-  "id": "mask-border",
-  "label": "mask-border",
-  "description": "Expand the mask-border shorthand into its longhand declarations.",
-  "group": "Visual effects",
-  "groupOrder": 5,
-  "order": 45,
-  "fillMissingLonghands": false
-}

@@ -18,6 +18,8 @@
     "vitest.config.ts",
     "tests/**/*.test.ts",
     "tests/**/*.test.tsx",
-    "stories"
+    "stories",
+    "../../examples",
+    "vitest.unit.config.ts"
   ]
 }

@@ -7,23 +7,29 @@
 }
 
 .console-context-menu {
-  --console-context-menu-background: #252526;
-  --console-context-menu-border: #454545;
-  --console-context-menu-foreground: #e6e6e6;
-  --console-context-menu-muted: #9d9d9d;
-  --console-context-menu-hover: #37373d;
-  --console-context-menu-danger: #ff9b9b;
+  --_console-context-menu-background: var(
+    --console-context-menu-background,
+    #252526
+  );
+  --_console-context-menu-border: var(--console-context-menu-border, #454545);
+  --_console-context-menu-foreground: var(
+    --console-context-menu-foreground,
+    #e6e6e6
+  );
+  --_console-context-menu-muted: var(--console-context-menu-muted, #9d9d9d);
+  --_console-context-menu-hover: var(--console-context-menu-hover, #37373d);
+  --_console-context-menu-danger: var(--console-context-menu-danger, #ff9b9b);
 
   position: fixed;
   z-index: 1000;
   width: 220px;
   overflow: hidden;
-  border: 1px solid var(--console-context-menu-border);
+  border: 1px solid var(--_console-context-menu-border);
   border-radius: 8px;
   padding: 5px;
-  background: var(--console-context-menu-background);
+  background: var(--_console-context-menu-background);
   box-shadow: 0 12px 28px rgb(0 0 0 / 0.38);
-  color: var(--console-context-menu-foreground);
+  color: var(--_console-context-menu-foreground);
   font-family:
     system-ui,
     -apple-system,
@@ -51,21 +57,21 @@
 .console-context-menu-item:hover:not(:disabled),
 .console-context-menu-item:focus-visible {
   outline: none;
-  background: var(--console-context-menu-hover);
+  background: var(--_console-context-menu-hover);
 }
 
 .console-context-menu-item:disabled {
-  color: var(--console-context-menu-muted);
+  color: var(--_console-context-menu-muted);
   cursor: default;
   opacity: 0.55;
 }
 
 .console-context-menu-item-danger:not(:disabled) {
-  color: var(--console-context-menu-danger);
+  color: var(--_console-context-menu-danger);
 }
 
 .console-context-menu-separator {
   height: 1px;
   margin: 4px 5px;
-  background: var(--console-context-menu-border);
+  background: var(--_console-context-menu-border);
 }

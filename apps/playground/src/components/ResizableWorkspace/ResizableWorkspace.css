@@ -1,0 +1,41 @@
+.resizable-workspace {
+  --_resizable-workspace-accent: var(--resizable-workspace-accent, #b34426);
+  --_resizable-workspace-border: var(--resizable-workspace-border, #e9e9ec);
+}
+
+.resizable-workspace .editor-surface,
+.resizable-workspace .editor-loading,
+.resizable-workspace .error-state,
+.resizable-workspace .empty-state {
+  height: var(--workspace-editor-height);
+  min-height: var(--workspace-editor-height);
+}
+.resizable-workspace .api-workspace,
+.resizable-workspace .workspace {
+  min-height: 0;
+}
+.resizable-workspace .console-panel {
+  --console-min-height: var(--workspace-editor-height);
+  --console-mobile-min-height: var(--workspace-editor-height);
+  max-height: calc(var(--workspace-editor-height) + 64px);
+}
+.workspace-resize-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+  border-radius: 4px;
+}
+.workspace-resize-handle span {
+  width: 48px;
+  height: 4px;
+  border-radius: 4px;
+  background: #c7c7ce;
+}
+.workspace-resize-handle:hover span,
+.workspace-resize-handle:focus-visible span {
+  background: var(--_resizable-workspace-accent);
+}
