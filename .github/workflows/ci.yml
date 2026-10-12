@@ -37,7 +37,7 @@ jobs:
             import { createRequire } from "node:module";
             import { dirname, join } from "node:path";
             import { spawnSync } from "node:child_process";
-            const require = createRequire(import.meta.url);
+            const require = createRequire(join(process.cwd(), "apps/playground/package.json"));
             const provider = require.resolve("@vitest/browser-playwright");
             const fromProvider = createRequire(provider);
             const playwrightPackage = fromProvider.resolve("playwright/package.json");
