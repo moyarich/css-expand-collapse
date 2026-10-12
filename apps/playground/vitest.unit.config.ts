@@ -1,12 +1,11 @@
 import { defineConfig, mergeConfig } from "vitest/config";
 import viteConfig from "./vite.config";
 
-export default defineConfig((env) => mergeConfig(
-  viteConfig(env),
-  {
+export default defineConfig((env) =>
+  mergeConfig(viteConfig(env), {
     test: {
       include: ["tests/**/*.test.{ts,tsx}"],
       css: { include: /.+/ },
     },
-  },
-));
+  }),
+);
