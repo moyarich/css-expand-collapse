@@ -11,8 +11,12 @@ import mdx from "@mdx-js/rollup";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-export default defineConfig({
-  base: process.env.PLAYGROUND_BASE_PATH || "/",
+export default defineConfig(({ command }) => ({
+  // GitHub Pages serves this project beneath /css-expand-collapse/.
+  // Preserve root-relative assets for local development and allow explicit overrides.
+  base:
+    process.env.PLAYGROUND_BASE_PATH ||
+    (command === "build" ? "/css-expand-collapse/" : "/"),
   plugins: [
     {
       ...mdx({
@@ -47,4 +51,4 @@ export default defineConfig({
       ),
     },
   },
-});
+}));
