@@ -7,9 +7,8 @@ import viteConfig from "./vite.config";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
-export default defineConfig((env) => mergeConfig(
-  viteConfig(env),
-  {
+export default defineConfig((env) =>
+  mergeConfig(viteConfig(env), {
     test: {
       projects: [
         {
@@ -31,5 +30,5 @@ export default defineConfig((env) => mergeConfig(
         },
       ],
     },
-  },
-));
+  }),
+);
