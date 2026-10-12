@@ -29,8 +29,22 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run release:check
       - run: npm run build:playground
-      - run: npm install --no-save --package-lock=false @playwright/test@1.63.0
-      - run: npx playwright install --with-deps chromium
+      # Install browsers using the Playwright dependency resolved by Vitest's
+      # browser provider. A separate npx CLI can download a different revision.
+      - name: Install matching Playwright Chromium
+        run: |
+          node --input-type=module -e '
+            import { createRequire } from "node:module";
+            import { dirname, join } from "node:path";
+            import { spawnSync } from "node:child_process";
+            const require = createRequire(import.meta.url);
+            const provider = require.resolve("@vitest/browser-playwright");
+            const fromProvider = createRequire(provider);
+            const playwrightPackage = fromProvider.resolve("playwright/package.json");
+            const cli = join(dirname(playwrightPackage), "cli.js");
+            const result = spawnSync(process.execPath, [cli, "install", "--with-deps", "chromium"], { stdio: "inherit" });
+            process.exit(result.status ?? 1);
+          '
       - working-directory: apps/playground
         run: npm run test-storybook
       - working-directory: apps/playground
