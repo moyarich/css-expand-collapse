@@ -14,7 +14,7 @@ import {
 import {
   CSS_CONVERTER_EXAMPLES,
   DEFAULT_CSS_CONVERTER_EXAMPLE,
-} from "../../playground-examples";
+} from "../../../../../examples/CSSConverter";
 
 type Mode = "expand" | "collapse";
 
