@@ -27,6 +27,11 @@ order: 100
 
 The playground compiles MDX with `@mdx-js/rollup` and standard `@mdx-js/react`
 provider support. Pages can use Markdown, JSX, and imported React components.
+The playground discovers both collections through `apps/playground/registry.config.ts`,
+which sets each collection’s base directory, source filename, and example kind.
+The registry plugin exposes compiled pages and raw editor sources through
+`virtual:preset-registry` and reloads when example files are added or removed.
+
 Another consumer can discover these same pages with
 `import.meta.glob("./examples/**/page.mdx", { eager: true })` and provide its own
 MDX components or MoyaForge content helpers.

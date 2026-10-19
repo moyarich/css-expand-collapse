@@ -1,0 +1,156 @@
+import { readdir, access } from "node:fs/promises";
+import { resolve, relative, sep, isAbsolute, basename } from "node:path";
+import type { Plugin, ViteDevServer } from "vite";
+
+export interface PresetRegistryConfig {
+  sources: Record<
+    string,
+    { base: string; source: string; kind: "api" | "converter" }
+  >;
+}
+
+export interface PresetRegistryEntry {
+  collection: string;
+  key: string;
+  mode?: "expand" | "collapse";
+  page: string;
+  source: string;
+}
+
+export async function buildPresetRegistry(
+  config: PresetRegistryConfig,
+  root: string,
+  watch: (file: string) => void = () => {},
+): Promise<PresetRegistryEntry[]> {
+  const entries: PresetRegistryEntry[] = [];
+  for (const [collection, options] of Object.entries(config.sources)) {
+    if (!options.source || basename(options.source) !== options.source)
+      throw new Error(
+        `Registry source must be a local basename: ${options.source}`,
+      );
+    const base = resolve(root, options.base);
+    async function walk(folder: string): Promise<void> {
+      watch(folder);
+      const children = await readdir(folder, { withFileTypes: true });
+      const pages = children.filter(
+        (child) => child.isFile() && /^page\.mdx?$/.test(child.name),
+      );
+      if (pages.length > 1)
+        throw new Error(`Multiple example pages: ${folder}`);
+      if (pages.length) {
+        const key = relative(base, folder).split(sep).join("/");
+        const parts = key.split("/");
+        if (
+          options.kind === "api"
+            ? parts.length !== 1 || !key
+            : parts.length !== 2 || !["expand", "collapse"].includes(parts[0])
+        )
+          throw new Error(`Invalid ${options.kind} example path: ${key}`);
+        const source = resolve(folder, options.source);
+        await access(source);
+        const page = resolve(folder, pages[0].name);
+        watch(page);
+        watch(source);
+        entries.push({
+          collection,
+          key,
+          page,
+          source,
+          ...(options.kind === "converter"
+            ? { mode: parts[0] as "expand" | "collapse" }
+            : {}),
+        });
+      }
+      for (const child of children.sort((a, b) => a.name.localeCompare(b.name)))
+        if (
+          child.isDirectory() &&
+          !child.name.startsWith(".") &&
+          child.name !== "node_modules"
+        )
+          await walk(resolve(folder, child.name));
+    }
+    await walk(base);
+  }
+  return entries;
+}
+
+export function presetRegistryPlugin(config: PresetRegistryConfig): Plugin {
+  const publicId = "virtual:preset-registry";
+  const virtualId = "\0" + publicId;
+  let root: string;
+  function reload(server: ViteDevServer, file: string) {
+    if (
+      !Object.values(config.sources).some((source) => {
+        const path = relative(resolve(root, source.base), resolve(file));
+        return (
+          path === "" ||
+          (path !== ".." && !path.startsWith(".." + sep) && !isAbsolute(path))
+        );
+      })
+    )
+      return;
+    const module = server.moduleGraph.getModuleById(virtualId);
+    if (module) server.moduleGraph.invalidateModule(module);
+    server.ws.send({ type: "full-reload" });
+  }
+  return {
+    name: "preset-registry",
+    configResolved(config) {
+      root = config.root;
+    },
+    resolveId(id) {
+      if (id === publicId) return virtualId;
+    },
+    async load(id) {
+      if (id !== virtualId) return;
+      const entries = await buildPresetRegistry(config, root, (file) =>
+        this.addWatchFile(file),
+      );
+      const imports: string[] = [];
+      const collections = Object.fromEntries(
+        Object.keys(config.sources).map((key) => [key, [] as string[]]),
+      );
+      for (const [index, entry] of entries.entries()) {
+        imports.push(
+          `import * as Page${index} from ${JSON.stringify(entry.page)};`,
+        );
+        imports.push(
+          `import Source${index} from ${JSON.stringify(entry.source + "?raw")};`,
+        );
+        imports.push(
+          `if (Page${index}.frontmatter.id !== ${JSON.stringify(entry.key.split("/").at(-1))}) throw new Error(${JSON.stringify(`Example metadata id mismatch: ${entry.collection}/${entry.key}`)});`,
+        );
+        collections[entry.collection].push(
+          `{...Page${index}.frontmatter, key: ${JSON.stringify(entry.key)}, mode: ${JSON.stringify(entry.mode)}, source: Source${index}, pageFile: ${JSON.stringify(basename(entry.page))}, Component: Page${index}.default, tableOfContents: Page${index}.tableOfContents}`,
+        );
+      }
+      return `${imports.join("\n")}\nexport const registry = {${Object.entries(
+        collections,
+      )
+        .map(
+          ([key, records]) =>
+            `${JSON.stringify(key)}: [${records.join(",")}].sort((a,b) => a.order - b.order)`,
+        )
+        .join(",")}};`;
+    },
+    configureServer(server) {
+      server.watcher.add(
+        Object.values(config.sources).map((source) =>
+          resolve(root, source.base),
+        ),
+      );
+      const onChange = (file: string) => reload(server, file);
+      const events = [
+        "add",
+        "unlink",
+        "change",
+        "addDir",
+        "unlinkDir",
+      ] as const;
+      for (const event of events) server.watcher.on(event, onChange);
+      server.httpServer?.once("close", () => {
+        for (const event of events) server.watcher.off(event, onChange);
+      });
+    },
+  };
+}

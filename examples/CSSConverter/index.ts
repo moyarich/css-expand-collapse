@@ -1,3 +1,4 @@
+import { registry } from "virtual:preset-registry";
 import type { TocEntry } from "../types";
 import type { ComponentType } from "react";
 
@@ -22,52 +23,8 @@ export interface CSSConverterExample extends CSSConverterExampleMeta {
   tableOfContents: TocEntry[];
 }
 
-const sourceModules = import.meta.glob("./*/*/source.css", {
-  query: "?raw",
-  import: "default",
-  eager: true,
-}) as Record<string, string>;
-
-const pageModules = import.meta.glob("./*/*/page.{md,mdx}", {
-  eager: true,
-}) as Record<
-  string,
-  {
-    frontmatter: CSSConverterExampleMeta;
-    default: ComponentType;
-    tableOfContents: TocEntry[];
-  }
->;
-
 export const CSS_CONVERTER_EXAMPLES: readonly CSSConverterExample[] =
-  Object.entries(pageModules)
-    .map(([path, page]) => {
-      const metadata = page.frontmatter;
-      const parts = path.split("/");
-      const mode = parts.at(-3) as CSSConverterMode;
-      const id = parts.at(-2)!;
-      const key = `${mode}/${id}`;
-      const source = sourceModules[`./${mode}/${id}/source.css`];
-
-      if (mode !== "expand" && mode !== "collapse") {
-        throw new Error(`Invalid CSS converter example mode: ${mode}`);
-      }
-      if (!source)
-        throw new Error(`Missing source.css for CSS converter example: ${key}`);
-      if (metadata.id !== id)
-        throw new Error(`CSS converter metadata id mismatch: ${key}`);
-
-      return {
-        ...metadata,
-        key,
-        mode,
-        source,
-        pageFile: path.split("/").at(-1)!,
-        Component: page.default,
-        tableOfContents: page.tableOfContents,
-      };
-    })
-    .sort((a, b) => a.order - b.order);
+  registry.CSSConverter;
 
 const groupOrder = new Map<string, number>();
 for (const example of CSS_CONVERTER_EXAMPLES) {

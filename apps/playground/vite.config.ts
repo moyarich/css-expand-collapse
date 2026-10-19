@@ -1,42 +1,29 @@
-import remarkCodeGroup from "./src/components/CodeGroup/remarkCodeGroup";
-import rehypeShiki from "@shikijs/rehype";
-import rehypeExtractToc from "@stefanprobst/rehype-extract-toc";
-import rehypeExtractTocExport from "@stefanprobst/rehype-extract-toc/mdx";
-import rehypeSlug from "rehype-slug";
-import remarkFrontmatter from "remark-frontmatter";
-import remarkGfm from "remark-gfm";
-import remarkMdxFrontmatter from "remark-mdx-frontmatter";
+/// <reference types="vitest/config" />
 import { fileURLToPath, URL } from "node:url";
-import mdx from "@mdx-js/rollup";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-
+import { mdxPagesPlugin } from "./vite-plugins/mdx-pages-plugin/mdx-pages-plugin";
+import registry from "./registry.config";
+import { presetRegistryPlugin } from "./vite-plugins/preset-registry/preset-registry";
 export default defineConfig({
   base: process.env.PLAYGROUND_BASE_PATH || "/",
   plugins: [
-    {
-      ...mdx({
-        format: "mdx",
-        mdxExtensions: [".md", ".mdx"],
-        include: /\.mdx?$/,
-        providerImportSource: "@mdx-js/react",
-        remarkPlugins: [
-          remarkGfm,
-          remarkCodeGroup,
-          remarkFrontmatter,
-          [remarkMdxFrontmatter, { name: "frontmatter" }],
-        ],
-        rehypePlugins: [
-          rehypeSlug,
-          rehypeExtractToc,
-          rehypeExtractTocExport,
-          [rehypeShiki, { theme: "github-light", fallbackLanguage: "text" }],
-        ],
-      }),
-      enforce: "pre",
-    },
+    presetRegistryPlugin(registry),
+    mdxPagesPlugin(),
     react({ include: /\.(jsx|tsx|mdx?)$/ }),
   ],
+  css: {
+    devSourcemap: true,
+  },
+  build: {
+    sourcemap: true,
+  },
+  define: {
+    "process.env": JSON.stringify({
+      NODE_ENV: "development",
+      BStyle_CSSTREE_LOG_LEVEL: "ERROR",
+    }),
+  },
   resolve: {
     alias: {
       "@moyarich/css-expand-collapse": fileURLToPath(
@@ -45,6 +32,7 @@ export default defineConfig({
           import.meta.url,
         ),
       ),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
 });
