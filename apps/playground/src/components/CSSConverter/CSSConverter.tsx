@@ -11,6 +11,7 @@ import {
 } from "@moyarich/css-expand-collapse";
 
 type Mode = "expand" | "collapse";
+type CopySide = "source" | "result";
 
 const MODE_META: Record<
   Mode,
@@ -32,11 +33,21 @@ const MODE_META: Record<
   },
 };
 
-export function CSSConverter({ source: initialSource, initialMode, fillMissingLonghands: initialFillMissingLonghands = false }: { source: string; initialMode: Mode; fillMissingLonghands?: boolean }) {
+export function CSSConverter({
+  source: initialSource,
+  initialMode,
+  fillMissingLonghands: initialFillMissingLonghands = false,
+}: {
+  source: string;
+  initialMode: Mode;
+  fillMissingLonghands?: boolean;
+}) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [source, setSource] = useState(initialSource);
-  const [fillMissingLonghands, setFillMissingLonghands] = useState(initialFillMissingLonghands);
-  const [copied, setCopied] = useState(false);
+  const [fillMissingLonghands, setFillMissingLonghands] = useState(
+    initialFillMissingLonghands,
+  );
+  const [copied, setCopied] = useState<CopySide | null>(null);
 
   const meta = MODE_META[mode];
   const inputKind = useMemo<InputKind>(
@@ -67,18 +78,21 @@ export function CSSConverter({ source: initialSource, initialMode, fillMissingLo
     }
   }, [source, mode, inputKind, fillMissingLonghands]);
 
-  const copyResult = async () => {
-    if (!result.css) return;
-    await navigator.clipboard.writeText(result.css);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1400);
+  const copyText = async (text: string, side: CopySide) => {
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
+    setCopied(side);
+    window.setTimeout(
+      () => setCopied((current) => (current === side ? null : current)),
+      1400,
+    );
   };
 
   const changeMode = (nextMode: Mode) => {
     if (nextMode === mode) return;
     if (result.css && !result.error) setSource(result.css);
     setMode(nextMode);
-    setCopied(false);
+    setCopied(null);
   };
 
   const useResultAsInput = () => {
@@ -159,6 +173,16 @@ export function CSSConverter({ source: initialSource, initialMode, fillMissingLo
                     {inputKind === "stylesheet" ? "Stylesheet" : "Declarations"}
                   </p>
                 </div>
+                <div className="result-actions">
+                  <button
+                    type="button"
+                    className="copy-button"
+                    disabled={!source}
+                    onClick={() => copyText(source, "source")}
+                  >
+                    {copied === "source" ? "Copied" : "Copy"}
+                  </button>
+                </div>
               </div>
 
               <div className="editor-surface">
@@ -168,7 +192,7 @@ export function CSSConverter({ source: initialSource, initialMode, fillMissingLo
                   value={source}
                   onChange={(value) => {
                     setSource(value ?? "");
-                    setCopied(false);
+                    setCopied(null);
                   }}
                   loading={
                     <div className="editor-loading">Loading CSS editor…</div>
@@ -202,9 +226,9 @@ export function CSSConverter({ source: initialSource, initialMode, fillMissingLo
                     type="button"
                     className="copy-button"
                     disabled={!result.css}
-                    onClick={copyResult}
+                    onClick={() => copyText(result.css, "result")}
                   >
-                    {copied ? "Copied" : "Copy"}
+                    {copied === "result" ? "Copied" : "Copy"}
                   </button>
                 </div>
               </div>
