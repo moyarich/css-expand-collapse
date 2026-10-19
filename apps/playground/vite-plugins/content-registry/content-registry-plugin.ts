@@ -6,6 +6,10 @@ export function contentRegistryPlugin(config: ContentRegistryConfig): Plugin {
   const publicId = "virtual:content-registry";
   const virtualId = "\0" + publicId;
   let root: string;
+  let serve = false;
+  // Vite dev-server imports from outside the project root require /@fs/ URLs.
+  const importPath = (file: string) =>
+    serve ? `/@fs/${file.replaceAll("\\", "/")}` : file;
   function reload(server: ViteDevServer, file: string) {
     if (
       !Object.values(config.sources).some((source) => {
@@ -25,6 +29,7 @@ export function contentRegistryPlugin(config: ContentRegistryConfig): Plugin {
     name: "content-registry",
     configResolved(config) {
       root = config.root;
+      serve = config.command === "serve";
     },
     resolveId(id) {
       if (id === publicId) return virtualId;
@@ -40,10 +45,10 @@ export function contentRegistryPlugin(config: ContentRegistryConfig): Plugin {
       );
       for (const [index, entry] of entries.entries()) {
         imports.push(
-          `import * as Page${index} from ${JSON.stringify(entry.page)};`,
+          `import * as Page${index} from ${JSON.stringify(importPath(entry.page))};`,
         );
         imports.push(
-          `import Source${index} from ${JSON.stringify(entry.source + "?raw")};`,
+          `import Source${index} from ${JSON.stringify(importPath(entry.source) + "?raw")};`,
         );
         imports.push(
           `if (Page${index}.frontmatter.id !== ${JSON.stringify(entry.key.split("/").at(-1))}) throw new Error(${JSON.stringify(`Example metadata id mismatch: ${entry.collection}/${entry.key}`)});`,
