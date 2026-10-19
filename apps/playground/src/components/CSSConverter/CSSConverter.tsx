@@ -1,3 +1,4 @@
+import { ExamplePlaygroundProvider } from "../../mdx/ExamplePlayground";
 import { formatCss, type InputKind } from "./formatCss";
 import { MarkdownProvider } from "../Markdown/MarkdownProvider";
 import { ResizableWorkspace } from "../ResizableWorkspace/ResizableWorkspace";
@@ -120,13 +121,8 @@ export function CSSConverter() {
     changeMode(mode === "expand" ? "collapse" : "expand");
   };
 
-  return (
-    <div className="css-converter">
-      <article id="overview" className="example-documentation">
-        <MarkdownProvider>
-          <ExamplePage />
-        </MarkdownProvider>
-      </article>
+  const playground = (
+    <>
       <div className="playground-layout">
         <aside
           id="conversion-settings"
@@ -279,6 +275,15 @@ export function CSSConverter() {
           </section>
         </ResizableWorkspace>
       </div>
+    </>
+  );
+  return (
+    <div className="css-converter">
+      <ExamplePlaygroundProvider playground={playground}>
+        <article id="overview" className="example-documentation">
+          <MarkdownProvider><ExamplePage /></MarkdownProvider>
+        </article>
+      </ExamplePlaygroundProvider>
     </div>
   );
 }

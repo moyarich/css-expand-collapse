@@ -1,3 +1,4 @@
+import { ExamplePlayground, ExampleSource } from "./ExamplePlayground";
 import { CodeBlock } from "../components/CodeBlock";
 import { CodeGroup, CodeTab } from "../components/CodeGroup";
 import { Outline } from "../components/Outline/Outline";
@@ -10,4 +11,6 @@ export const mdxComponents: MDXComponents = {
   CodeGroup,
   CodeTab,
   pre: CodeBlock,
+  ExamplePlayground,
+  ExampleSource,
 };

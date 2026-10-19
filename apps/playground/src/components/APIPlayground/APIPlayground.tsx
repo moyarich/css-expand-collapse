@@ -1,3 +1,4 @@
+import { ExamplePlaygroundProvider } from "../../mdx/ExamplePlayground";
 import { MarkdownProvider } from "../Markdown/MarkdownProvider";
 import { ResizableWorkspace } from "../ResizableWorkspace/ResizableWorkspace";
 import "./APIPlayground.css";
@@ -18,13 +19,8 @@ export function APIPlayground() {
 
   const ExamplePage = example.Component;
 
-  return (
-    <div className="api-playground">
-      <article id="overview" className="example-documentation">
-        <MarkdownProvider>
-          <ExamplePage />
-        </MarkdownProvider>
-      </article>
+  const playground = (
+    <>
       <h2 id="playground" className="workspace-title">
         Try it yourself
       </h2>
@@ -36,6 +32,15 @@ export function APIPlayground() {
           <APIRunner initialSource={example.source} />
         </ResizableWorkspace>
       </div>
+    </>
+  );
+  return (
+    <div className="api-playground">
+      <ExamplePlaygroundProvider playground={playground}>
+        <article id="overview" className="example-documentation">
+          <MarkdownProvider><ExamplePage /></MarkdownProvider>
+        </article>
+      </ExamplePlaygroundProvider>
     </div>
   );
 }
