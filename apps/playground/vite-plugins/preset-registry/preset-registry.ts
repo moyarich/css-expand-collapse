@@ -5,14 +5,20 @@ import type { Plugin, ViteDevServer } from "vite";
 export interface PresetRegistryConfig {
   sources: Record<
     string,
-    { base: string; source: string; kind: "api" | "converter" }
+    {
+      base: string;
+      source: string;
+      kind: "api" | "converter";
+      pages?: readonly string[];
+      modes?: readonly string[];
+    }
   >;
 }
 
 export interface PresetRegistryEntry {
   collection: string;
   key: string;
-  mode?: "expand" | "collapse";
+  mode?: string;
   page: string;
   source: string;
 }
@@ -28,12 +34,17 @@ export async function buildPresetRegistry(
       throw new Error(
         `Registry source must be a local basename: ${options.source}`,
       );
+    const pageNames = options.pages ?? ["page.md", "page.mdx"];
+    if (!pageNames.length || pageNames.some((name) => !name || basename(name) !== name))
+      throw new Error(`Invalid registry page filenames: ${collection}`);
+    if (options.kind === "converter" && (!options.modes?.length || options.modes.some((mode) => !mode || mode.includes("/"))))
+      throw new Error(`Converter modes must be configured: ${collection}`);
     const base = resolve(root, options.base);
     async function walk(folder: string): Promise<void> {
       watch(folder);
       const children = await readdir(folder, { withFileTypes: true });
       const pages = children.filter(
-        (child) => child.isFile() && /^page\.mdx?$/.test(child.name),
+        (child) => child.isFile() && pageNames.includes(child.name),
       );
       if (pages.length > 1)
         throw new Error(`Multiple example pages: ${folder}`);
@@ -43,7 +54,7 @@ export async function buildPresetRegistry(
         if (
           options.kind === "api"
             ? parts.length !== 1 || !key
-            : parts.length !== 2 || !["expand", "collapse"].includes(parts[0])
+            : parts.length !== 2 || !options.modes?.includes(parts[0])
         )
           throw new Error(`Invalid ${options.kind} example path: ${key}`);
         const source = resolve(folder, options.source);
@@ -57,7 +68,7 @@ export async function buildPresetRegistry(
           page,
           source,
           ...(options.kind === "converter"
-            ? { mode: parts[0] as "expand" | "collapse" }
+            ? { mode: parts[0] }
             : {}),
         });
       }
@@ -119,6 +130,9 @@ export function presetRegistryPlugin(config: PresetRegistryConfig): Plugin {
         );
         imports.push(
           `if (Page${index}.frontmatter.id !== ${JSON.stringify(entry.key.split("/").at(-1))}) throw new Error(${JSON.stringify(`Example metadata id mismatch: ${entry.collection}/${entry.key}`)});`,
+        );
+        imports.push(
+          `if (typeof Page${index}.frontmatter?.label !== "string" || !Page${index}.frontmatter.label.trim() || !Number.isFinite(Page${index}.frontmatter.order)) throw new Error(${JSON.stringify(`Invalid example metadata: ${entry.collection}/${entry.key}`)});`,
         );
         collections[entry.collection].push(
           `{...Page${index}.frontmatter, key: ${JSON.stringify(entry.key)}, mode: ${JSON.stringify(entry.mode)}, source: Source${index}, pageFile: ${JSON.stringify(basename(entry.page))}, Component: Page${index}.default, tableOfContents: Page${index}.tableOfContents}`,
