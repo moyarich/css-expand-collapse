@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { mdxPagesPlugin } from "./vite-plugins/mdx-pages-plugin/mdx-pages-plugin";
 import registry from "./registry.config";
-import { playgroundExamplesPlugin } from "./vite-plugins/playground-examples/playground-examples";
+import { contentRegistryPlugin } from "./vite-plugins/content-registry/content-registry";
 
 export default defineConfig(({ command }) => ({
   // GitHub Pages serves this project beneath /css-expand-collapse/.
@@ -13,7 +13,7 @@ export default defineConfig(({ command }) => ({
     process.env.PLAYGROUND_BASE_PATH ||
     (command === "build" ? "/css-expand-collapse/" : "/"),
   plugins: [
-    playgroundExamplesPlugin(registry),
+    contentRegistryPlugin(registry),
     mdxPagesPlugin(),
     react({ include: /\.(jsx|tsx|mdx?)$/ }),
   ],

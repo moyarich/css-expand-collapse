@@ -1,4 +1,4 @@
-import type { RegistryConfig } from "./vite-plugins/playground-examples/playground-examples";
+import type { RegistryConfig } from "./vite-plugins/content-registry/content-registry";
 
 export default {
   sources: {

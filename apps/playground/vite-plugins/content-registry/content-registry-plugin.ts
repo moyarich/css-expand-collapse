@@ -15,7 +15,7 @@ export interface RegistryConfig {
   >;
 }
 
-export interface PlaygroundExamplesEntry {
+export interface ContentRegistryEntry {
   collection: string;
   key: string;
   mode?: string;
@@ -23,12 +23,12 @@ export interface PlaygroundExamplesEntry {
   source: string;
 }
 
-export async function buildPlaygroundExamples(
+export async function buildContentRegistry(
   config: RegistryConfig,
   root: string,
   watch: (file: string) => void = () => {},
-): Promise<PlaygroundExamplesEntry[]> {
-  const entries: PlaygroundExamplesEntry[] = [];
+): Promise<ContentRegistryEntry[]> {
+  const entries: ContentRegistryEntry[] = [];
   for (const [collection, options] of Object.entries(config.sources)) {
     if (!options.source || basename(options.source) !== options.source)
       throw new Error(
@@ -85,8 +85,8 @@ export async function buildPlaygroundExamples(
   return entries;
 }
 
-export function playgroundExamplesPlugin(config: RegistryConfig): Plugin {
-  const publicId = "virtual:playground-examples";
+export function contentRegistryPlugin(config: RegistryConfig): Plugin {
+  const publicId = "virtual:content-registry";
   const virtualId = "\0" + publicId;
   let root: string;
   function reload(server: ViteDevServer, file: string) {
@@ -105,7 +105,7 @@ export function playgroundExamplesPlugin(config: RegistryConfig): Plugin {
     server.ws.send({ type: "full-reload" });
   }
   return {
-    name: "playground-examples",
+    name: "content-registry",
     configResolved(config) {
       root = config.root;
     },
@@ -114,7 +114,7 @@ export function playgroundExamplesPlugin(config: RegistryConfig): Plugin {
     },
     async load(id) {
       if (id !== virtualId) return;
-      const entries = await buildPlaygroundExamples(config, root, (file) =>
+      const entries = await buildContentRegistry(config, root, (file) =>
         this.addWatchFile(file),
       );
       const imports: string[] = [];

@@ -30,7 +30,7 @@ provider support. Pages can use Markdown, JSX, and imported React components.
 The playground discovers both collections through `apps/playground/registry.config.ts`,
 which sets each collection’s base directory, source filename, and example kind.
 The registry plugin exposes compiled pages and raw editor sources through
-`virtual:playground-examples` and reloads when example files are added or removed.
+`virtual:content-registry` and reloads when example files are added or removed.
 
 Another consumer can discover these same pages with
 `import.meta.glob("./examples/**/page.mdx", { eager: true })` and provide its own

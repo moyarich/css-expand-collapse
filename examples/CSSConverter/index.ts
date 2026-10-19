@@ -1,4 +1,4 @@
-import { registry } from "virtual:preset-registry";
+import { registry } from "virtual:content-registry";
 import type { TocEntry } from "../types";
 import type { ComponentType } from "react";
 
