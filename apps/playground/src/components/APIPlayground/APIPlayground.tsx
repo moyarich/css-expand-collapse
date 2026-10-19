@@ -5,7 +5,7 @@ import { Navigate, useParams } from "react-router";
 import {
   DEFAULT_FUNCTION_EXAMPLE,
   FUNCTION_EXAMPLES,
-} from "../../../../../examples/APIPlayground";
+} from "../../mdx/example-registry";
 import { APIRunner } from "../APIRunner";
 
 export function APIPlayground() {
