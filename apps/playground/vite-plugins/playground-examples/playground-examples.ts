@@ -2,7 +2,7 @@ import { readdir, access } from "node:fs/promises";
 import { resolve, relative, sep, isAbsolute, basename } from "node:path";
 import type { Plugin, ViteDevServer } from "vite";
 
-export interface PlaygroundExamplesConfig {
+export interface RegistryConfig {
   sources: Record<
     string,
     {
@@ -24,7 +24,7 @@ export interface PlaygroundExamplesEntry {
 }
 
 export async function buildPlaygroundExamples(
-  config: PlaygroundExamplesConfig,
+  config: RegistryConfig,
   root: string,
   watch: (file: string) => void = () => {},
 ): Promise<PlaygroundExamplesEntry[]> {
@@ -85,7 +85,7 @@ export async function buildPlaygroundExamples(
   return entries;
 }
 
-export function playgroundExamplesPlugin(config: PlaygroundExamplesConfig): Plugin {
+export function playgroundExamplesPlugin(config: RegistryConfig): Plugin {
   const publicId = "virtual:playground-examples";
   const virtualId = "\0" + publicId;
   let root: string;
