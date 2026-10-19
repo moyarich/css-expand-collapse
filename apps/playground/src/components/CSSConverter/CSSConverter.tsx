@@ -1,21 +1,14 @@
-import { ExamplePlaygroundProvider } from "../../mdx/ExamplePlayground";
 import { formatCss, type InputKind } from "./formatCss";
-import { MarkdownProvider } from "../Markdown/MarkdownProvider";
 import { ResizableWorkspace } from "../ResizableWorkspace/ResizableWorkspace";
 import "./CSSConverter.css";
 import { MonacoEditor } from "../MonacoEditor";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useMemo, useState } from "react";
 import {
   collapseCss,
   collapseDeclarations,
   expandCss,
   expandDeclarations,
 } from "@moyarich/css-expand-collapse";
-import {
-  CSS_CONVERTER_EXAMPLES,
-  DEFAULT_CSS_CONVERTER_EXAMPLE,
-} from "../../../../../examples/CSSConverter";
 
 type Mode = "expand" | "collapse";
 
@@ -39,40 +32,12 @@ const MODE_META: Record<
   },
 };
 
-export function CSSConverter() {
-  const navigate = useNavigate();
-  const { mode: routeMode, exampleId } = useParams<{
-    mode: string;
-    exampleId: string;
-  }>();
-
-  const routeExample = CSS_CONVERTER_EXAMPLES.find(
-    (example) => example.mode === routeMode && example.id === exampleId,
-  );
-  const initialExample = routeExample ?? DEFAULT_CSS_CONVERTER_EXAMPLE;
-
-  const [mode, setMode] = useState<Mode>(initialExample.mode);
-  const [source, setSource] = useState(initialExample.source);
-  const [fillMissingLonghands, setFillMissingLonghands] = useState(
-    initialExample.fillMissingLonghands,
-  );
+export function CSSConverter({ source: initialSource, initialMode, fillMissingLonghands: initialFillMissingLonghands = false }: { source: string; initialMode: Mode; fillMissingLonghands?: boolean }) {
+  const [mode, setMode] = useState<Mode>(initialMode);
+  const [source, setSource] = useState(initialSource);
+  const [fillMissingLonghands, setFillMissingLonghands] = useState(initialFillMissingLonghands);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    if (!routeExample) {
-      navigate(`/converter/${DEFAULT_CSS_CONVERTER_EXAMPLE.key}`, {
-        replace: true,
-      });
-      return;
-    }
-
-    setMode(routeExample.mode);
-    setSource(routeExample.source);
-    setFillMissingLonghands(routeExample.fillMissingLonghands);
-    setCopied(false);
-  }, [navigate, routeExample]);
-
-  const ExamplePage = initialExample.Component;
   const meta = MODE_META[mode];
   const inputKind = useMemo<InputKind>(
     () => (source.indexOf("{") === -1 ? "declarations" : "stylesheet"),
@@ -121,8 +86,8 @@ export function CSSConverter() {
     changeMode(mode === "expand" ? "collapse" : "expand");
   };
 
-  const playground = (
-    <>
+  return (
+    <div className="css-converter">
       <div className="playground-layout">
         <aside
           id="conversion-settings"
@@ -275,15 +240,6 @@ export function CSSConverter() {
           </section>
         </ResizableWorkspace>
       </div>
-    </>
-  );
-  return (
-    <div className="css-converter">
-      <ExamplePlaygroundProvider playground={playground}>
-        <article id="overview" className="example-documentation">
-          <MarkdownProvider><ExamplePage /></MarkdownProvider>
-        </article>
-      </ExamplePlaygroundProvider>
     </div>
   );
 }

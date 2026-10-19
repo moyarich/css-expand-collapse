@@ -13,7 +13,6 @@ export interface FunctionExample {
   id: string;
   label: string;
   description: string;
-  source: string;
   pageFile: string;
   Component: ComponentType;
   tableOfContents: TocEntry[];

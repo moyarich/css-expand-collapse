@@ -17,7 +17,6 @@ export interface CSSConverterExampleMeta {
 export interface CSSConverterExample extends CSSConverterExampleMeta {
   key: string;
   mode: CSSConverterMode;
-  source: string;
   pageFile: string;
   Component: ComponentType;
   tableOfContents: TocEntry[];

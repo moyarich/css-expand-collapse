@@ -8,8 +8,10 @@ order: 11
 fillMissingLonghands: false
 ---
 
+import source from "./source.css?raw";
+
 ## border-color
 
 {frontmatter.description}
 
-<ExamplePlayground />
+<CSSConverter source={source} initialMode="expand" fillMissingLonghands={frontmatter.fillMissingLonghands} />

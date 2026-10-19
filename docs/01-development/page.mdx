@@ -1,0 +1,53 @@
+---
+title: "Development"
+label: "Development"
+order: 1
+description: "Install dependencies, run the playground, and validate workspaces."
+---
+
+# Development
+
+## Repository structure
+
+```text
+css-expand-collapse/
+├── apps/
+│   └── playground/                  # React + Vite playground
+├── docs/
+│   └── README-dev.md                # repository/developer documentation
+├── packages/
+│   └── css-expand-collapse/         # publishable npm package
+├── README.md                        # canonical package README / single source of truth
+└── package.json                     # workspace scripts
+```
+
+The two workspaces are:
+
+- `packages/css-expand-collapse` — publishable `@moyarich/css-expand-collapse` package.
+- `apps/playground` — React + Vite playground for exercising the package against real CSS.
+
+The playground consumes package source directly during development, so the library does not need to be built before starting it.
+
+## Repository setup
+
+```bash
+npm ci
+npm run dev
+```
+
+## Workspace commands
+
+```bash
+npm run dev               # Start the playground
+npm run generate:registry # Regenerate shorthand registry barrel
+npm test                  # Run library tests
+npm run typecheck         # Typecheck all workspaces
+npm run build             # Build library + playground
+npm run build:lib         # Build only the npm package
+npm run build:playground  # Build only the playground
+npm run pack:lib          # Preview npm package contents
+```
+
+The package also exposes `check:registry`; package `test`, `typecheck`, and `build` run that freshness check automatically.
+
+[← Developer documentation](../page.mdx)

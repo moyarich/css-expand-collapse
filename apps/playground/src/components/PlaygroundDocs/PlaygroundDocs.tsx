@@ -20,8 +20,7 @@ import {
   Routes,
   useLocation,
 } from "react-router";
-import { APIPlayground } from "../APIPlayground";
-import { CSSConverter } from "../CSSConverter";
+import { MarkdownProvider } from "../Markdown/MarkdownProvider";
 import {
   DEFAULT_FUNCTION_EXAMPLE,
   FUNCTION_EXAMPLES,
@@ -222,13 +221,13 @@ export function PlaygroundDocs() {
             />
             <Route
               path="/converter/:mode/:exampleId"
-              element={<CSSConverter />}
+              element={<RegisteredPage pages={pages} />}
             />
             <Route
               path="/api"
               element={<Navigate to={DEFAULT_API_PATH} replace />}
             />
-            <Route path="/api/:exampleId" element={<APIPlayground />} />
+            <Route path="/api/:exampleId" element={<RegisteredPage pages={pages} />} />
             <Route
               path="*"
               element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />}
@@ -274,4 +273,14 @@ export function PlaygroundDocs() {
       </DocsLayout.Body>
     </DocsLayout>
   );
+}
+
+type RegisteredPageEntry = (typeof pages)[number];
+
+function RegisteredPage({ pages: entries }: { pages: readonly RegisteredPageEntry[] }) {
+  const { pathname } = useLocation();
+  const example = entries.find((page) => page.path === pathname);
+  if (!example) return <Navigate to={DEFAULT_CONVERTER_PATH} replace />;
+  const Page = example.Component;
+  return <article id="overview" className="example-documentation"><MarkdownProvider><Page /></MarkdownProvider></article>;
 }

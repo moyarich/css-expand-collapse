@@ -8,8 +8,10 @@ order: 61
 fillMissingLonghands: false
 ---
 
+import source from "./source.css?raw";
+
 ## scroll-padding-block
 
 {frontmatter.description}
 
-<ExamplePlayground />
+<CSSConverter source={source} initialMode="expand" fillMissingLonghands={frontmatter.fillMissingLonghands} />

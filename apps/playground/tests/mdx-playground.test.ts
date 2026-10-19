@@ -9,6 +9,8 @@ it("every registered MDX page explicitly renders one playground", async () => {
   expect(entries).toHaveLength(91);
   for (const entry of entries) {
     const content = readFileSync(entry.page, "utf8");
-    expect(content.match(/<ExamplePlayground\s*\/>/g), entry.page).toHaveLength(1);
+    expect(content.match(/<(?:APIPlayground|CSSConverter)\b[^>]*\/>/g), entry.page).toHaveLength(1);
+    expect(content, entry.page).toContain('import source from "./source.');
+    expect(content, entry.page).not.toContain("<ExamplePlayground");
   }
 });

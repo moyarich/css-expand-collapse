@@ -10,7 +10,12 @@ import MarkdownFixture, {
 import { Outline } from "../src/components/Outline/Outline";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// Rendering MDX on the server should not initialize Monaco (a browser editor).
+vi.mock("../src/components/MonacoEditor", () => ({
+  MonacoEditor: () => createElement("div", { "data-testid": "monaco-editor" }),
+}));
 import {
   FUNCTION_EXAMPLES,
   DEFAULT_FUNCTION_EXAMPLE,
@@ -21,12 +26,11 @@ import {
 } from "../../../examples/CSSConverter";
 
 describe("MDX example collections", () => {
-  it("loads and renders every page alongside its original editor source", () => {
+  it("loads and renders every MDX page with its locally imported editor source", () => {
     const examples = [...FUNCTION_EXAMPLES, ...CSS_CONVERTER_EXAMPLES];
     expect(FUNCTION_EXAMPLES.length).toBeGreaterThan(0);
     expect(CSS_CONVERTER_EXAMPLES.length).toBeGreaterThan(0);
     for (const example of examples) {
-      expect(example.source.trim()).not.toBe("");
       const html = renderToStaticMarkup(
         createElement(MarkdownProvider, {
           children: createElement(example.Component),

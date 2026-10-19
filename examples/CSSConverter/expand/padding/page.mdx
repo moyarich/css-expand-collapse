@@ -8,8 +8,10 @@ order: 53
 fillMissingLonghands: false
 ---
 
+import source from "./source.css?raw";
+
 ## padding
 
 {frontmatter.description}
 
-<ExamplePlayground />
+<CSSConverter source={source} initialMode="expand" fillMissingLonghands={frontmatter.fillMissingLonghands} />

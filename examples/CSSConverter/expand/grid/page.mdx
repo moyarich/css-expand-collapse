@@ -8,8 +8,10 @@ order: 37
 fillMissingLonghands: false
 ---
 
+import source from "./source.css?raw";
+
 ## grid
 
 {frontmatter.description}
 
-<ExamplePlayground />
+<CSSConverter source={source} initialMode="expand" fillMissingLonghands={frontmatter.fillMissingLonghands} />

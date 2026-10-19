@@ -8,8 +8,10 @@ order: 24
 fillMissingLonghands: false
 ---
 
+import source from "./source.css?raw";
+
 ## columns
 
 {frontmatter.description}
 
-<ExamplePlayground />
+<CSSConverter source={source} initialMode="expand" fillMissingLonghands={frontmatter.fillMissingLonghands} />

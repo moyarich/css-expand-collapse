@@ -8,8 +8,10 @@ order: 0
 fillMissingLonghands: true
 ---
 
+import source from "./source.css?raw";
+
 ## Computed/export CSS → compact shorthands
 
 {frontmatter.description}
 
-<ExamplePlayground />
+<CSSConverter source={source} initialMode="collapse" fillMissingLonghands={frontmatter.fillMissingLonghands} />

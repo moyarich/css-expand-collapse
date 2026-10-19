@@ -8,8 +8,10 @@ order: 31
 fillMissingLonghands: false
 ---
 
+import source from "./source.css?raw";
+
 ## font
 
 {frontmatter.description}
 
-<ExamplePlayground />
+<CSSConverter source={source} initialMode="expand" fillMissingLonghands={frontmatter.fillMissingLonghands} />
