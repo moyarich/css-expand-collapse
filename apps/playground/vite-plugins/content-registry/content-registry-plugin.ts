@@ -31,8 +31,14 @@ export function contentRegistryPlugin(config: ContentRegistryConfig): Plugin {
       root = config.root;
       serve = config.command === "serve";
     },
-    resolveId(id) {
+    resolveId(id, importer) {
       if (id === publicId) return virtualId;
+      // Imports emitted by this virtual module point to discovered files outside
+      // the Vite root. Resolve those paths as files, not root-relative URLs.
+      if (importer === virtualId) {
+        const path = id.startsWith("/@fs/") ? id.slice("/@fs/".length) : id;
+        if (isAbsolute(path)) return path;
+      }
     },
     async load(id) {
       if (id !== virtualId) return;
