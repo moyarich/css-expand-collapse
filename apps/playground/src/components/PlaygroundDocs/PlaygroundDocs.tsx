@@ -101,6 +101,7 @@ export function PlaygroundDocs() {
         <Search
           pages={pages.map((page) => ({
             ...page,
+            description: page.description ?? "",
             searchText: headingText(page.tableOfContents),
           }))}
           onNavigate={closeMenu}
@@ -250,7 +251,9 @@ export function PlaygroundDocs() {
             <footer className="article-footer">
               <a
                 className="edit-page"
-                href={isDocs ? `https://github.com/moyarich/css-expand-collapse/edit/main/docs/${current.key === "index" ? "" : `${current.key}/`}${current.pageFile}` : `https://github.com/moyarich/css-expand-collapse/edit/main/examples/${isApi ? `APIPlayground/${current.id}` : `CSSConverter/${pathname.slice("/converter/".length)}`}/${current.pageFile}`}
+                href={isDocs
+                  ? `https://github.com/moyarich/css-expand-collapse/edit/main/docs/${pathname === "/docs" ? "" : `${pathname.slice("/docs/".length)}/`}${current.pageFile}`
+                  : `https://github.com/moyarich/css-expand-collapse/edit/main/examples/${isApi ? `APIPlayground/${pathname.slice("/api/".length)}` : `CSSConverter/${pathname.slice("/converter/".length)}`}/${current.pageFile}`}
                 target="_blank"
                 rel="noreferrer"
               >
