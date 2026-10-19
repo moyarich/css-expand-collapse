@@ -246,7 +246,17 @@ test.describe("nested console objects", () => {
     await expect(
       page.locator('summary[data-console-object-key="microservices"]'),
     ).toBeVisible();
-    await expect(page.getByText('"auth-gateway"')).toBeVisible();
-    await expect(page.getByText('"billing-engine"')).toBeVisible();
+    // The microservices array is expanded, but each object entry remains
+    // collapsed until its own summary is opened. Assert rendered values,
+    // not previews belonging to collapsed descendants.
+    await expandObject(page, "0");
+    await expect(
+      page.locator('[data-console-property-key="serviceName"] .console-string').filter({ hasText: '"auth-gateway"' }),
+    ).toBeVisible();
+
+    await expandObject(page, "1");
+    await expect(
+      page.locator('[data-console-property-key="serviceName"] .console-string').filter({ hasText: '"billing-engine"' }),
+    ).toBeVisible();
   });
 });
