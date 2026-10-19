@@ -8,8 +8,10 @@ order: 50
 fillMissingLonghands: false
 ---
 
+import source from "./source.css?raw";
+
 ## overscroll-behavior
 
 {frontmatter.description}
 
-<ExamplePlayground />
+<CSSConverter source={source} initialMode="expand" fillMissingLonghands={frontmatter.fillMissingLonghands} />
