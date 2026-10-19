@@ -2,6 +2,7 @@ import type { ContentRegistryConfig } from "./vite-plugins/content-registry/cont
 
 export default {
   sources: {
+    Docs: { base: "../../docs", kind: "docs", pages: ["page.mdx"] },
     APIPlayground: {
       base: "../../examples/APIPlayground",
       source: "source.tsx",
