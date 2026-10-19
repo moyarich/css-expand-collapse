@@ -2,7 +2,7 @@ import { formatCss, type InputKind } from "./formatCss";
 import { ResizableWorkspace } from "../ResizableWorkspace/ResizableWorkspace";
 import "./CSSConverter.css";
 import { MonacoEditor } from "../MonacoEditor";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   collapseCss,
   collapseDeclarations,
