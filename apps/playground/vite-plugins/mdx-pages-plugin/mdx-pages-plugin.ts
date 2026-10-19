@@ -7,6 +7,8 @@ export function mdxPagesPlugin(): Plugin {
   const plugin = mdx(mdxOptions);
   return {
     ...plugin,
+    // Match moyaforge-cli: MDX must compile before React/Babel sees YAML frontmatter.
+    enforce: "pre",
     transform(code, id) {
       const query = new URLSearchParams(id.split("?")[1]);
       if (query.has("raw") || query.has("url")) return;
