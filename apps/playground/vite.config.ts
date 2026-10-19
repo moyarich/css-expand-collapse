@@ -1,15 +1,10 @@
-import remarkCodeGroup from "./src/components/CodeGroup/remarkCodeGroup";
-import rehypeShiki from "@shikijs/rehype";
-import rehypeExtractToc from "@stefanprobst/rehype-extract-toc";
-import rehypeExtractTocExport from "@stefanprobst/rehype-extract-toc/mdx";
-import rehypeSlug from "rehype-slug";
-import remarkFrontmatter from "remark-frontmatter";
-import remarkGfm from "remark-gfm";
-import remarkMdxFrontmatter from "remark-mdx-frontmatter";
+/// <reference types="vitest/config" />
 import { fileURLToPath, URL } from "node:url";
-import mdx from "@mdx-js/rollup";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { mdxPagesPlugin } from "./vite-plugins/mdx-pages-plugin/mdx-pages-plugin";
+import registry from "./registry.config";
+import { contentRegistryPlugin } from "./vite-plugins/content-registry/content-registry-plugin";
 
 export default defineConfig(({ command }) => ({
   // GitHub Pages serves this project beneath /css-expand-collapse/.
@@ -18,37 +13,24 @@ export default defineConfig(({ command }) => ({
     process.env.PLAYGROUND_BASE_PATH ||
     (command === "build" ? "/css-expand-collapse/" : "/"),
   plugins: [
-    {
-      ...mdx({
-        format: "mdx",
-        mdxExtensions: [".md", ".mdx"],
-        include: /\.mdx?$/,
-        providerImportSource: "@mdx-js/react",
-        remarkPlugins: [
-          remarkGfm,
-          remarkCodeGroup,
-          remarkFrontmatter,
-          [remarkMdxFrontmatter, { name: "frontmatter" }],
-        ],
-        rehypePlugins: [
-          rehypeSlug,
-          rehypeExtractToc,
-          rehypeExtractTocExport,
-          [rehypeShiki, { theme: "github-light", fallbackLanguage: "text" }],
-        ],
-      }),
-      enforce: "pre",
-    },
+    contentRegistryPlugin(registry),
+    mdxPagesPlugin(),
     react({ include: /\.(jsx|tsx|mdx?)$/ }),
   ],
+  css: { devSourcemap: true },
+  build: { sourcemap: true },
+  define: {
+    "process.env": JSON.stringify({
+      NODE_ENV: "development",
+      BStyle_CSSTREE_LOG_LEVEL: "ERROR",
+    }),
+  },
   resolve: {
     alias: {
       "@moyarich/css-expand-collapse": fileURLToPath(
-        new URL(
-          "../../packages/css-expand-collapse/src/index.ts",
-          import.meta.url,
-        ),
+        new URL("../../packages/css-expand-collapse/src/index.ts", import.meta.url),
       ),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
 }));
