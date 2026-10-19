@@ -66,9 +66,9 @@ export function PlaygroundDocs() {
     }
   }, [sidebarCollapsed]);
   const isApi = pathname.startsWith("/api");
-  const isDocs = pathname.startsWith("/docs");
   const currentIndex = pages.findIndex((page) => page.path === pathname);
   const current = pages[currentIndex];
+  const isDocs = current?.kind === "docs";
   const previous = pages[currentIndex - 1];
   const next = pages[currentIndex + 1];
   const closeMenu = () => setMenuOpen(false);
@@ -172,7 +172,7 @@ export function PlaygroundDocs() {
           key={pathname}
         >
           <div className="breadcrumbs">
-            Examples <span>/</span> {isDocs ? "Developer docs" : isApi ? "API reference" : "CSS Converter"}{" "}
+            Examples <span>/</span> {current?.collection ?? "Examples"}{" "}
             <span>/</span> <strong>{current?.label ?? "Overview"}</strong>
           </div>
           <Routes>
@@ -186,7 +186,7 @@ export function PlaygroundDocs() {
               <a
                 className="edit-page"
                 href={isDocs
-                  ? `https://github.com/moyarich/css-expand-collapse/edit/main/docs/${pathname === "/docs" ? "" : `${pathname.slice("/docs/".length)}/`}${current.pageFile}`
+                  ? `https://github.com/moyarich/css-expand-collapse/edit/main/${current.collection.toLowerCase()}/${current.key === "index" ? "" : `${current.key}/`}${current.pageFile}`
                   : `https://github.com/moyarich/css-expand-collapse/edit/main/examples/${isApi ? `APIPlayground/${pathname.slice("/api/".length)}` : `CSSConverter/${pathname.slice("/converter/".length)}`}/${current.pageFile}`}
                 target="_blank"
                 rel="noreferrer"
