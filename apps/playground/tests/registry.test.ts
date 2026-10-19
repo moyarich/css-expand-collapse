@@ -2,7 +2,7 @@ import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, it } from "vitest";
-import { buildPresetRegistry } from "../vite-plugins/preset-registry/preset-registry";
+import { buildExampleRegistry } from "../vite-plugins/example-registry/example-registry";
 
 const roots: string[] = [];
 afterEach(async () => {
@@ -27,7 +27,7 @@ it("discovers configured sources and both page extensions without executing edit
     "css/expand/demo/page.mdx",
     "css/expand/demo/source.css",
   ]);
-  const entries = await buildPresetRegistry(
+  const entries = await buildExampleRegistry(
     {
       sources: {
         API: { base: "api", source: "source.tsx", kind: "api", pages: ["page.md", "page.mdx"] },
@@ -48,11 +48,11 @@ it("rejects ambiguous pages and missing editor sources", async () => {
   const config = {
     sources: { API: { base: ".", source: "source.tsx", kind: "api" as const } },
   };
-  await expect(buildPresetRegistry(config, root)).rejects.toThrow(
+  await expect(buildExampleRegistry(config, root)).rejects.toThrow(
     "Multiple example pages",
   );
   await rm(join(root, "demo/page.md"));
-  await expect(buildPresetRegistry(config, root)).rejects.toThrow("ENOENT");
+  await expect(buildExampleRegistry(config, root)).rejects.toThrow("ENOENT");
 });
 it("rejects invalid converter routes", async () => {
   const root = await fixture([
@@ -60,7 +60,7 @@ it("rejects invalid converter routes", async () => {
     "invalid/demo/source.css",
   ]);
   await expect(
-    buildPresetRegistry(
+    buildExampleRegistry(
       {
         sources: {
           CSS: { base: ".", source: "source.css", kind: "converter", modes: ["expand", "collapse"] },
@@ -76,7 +76,7 @@ it("uses configurable page filenames and converter modes", async () => {
     "custom/mobile/demo/readme.mdx",
     "custom/mobile/demo/editor.css",
   ]);
-  const entries = await buildPresetRegistry({
+  const entries = await buildExampleRegistry({
     sources: {
       Custom: {
         base: "custom",
@@ -94,10 +94,10 @@ it("uses configurable page filenames and converter modes", async () => {
 
 it("rejects missing converter modes and invalid page filenames", async () => {
   const root = await fixture(["demo/page.md", "demo/source.css"]);
-  await expect(buildPresetRegistry({
+  await expect(buildExampleRegistry({
     sources: { CSS: { base: ".", source: "source.css", kind: "converter" } },
   }, root)).rejects.toThrow("Converter modes must be configured");
-  await expect(buildPresetRegistry({
+  await expect(buildExampleRegistry({
     sources: { API: { base: ".", source: "source.css", kind: "api", pages: ["../page.md"] } },
   }, root)).rejects.toThrow("Invalid registry page filenames");
 });

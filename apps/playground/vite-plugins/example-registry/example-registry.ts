@@ -2,7 +2,7 @@ import { readdir, access } from "node:fs/promises";
 import { resolve, relative, sep, isAbsolute, basename } from "node:path";
 import type { Plugin, ViteDevServer } from "vite";
 
-export interface PresetRegistryConfig {
+export interface ExampleRegistryConfig {
   sources: Record<
     string,
     {
@@ -15,7 +15,7 @@ export interface PresetRegistryConfig {
   >;
 }
 
-export interface PresetRegistryEntry {
+export interface ExampleRegistryEntry {
   collection: string;
   key: string;
   mode?: string;
@@ -23,12 +23,12 @@ export interface PresetRegistryEntry {
   source: string;
 }
 
-export async function buildPresetRegistry(
-  config: PresetRegistryConfig,
+export async function buildExampleRegistry(
+  config: ExampleRegistryConfig,
   root: string,
   watch: (file: string) => void = () => {},
-): Promise<PresetRegistryEntry[]> {
-  const entries: PresetRegistryEntry[] = [];
+): Promise<ExampleRegistryEntry[]> {
+  const entries: ExampleRegistryEntry[] = [];
   for (const [collection, options] of Object.entries(config.sources)) {
     if (!options.source || basename(options.source) !== options.source)
       throw new Error(
@@ -85,8 +85,8 @@ export async function buildPresetRegistry(
   return entries;
 }
 
-export function presetRegistryPlugin(config: PresetRegistryConfig): Plugin {
-  const publicId = "virtual:preset-registry";
+export function exampleRegistryPlugin(config: ExampleRegistryConfig): Plugin {
+  const publicId = "virtual:example-registry";
   const virtualId = "\0" + publicId;
   let root: string;
   function reload(server: ViteDevServer, file: string) {
@@ -105,7 +105,7 @@ export function presetRegistryPlugin(config: PresetRegistryConfig): Plugin {
     server.ws.send({ type: "full-reload" });
   }
   return {
-    name: "preset-registry",
+    name: "example-registry",
     configResolved(config) {
       root = config.root;
     },
@@ -114,7 +114,7 @@ export function presetRegistryPlugin(config: PresetRegistryConfig): Plugin {
     },
     async load(id) {
       if (id !== virtualId) return;
-      const entries = await buildPresetRegistry(config, root, (file) =>
+      const entries = await buildExampleRegistry(config, root, (file) =>
         this.addWatchFile(file),
       );
       const imports: string[] = [];

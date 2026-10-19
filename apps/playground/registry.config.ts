@@ -1,4 +1,4 @@
-import type { PresetRegistryConfig } from "./vite-plugins/preset-registry/preset-registry";
+import type { ExampleRegistryConfig } from "./vite-plugins/example-registry/example-registry";
 
 export default {
   sources: {
@@ -16,4 +16,4 @@ export default {
       modes: ["expand", "collapse"],
     },
   },
-} satisfies PresetRegistryConfig;
+} satisfies ExampleRegistryConfig;
