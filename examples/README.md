@@ -74,3 +74,6 @@ pnpm add @moyarich/css-expand-collapse
 Each fence’s bracketed label becomes a tab. Multiple groups on a page have
 independent selection and unique accessible IDs. Unlabelled fences use their
 language as the tab label. Code groups retain Shiki highlighting and copy controls.
+
+Example page filenames and converter route modes are configurable per collection
+using `pages` and `modes` in `apps/playground/registry.config.ts`.
