@@ -283,7 +283,6 @@ export function CSSConverter() {
         <article id="overview" className="example-documentation">
           <MarkdownProvider><ExamplePage /></MarkdownProvider>
         </article>
-        {!initialExample.hasPlayground && playground}
       </ExamplePlaygroundProvider>
     </div>
   );

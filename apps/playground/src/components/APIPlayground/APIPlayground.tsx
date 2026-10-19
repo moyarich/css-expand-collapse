@@ -40,7 +40,6 @@ export function APIPlayground() {
         <article id="overview" className="example-documentation">
           <MarkdownProvider><ExamplePage /></MarkdownProvider>
         </article>
-        {!example.hasPlayground && playground}
       </ExamplePlaygroundProvider>
     </div>
   );

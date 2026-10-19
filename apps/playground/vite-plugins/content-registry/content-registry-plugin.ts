@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import { basename, isAbsolute, relative, resolve, sep } from "node:path";
 import type { Plugin, ViteDevServer } from "vite";
 import { buildContentRegistry, type ContentRegistryConfig } from "./content-registry";
@@ -64,7 +63,7 @@ export function contentRegistryPlugin(config: ContentRegistryConfig): Plugin {
           `if (typeof Page${index}.frontmatter?.label !== "string" || !Page${index}.frontmatter.label.trim() || !Number.isFinite(Page${index}.frontmatter.order)) throw new Error(${JSON.stringify(`Invalid example metadata: ${entry.collection}/${entry.key}`)});`,
         );
         collections[entry.collection].push(
-          `{...Page${index}.frontmatter, key: ${JSON.stringify(entry.key)}, mode: ${JSON.stringify(entry.mode)}, source: Source${index}, pageFile: ${JSON.stringify(basename(entry.page))}, hasPlayground: ${JSON.stringify(/<ExamplePlayground\b/.test(readFileSync(entry.page, "utf8")))}, Component: Page${index}.default, tableOfContents: Page${index}.tableOfContents}`,
+          `{...Page${index}.frontmatter, key: ${JSON.stringify(entry.key)}, mode: ${JSON.stringify(entry.mode)}, source: Source${index}, pageFile: ${JSON.stringify(basename(entry.page))}, Component: Page${index}.default, tableOfContents: Page${index}.tableOfContents}`,
         );
       }
       return `${imports.join("\n")}\nexport const registry = {${Object.entries(
