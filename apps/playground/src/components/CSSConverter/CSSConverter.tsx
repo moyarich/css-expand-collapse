@@ -14,7 +14,7 @@ import {
 import {
   CSS_CONVERTER_EXAMPLES,
   DEFAULT_CSS_CONVERTER_EXAMPLE,
-} from "../../mdx/example-registry";
+} from "../../playground-examples";
 
 type Mode = "expand" | "collapse";
 
