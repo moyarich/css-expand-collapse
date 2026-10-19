@@ -15,6 +15,7 @@ export interface FunctionExample {
   description: string;
   source: string;
   pageFile: string;
+  hasPlayground: boolean;
   Component: ComponentType;
   tableOfContents: TocEntry[];
 }

@@ -19,6 +19,7 @@ export interface CSSConverterExample extends CSSConverterExampleMeta {
   mode: CSSConverterMode;
   source: string;
   pageFile: string;
+  hasPlayground: boolean;
   Component: ComponentType;
   tableOfContents: TocEntry[];
 }
