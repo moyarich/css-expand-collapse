@@ -20,6 +20,7 @@ export interface APIRunnerProps {
   title?: string;
   subtitle?: string;
   ariaLabel?: string;
+  editorAriaLabel?: string;
   resizeLabel?: string;
   runLabel?: string;
   actions?: ReactNode;
@@ -32,6 +33,7 @@ export function APIRunner({
   editorLoadingLabel = "Loading TypeScript editor…", editorOptions,
   title = "TypeScript", subtitle = "Function usage", ariaLabel = "API runner",
   resizeLabel = "Resize editor and console", runLabel = "Run", actions, split,
+  editorAriaLabel = "TypeScript API playground",
 }: APIRunnerProps) {
   const [source, setSource] = useState(initialSource);
   const [output, setOutput] = useState<RunOutput>(() => runOnMount ? runSource(initialSource) : EMPTY_OUTPUT);
@@ -64,7 +66,7 @@ export function APIRunner({
             }}
             loading={<div className="editor-loading">{editorLoadingLabel}</div>}
             options={{
-              ariaLabel: `${title} playground`,
+              ariaLabel: editorAriaLabel,
               automaticLayout: true, quickSuggestions: true,
               suggestOnTriggerCharacters: true, ...editorOptions,
             }}
