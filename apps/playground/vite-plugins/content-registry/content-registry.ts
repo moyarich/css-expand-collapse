@@ -6,8 +6,8 @@ export interface ContentRegistryConfig {
     string,
     {
       base: string;
-      source: string;
-      kind: "api" | "converter";
+      source?: string;
+      kind: "api" | "converter" | "docs";
       pages?: readonly string[];
       modes?: readonly string[];
     }
@@ -19,7 +19,7 @@ export interface ContentRegistryEntry {
   key: string;
   mode?: string;
   page: string;
-  source: string;
+  source?: string;
 }
 
 export async function buildContentRegistry(
@@ -29,7 +29,7 @@ export async function buildContentRegistry(
 ): Promise<ContentRegistryEntry[]> {
   const entries: ContentRegistryEntry[] = [];
   for (const [collection, options] of Object.entries(config.sources)) {
-    if (!options.source || basename(options.source) !== options.source)
+    if (options.kind !== "docs" && (!options.source || basename(options.source) !== options.source))
       throw new Error(
         `Registry source must be a local basename: ${options.source}`,
       );
@@ -48,24 +48,26 @@ export async function buildContentRegistry(
       if (pages.length > 1)
         throw new Error(`Multiple example pages: ${folder}`);
       if (pages.length) {
-        const key = relative(base, folder).split(sep).join("/");
+        const key = relative(base, folder).split(sep).join("/") || "index";
         const parts = key.split("/");
         if (
-          options.kind === "api"
-            ? parts.length !== 1 || !key
-            : parts.length !== 2 || !options.modes?.includes(parts[0])
+          options.kind === "docs"
+            ? parts.length !== 1
+            : options.kind === "api"
+              ? parts.length !== 1 || !key
+              : parts.length !== 2 || !options.modes?.includes(parts[0])
         )
           throw new Error(`Invalid ${options.kind} example path: ${key}`);
-        const source = resolve(folder, options.source);
-        await access(source);
+        const source = options.source ? resolve(folder, options.source) : undefined;
+        if (source) await access(source);
         const page = resolve(folder, pages[0].name);
         watch(page);
-        watch(source);
+        if (source) watch(source);
         entries.push({
           collection,
           key,
           page,
-          source,
+          ...(source ? { source } : {}),
           ...(options.kind === "converter"
             ? { mode: parts[0] }
             : {}),

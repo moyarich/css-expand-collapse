@@ -1,4 +1,5 @@
 import { DocsLayout } from "../DocsLayout";
+import { registry } from "virtual:content-registry";
 import { Search } from "../Search/Search";
 import type { TocEntry } from "../../../../../examples/types";
 import { Outline } from "../Outline/Outline";
@@ -40,6 +41,7 @@ function headingText(headings: TocEntry[]): string {
 const DEFAULT_CONVERTER_PATH = `/converter/${DEFAULT_CSS_CONVERTER_EXAMPLE.key}`;
 const DEFAULT_API_PATH = `/api/${DEFAULT_FUNCTION_EXAMPLE.id}`;
 const pages = [
+  ...registry.Docs.map((page) => ({ ...page, path: page.key === "index" ? "/docs" : `/docs/${page.key}` })),
   ...CSS_CONVERTER_EXAMPLES.map((example) => ({
     ...example,
     path: `/converter/${example.key}`,
@@ -71,6 +73,7 @@ export function PlaygroundDocs() {
     }
   }, [sidebarCollapsed]);
   const isApi = pathname.startsWith("/api");
+  const isDocs = pathname.startsWith("/docs");
   const currentIndex = pages.findIndex((page) => page.path === pathname);
   const current = pages[currentIndex];
   const previous = pages[currentIndex - 1];
@@ -152,6 +155,14 @@ export function PlaygroundDocs() {
             </button>
           </div>
           <nav>
+            <details className="sidebar-collection" open={isDocs}>
+              <summary>Developer docs</summary>
+              <div className="navigation-group nav-group-items">
+                {registry.Docs.map((page) => (
+                  <NavLink key={page.key} to={page.key === "index" ? "/docs" : `/docs/${page.key}`} onClick={closeMenu}>{page.label}</NavLink>
+                ))}
+              </div>
+            </details>
             <details className="sidebar-collection" open={!isApi}>
               <summary>CSS Converter</summary>
               {(["expand", "collapse"] as const).map((mode) => (
@@ -207,7 +218,7 @@ export function PlaygroundDocs() {
           key={pathname}
         >
           <div className="breadcrumbs">
-            Examples <span>/</span> {isApi ? "API reference" : "CSS Converter"}{" "}
+            Examples <span>/</span> {isDocs ? "Developer docs" : isApi ? "API reference" : "CSS Converter"}{" "}
             <span>/</span> <strong>{current?.label ?? "Overview"}</strong>
           </div>
           <Routes>
@@ -215,6 +226,8 @@ export function PlaygroundDocs() {
               path="/"
               element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />}
             />
+            <Route path="/docs" element={<RegisteredPage pages={pages} />} />
+            <Route path="/docs/:docId" element={<RegisteredPage pages={pages} />} />
             <Route
               path="/converter"
               element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />}
@@ -237,7 +250,7 @@ export function PlaygroundDocs() {
             <footer className="article-footer">
               <a
                 className="edit-page"
-                href={`https://github.com/moyarich/css-expand-collapse/edit/main/examples/${isApi ? `APIPlayground/${current.id}` : `CSSConverter/${pathname.slice("/converter/".length)}`}/${current.pageFile}`}
+                href={isDocs ? `https://github.com/moyarich/css-expand-collapse/edit/main/docs/${current.key === "index" ? "" : `${current.key}/`}${current.pageFile}` : `https://github.com/moyarich/css-expand-collapse/edit/main/examples/${isApi ? `APIPlayground/${current.id}` : `CSSConverter/${pathname.slice("/converter/".length)}`}/${current.pageFile}`}
                 target="_blank"
                 rel="noreferrer"
               >

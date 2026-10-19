@@ -53,11 +53,11 @@ export function contentRegistryPlugin(config: ContentRegistryConfig): Plugin {
         imports.push(
           `import * as Page${index} from ${JSON.stringify(importPath(entry.page))};`,
         );
-        imports.push(
+        if (entry.collection !== "Docs") imports.push(
           `if (Page${index}.frontmatter.id !== ${JSON.stringify(entry.key.split("/").at(-1))}) throw new Error(${JSON.stringify(`Example metadata id mismatch: ${entry.collection}/${entry.key}`)});`,
         );
         imports.push(
-          `if (typeof Page${index}.frontmatter?.label !== "string" || !Page${index}.frontmatter.label.trim() || !Number.isFinite(Page${index}.frontmatter.order)) throw new Error(${JSON.stringify(`Invalid example metadata: ${entry.collection}/${entry.key}`)});`,
+          `if (typeof Page${index}.frontmatter?.label !== "string" || !Page${index}.frontmatter.label.trim() || ${entry.collection === "Docs" ? "false" : `!Number.isFinite(Page${index}.frontmatter.order)`}) throw new Error(${JSON.stringify(`Invalid example metadata: ${entry.collection}/${entry.key}`)});`,
         );
         collections[entry.collection].push(
           `{...Page${index}.frontmatter, key: ${JSON.stringify(entry.key)}, mode: ${JSON.stringify(entry.mode)}, pageFile: ${JSON.stringify(basename(entry.page))}, Component: Page${index}.default, tableOfContents: Page${index}.tableOfContents}`,
