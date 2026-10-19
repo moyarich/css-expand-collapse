@@ -14,7 +14,7 @@ import {
 import {
   CSS_CONVERTER_EXAMPLES,
   DEFAULT_CSS_CONVERTER_EXAMPLE,
-} from "../../../../../examples/CSSConverter";
+} from "../../mdx/example-registry";
 
 type Mode = "expand" | "collapse";
 
