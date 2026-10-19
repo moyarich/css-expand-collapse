@@ -22,15 +22,6 @@ import {
   useLocation,
 } from "react-router";
 import { MarkdownProvider } from "../Markdown/MarkdownProvider";
-import {
-  DEFAULT_FUNCTION_EXAMPLE,
-  FUNCTION_EXAMPLES,
-} from "../../../../../examples/APIPlayground";
-import {
-  DEFAULT_CSS_CONVERTER_EXAMPLE,
-  CSS_CONVERTER_EXAMPLES,
-  CSS_CONVERTER_GROUPS,
-} from "../../../../../examples/CSSConverter";
 
 function headingText(headings: TocEntry[]): string {
   return headings
@@ -38,8 +29,6 @@ function headingText(headings: TocEntry[]): string {
     .join(" ");
 }
 
-const DEFAULT_CONVERTER_PATH = `/converter/${DEFAULT_CSS_CONVERTER_EXAMPLE.key}`;
-const DEFAULT_API_PATH = `/api/${DEFAULT_FUNCTION_EXAMPLE.id}`;
 // Every configured registry collection contributes pages automatically.
 // MoyaForge visibility: hidden is routable but absent from menus; disabled is excluded.
 const pages = registeredPages.filter((page) => page.navigation !== "disabled");
@@ -65,7 +54,6 @@ export function PlaygroundDocs() {
       /* Storage may be unavailable. */
     }
   }, [sidebarCollapsed]);
-  const isApi = pathname.startsWith("/api");
   const currentIndex = pages.findIndex((page) => page.path === pathname);
   const current = pages[currentIndex];
   const isDocs = current?.kind === "docs";
@@ -176,9 +164,9 @@ export function PlaygroundDocs() {
             <span>/</span> <strong>{current?.label ?? "Overview"}</strong>
           </div>
           <Routes>
-            <Route path="/" element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />} />
-            <Route path="/converter" element={<Navigate to={DEFAULT_CONVERTER_PATH} replace />} />
-            <Route path="/api" element={<Navigate to={DEFAULT_API_PATH} replace />} />
+            <Route path="/" element={<Navigate to={pages[0]?.path ?? "/docs"} replace />} />
+            <Route path="/converter" element={<Navigate to={pages.find((page) => page.kind === "converter")?.path ?? pages[0]?.path ?? "/docs"} replace />} />
+            <Route path="/api" element={<Navigate to={pages.find((page) => page.kind === "api")?.path ?? pages[0]?.path ?? "/docs"} replace />} />
             <Route path="*" element={<RegisteredPage pages={pages} />} />
           </Routes>
           {current && (
@@ -187,7 +175,7 @@ export function PlaygroundDocs() {
                 className="edit-page"
                 href={isDocs
                   ? `https://github.com/moyarich/css-expand-collapse/edit/main/${current.collection.toLowerCase()}/${current.key === "index" ? "" : `${current.key}/`}${current.pageFile}`
-                  : `https://github.com/moyarich/css-expand-collapse/edit/main/examples/${isApi ? `APIPlayground/${pathname.slice("/api/".length)}` : `CSSConverter/${pathname.slice("/converter/".length)}`}/${current.pageFile}`}
+                  : `https://github.com/moyarich/css-expand-collapse/edit/main/examples/${current.kind === "api" ? `APIPlayground/${current.key}` : `CSSConverter/${current.key}`}/${current.pageFile}`}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -230,7 +218,7 @@ type RegisteredPageEntry = (typeof pages)[number];
 function RegisteredPage({ pages: entries }: { pages: readonly RegisteredPageEntry[] }) {
   const { pathname } = useLocation();
   const example = entries.find((page) => page.path === pathname);
-  if (!example) return <Navigate to={DEFAULT_CONVERTER_PATH} replace />;
+  if (!example) return <Navigate to={entries[0]?.path ?? "/docs"} replace />;
   const Page = example.Component;
   return <article id="overview" className="example-documentation"><MarkdownProvider><Page /></MarkdownProvider></article>;
 }
