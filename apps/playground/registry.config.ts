@@ -1,4 +1,4 @@
-import type { ExampleRegistryConfig } from "./vite-plugins/example-registry/example-registry";
+import type { PlaygroundExamplesConfig } from "./vite-plugins/playground-examples/playground-examples";
 
 export default {
   sources: {
@@ -16,4 +16,4 @@ export default {
       modes: ["expand", "collapse"],
     },
   },
-} satisfies ExampleRegistryConfig;
+} satisfies PlaygroundExamplesConfig;

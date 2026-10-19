@@ -2,7 +2,7 @@ import { readdir, access } from "node:fs/promises";
 import { resolve, relative, sep, isAbsolute, basename } from "node:path";
 import type { Plugin, ViteDevServer } from "vite";
 
-export interface ExampleRegistryConfig {
+export interface PlaygroundExamplesConfig {
   sources: Record<
     string,
     {
@@ -15,7 +15,7 @@ export interface ExampleRegistryConfig {
   >;
 }
 
-export interface ExampleRegistryEntry {
+export interface PlaygroundExamplesEntry {
   collection: string;
   key: string;
   mode?: string;
@@ -23,12 +23,12 @@ export interface ExampleRegistryEntry {
   source: string;
 }
 
-export async function buildExampleRegistry(
-  config: ExampleRegistryConfig,
+export async function buildPlaygroundExamples(
+  config: PlaygroundExamplesConfig,
   root: string,
   watch: (file: string) => void = () => {},
-): Promise<ExampleRegistryEntry[]> {
-  const entries: ExampleRegistryEntry[] = [];
+): Promise<PlaygroundExamplesEntry[]> {
+  const entries: PlaygroundExamplesEntry[] = [];
   for (const [collection, options] of Object.entries(config.sources)) {
     if (!options.source || basename(options.source) !== options.source)
       throw new Error(
@@ -85,8 +85,8 @@ export async function buildExampleRegistry(
   return entries;
 }
 
-export function exampleRegistryPlugin(config: ExampleRegistryConfig): Plugin {
-  const publicId = "virtual:example-registry";
+export function playgroundExamplesPlugin(config: PlaygroundExamplesConfig): Plugin {
+  const publicId = "virtual:playground-examples";
   const virtualId = "\0" + publicId;
   let root: string;
   function reload(server: ViteDevServer, file: string) {
@@ -105,7 +105,7 @@ export function exampleRegistryPlugin(config: ExampleRegistryConfig): Plugin {
     server.ws.send({ type: "full-reload" });
   }
   return {
-    name: "example-registry",
+    name: "playground-examples",
     configResolved(config) {
       root = config.root;
     },
@@ -114,7 +114,7 @@ export function exampleRegistryPlugin(config: ExampleRegistryConfig): Plugin {
     },
     async load(id) {
       if (id !== virtualId) return;
-      const entries = await buildExampleRegistry(config, root, (file) =>
+      const entries = await buildPlaygroundExamples(config, root, (file) =>
         this.addWatchFile(file),
       );
       const imports: string[] = [];

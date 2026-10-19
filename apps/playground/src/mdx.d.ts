@@ -11,7 +11,7 @@ declare module "*.md" {
   export { default, frontmatter, tableOfContents } from "*.mdx";
 }
 
-declare module "virtual:example-registry" {
+declare module "virtual:playground-examples" {
   export const registry: {
     APIPlayground: readonly import("../../../examples/APIPlayground").FunctionExample[];
     CSSConverter: readonly import("../../../examples/CSSConverter").CSSConverterExample[];

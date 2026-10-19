@@ -2,7 +2,7 @@ import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, it } from "vitest";
-import { buildExampleRegistry } from "../vite-plugins/example-registry/example-registry";
+import { buildPlaygroundExamples } from "../vite-plugins/playground-examples/playground-examples";
 
 const roots: string[] = [];
 afterEach(async () => {
@@ -11,7 +11,7 @@ afterEach(async () => {
   );
 });
 async function fixture(files: string[]) {
-  const root = await mkdtemp(join(tmpdir(), "example-registry-"));
+  const root = await mkdtemp(join(tmpdir(), "playground-examples-"));
   roots.push(root);
   for (const file of files) {
     const path = join(root, file);
@@ -27,7 +27,7 @@ it("discovers configured sources and both page extensions without executing edit
     "css/expand/demo/page.mdx",
     "css/expand/demo/source.css",
   ]);
-  const entries = await buildExampleRegistry(
+  const entries = await buildPlaygroundExamples(
     {
       sources: {
         API: { base: "api", source: "source.tsx", kind: "api", pages: ["page.md", "page.mdx"] },
@@ -48,11 +48,11 @@ it("rejects ambiguous pages and missing editor sources", async () => {
   const config = {
     sources: { API: { base: ".", source: "source.tsx", kind: "api" as const } },
   };
-  await expect(buildExampleRegistry(config, root)).rejects.toThrow(
+  await expect(buildPlaygroundExamples(config, root)).rejects.toThrow(
     "Multiple example pages",
   );
   await rm(join(root, "demo/page.md"));
-  await expect(buildExampleRegistry(config, root)).rejects.toThrow("ENOENT");
+  await expect(buildPlaygroundExamples(config, root)).rejects.toThrow("ENOENT");
 });
 it("rejects invalid converter routes", async () => {
   const root = await fixture([
@@ -60,7 +60,7 @@ it("rejects invalid converter routes", async () => {
     "invalid/demo/source.css",
   ]);
   await expect(
-    buildExampleRegistry(
+    buildPlaygroundExamples(
       {
         sources: {
           CSS: { base: ".", source: "source.css", kind: "converter", modes: ["expand", "collapse"] },
@@ -76,7 +76,7 @@ it("uses configurable page filenames and converter modes", async () => {
     "custom/mobile/demo/readme.mdx",
     "custom/mobile/demo/editor.css",
   ]);
-  const entries = await buildExampleRegistry({
+  const entries = await buildPlaygroundExamples({
     sources: {
       Custom: {
         base: "custom",
@@ -94,10 +94,10 @@ it("uses configurable page filenames and converter modes", async () => {
 
 it("rejects missing converter modes and invalid page filenames", async () => {
   const root = await fixture(["demo/page.md", "demo/source.css"]);
-  await expect(buildExampleRegistry({
+  await expect(buildPlaygroundExamples({
     sources: { CSS: { base: ".", source: "source.css", kind: "converter" } },
   }, root)).rejects.toThrow("Converter modes must be configured");
-  await expect(buildExampleRegistry({
+  await expect(buildPlaygroundExamples({
     sources: { API: { base: ".", source: "source.css", kind: "api", pages: ["../page.md"] } },
   }, root)).rejects.toThrow("Invalid registry page filenames");
 });
