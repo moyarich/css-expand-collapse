@@ -2,7 +2,7 @@ import { readdir, access } from "node:fs/promises";
 import { resolve, relative, sep, isAbsolute, basename } from "node:path";
 import type { Plugin, ViteDevServer } from "vite";
 
-export interface RegistryConfig {
+export interface ContentRegistryConfig {
   sources: Record<
     string,
     {
@@ -24,7 +24,7 @@ export interface ContentRegistryEntry {
 }
 
 export async function buildContentRegistry(
-  config: RegistryConfig,
+  config: ContentRegistryConfig,
   root: string,
   watch: (file: string) => void = () => {},
 ): Promise<ContentRegistryEntry[]> {
@@ -85,7 +85,7 @@ export async function buildContentRegistry(
   return entries;
 }
 
-export function contentRegistryPlugin(config: RegistryConfig): Plugin {
+export function contentRegistryPlugin(config: ContentRegistryConfig): Plugin {
   const publicId = "virtual:content-registry";
   const virtualId = "\0" + publicId;
   let root: string;
