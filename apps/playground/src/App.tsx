@@ -1,5 +1,5 @@
-import { DocsLayout } from "./components/DocsLayout";
+import { PlaygroundDocs } from "./components/PlaygroundDocs/PlaygroundDocs";
 
 export function App() {
-  return <DocsLayout />;
+  return <PlaygroundDocs />;
 }

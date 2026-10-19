@@ -8,6 +8,13 @@ order: 6
 fillMissingLonghands: false
 ---
 
+import source from "./source.css?raw";
+import "./page.css";
+
 ## background
 
 {frontmatter.description}
+
+<ExampleSource source={source} language="css" />
+
+<ExamplePlayground />
