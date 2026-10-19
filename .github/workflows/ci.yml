@@ -2,7 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 
@@ -11,41 +12,27 @@ permissions:
   packages: read
 
 jobs:
-  node:
-    uses: moyarich/reusable-workflows/.github/workflows/reusable_node-ci.yml@v0.2.0
-    with:
-      node-version: "24"
-      package-directory: "."
-
-  validate:
+  lint-workflows:
+    name: Validate GitHub Actions workflow syntax
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/checkout@v7
         with:
-          node-version: 24
+          persist-credentials: false
+      - name: Lint workflow expressions and reusable calls
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:1.7.7 -color -shellcheck=
+
+  test:
+    name: Test package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
           cache: npm
       - run: npm ci --include=optional
-      - run: npm audit --audit-level=high
-      - run: npm run release:check
-      - run: npm run build:playground
-      # Install browsers using the Playwright dependency resolved by Vitest's
-      # browser provider. A separate npx CLI can download a different revision.
-      - name: Install matching Playwright Chromium
-        run: |
-          node --input-type=module -e '
-            import { createRequire } from "node:module";
-            import { dirname, join } from "node:path";
-            import { spawnSync } from "node:child_process";
-            const require = createRequire(join(process.cwd(), "apps/playground/package.json"));
-            const provider = require.resolve("@vitest/browser-playwright");
-            const fromProvider = createRequire(provider);
-            const playwrightPackage = fromProvider.resolve("playwright/package.json");
-            const cli = join(dirname(playwrightPackage), "cli.js");
-            const result = spawnSync(process.execPath, [cli, "install", "--with-deps", "chromium"], { stdio: "inherit" });
-            process.exit(result.status ?? 1);
-          '
-      - working-directory: apps/playground
-        run: npm run test-storybook
-      - working-directory: apps/playground
-        run: npm run test:browser
+      - run: npm test
+      - run: npm run pack:audit:strict
