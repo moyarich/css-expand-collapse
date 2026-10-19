@@ -275,9 +275,11 @@ export function PlaygroundDocs() {
   );
 }
 
-function RegisteredPage({ pages }: { pages: typeof pages }) {
+type RegisteredPageEntry = (typeof pages)[number];
+
+function RegisteredPage({ pages: entries }: { pages: readonly RegisteredPageEntry[] }) {
   const { pathname } = useLocation();
-  const example = pages.find((page) => page.path === pathname);
+  const example = entries.find((page) => page.path === pathname);
   if (!example) return <Navigate to={DEFAULT_CONVERTER_PATH} replace />;
   const Page = example.Component;
   return <article id="overview" className="example-documentation"><MarkdownProvider><Page /></MarkdownProvider></article>;
