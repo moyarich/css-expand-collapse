@@ -2,7 +2,7 @@ import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, it } from "vitest";
-import { buildContentRegistry } from "../vite-plugins/content-registry/content-registry";
+import { buildContentRegistry } from "../vite-plugins/content-registry/content-registry-plugin";
 
 const roots: string[] = [];
 afterEach(async () => {
