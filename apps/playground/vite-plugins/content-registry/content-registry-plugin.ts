@@ -46,6 +46,7 @@ export function contentRegistryPlugin(config: ContentRegistryConfig): Plugin {
         this.addWatchFile(file),
       );
       const imports: string[] = [];
+      const allPages: string[] = [];
       const collections = Object.fromEntries(
         Object.keys(config.sources).map((key) => [key, [] as string[]]),
       );
@@ -59,11 +60,14 @@ export function contentRegistryPlugin(config: ContentRegistryConfig): Plugin {
         imports.push(
           `if (typeof Page${index}.frontmatter?.label !== "string" || !Page${index}.frontmatter.label.trim() || ${entry.collection === "Docs" ? "false" : `!Number.isFinite(Page${index}.frontmatter.order)`}) throw new Error(${JSON.stringify(`Invalid example metadata: ${entry.collection}/${entry.key}`)});`,
         );
+        const kind = config.sources[entry.collection].kind;
+        const path = kind === "converter" ? `/converter/${entry.key}` : kind === "api" ? `/api/${entry.key}` : `/${entry.collection.toLowerCase()}${entry.key === "index" ? "" : `/${entry.key}`}`;
+        allPages.push(`{...Page${index}.frontmatter, collection: ${JSON.stringify(entry.collection)}, kind: ${JSON.stringify(kind)}, path: ${JSON.stringify(path)}, key: ${JSON.stringify(entry.key)}, pageFile: ${JSON.stringify(basename(entry.page))}, Component: Page${index}.default, tableOfContents: Page${index}.tableOfContents}`);
         collections[entry.collection].push(
           `{...Page${index}.frontmatter, key: ${JSON.stringify(entry.key)}, mode: ${JSON.stringify(entry.mode)}, pageFile: ${JSON.stringify(basename(entry.page))}, Component: Page${index}.default, tableOfContents: Page${index}.tableOfContents}`,
         );
       }
-      return `${imports.join("\n")}\nexport const registry = {${Object.entries(
+      return `${imports.join("\n")}\nexport const pages = [${allPages.join(",")}];\nexport const registry = {${Object.entries(
         collections,
       )
         .map(
