@@ -174,8 +174,19 @@ test.describe("nested console objects", () => {
 
     const valueBox = await departmentHeadValue.boundingBox();
     expect(valueBox).not.toBeNull();
-    expect(valueBox!.width).toBeGreaterThan(80);
+    // The value may wrap as the nested tree narrows. Assert readability
+    // without depending on font-specific pixel widths in CI.
+    expect(valueBox!.width).toBeGreaterThan(0);
     expect(valueBox!.height).toBeLessThan(40);
+
+    const valueContainer = departmentHeadRow.locator(".console-property-value");
+    const valueMetrics = await valueContainer.evaluate((element) => ({
+      clientWidth: element.clientWidth,
+      scrollWidth: element.scrollWidth,
+    }));
+    expect(valueMetrics.scrollWidth).toBeLessThanOrEqual(
+      valueMetrics.clientWidth + 1,
+    );
 
     const engineeringSummary = page.locator(
       'summary[data-console-object-key="engineering"]',
