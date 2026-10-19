@@ -30,8 +30,8 @@ it("discovers configured sources and both page extensions without executing edit
   const entries = await buildPresetRegistry(
     {
       sources: {
-        API: { base: "api", source: "source.tsx", kind: "api" },
-        CSS: { base: "css", source: "source.css", kind: "converter" },
+        API: { base: "api", source: "source.tsx", kind: "api", pages: ["page.md", "page.mdx"] },
+        CSS: { base: "css", source: "source.css", kind: "converter", modes: ["expand", "collapse"] },
       },
     },
     root,
@@ -63,10 +63,41 @@ it("rejects invalid converter routes", async () => {
     buildPresetRegistry(
       {
         sources: {
-          CSS: { base: ".", source: "source.css", kind: "converter" },
+          CSS: { base: ".", source: "source.css", kind: "converter", modes: ["expand", "collapse"] },
         },
       },
       root,
     ),
   ).rejects.toThrow("Invalid converter example path");
+});
+
+it("uses configurable page filenames and converter modes", async () => {
+  const root = await fixture([
+    "custom/mobile/demo/readme.mdx",
+    "custom/mobile/demo/editor.css",
+  ]);
+  const entries = await buildPresetRegistry({
+    sources: {
+      Custom: {
+        base: "custom",
+        source: "editor.css",
+        kind: "converter",
+        pages: ["readme.mdx"],
+        modes: ["mobile"],
+      },
+    },
+  }, root);
+  expect(entries.map(({ key, mode, page }) => ({ key, mode, page: page.split("/").at(-1) }))).toEqual([
+    { key: "mobile/demo", mode: "mobile", page: "readme.mdx" },
+  ]);
+});
+
+it("rejects missing converter modes and invalid page filenames", async () => {
+  const root = await fixture(["demo/page.md", "demo/source.css"]);
+  await expect(buildPresetRegistry({
+    sources: { CSS: { base: ".", source: "source.css", kind: "converter" } },
+  }, root)).rejects.toThrow("Converter modes must be configured");
+  await expect(buildPresetRegistry({
+    sources: { API: { base: ".", source: "source.css", kind: "api", pages: ["../page.md"] } },
+  }, root)).rejects.toThrow("Invalid registry page filenames");
 });
