@@ -1,4 +1,4 @@
-import type { RegistryConfig } from "./vite-plugins/content-registry/content-registry";
+import type { ContentRegistryConfig } from "./vite-plugins/content-registry/content-registry";
 
 export default {
   sources: {
@@ -16,4 +16,4 @@ export default {
       modes: ["expand", "collapse"],
     },
   },
-} satisfies RegistryConfig;
+} satisfies ContentRegistryConfig;
