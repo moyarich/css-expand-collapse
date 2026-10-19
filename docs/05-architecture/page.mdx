@@ -1,0 +1,178 @@
+---
+title: "Runtime and registry architecture"
+label: "Architecture"
+order: 5
+description: "Runtime-neutral CSS transformations and shorthand registry design."
+---
+
+# Runtime and registry architecture
+
+## Runtime architecture
+
+Transformation logic must be runtime-neutral. Do not use `document`, detached elements, or mutable `CSSStyleDeclaration` objects to parse or serialize a shorthand. The same implementation must work in:
+
+```text
+Node.js
+Chrome extension service workers
+Chrome extension content scripts
+browser pages
+workers
+CLI processes
+```
+
+CSSTree provides CSS grammar matching. The package owns shorthand-specific semantics such as omitted-value defaults, component assignment, slash groups, comma-separated layers, and safe serialization.
+
+The source layout is intentionally divided by responsibility:
+
+```text
+src/
+├── core.ts                 # public transformation orchestration
+├── css.ts                  # stylesheet/cascade orchestration
+└── registry/
+    ├── index.ts            # lookup tables derived from modules
+    ├── module.ts           # common shorthand contract
+    ├── context.ts          # CSSTree matching + value splitting
+    ├── expanders.ts        # reusable expand factories
+    ├── collapsers.ts       # reusable collapse factories
+    ├── helpers.ts          # longhand-map helpers
+    ├── families/           # reusable behavior for related CSS property families
+    └── shorthands/         # one implementation per shorthand
+```
+
+`core.ts` does not contain property-family parsing or collapse strategy switches. It normalizes input, resolves the module, handles shared global-value/initial-fill behavior, and delegates to that module.
+
+`css.ts` owns stylesheet-level behavior: source order, `!important`, declaration consumption, overlapping shorthands, AST replacement, and cascade-safe removal. Those concerns do not belong in individual shorthand files.
+
+## Shorthand module architecture
+
+Each CSS shorthand lives in its own file under:
+
+```text
+packages/css-expand-collapse/src/registry/shorthands/
+```
+
+The **filename is the CSS property name**:
+
+```text
+margin.ts               -> margin
+text-decoration.ts      -> text-decoration
+background.ts           -> background
+-webkit-text-stroke.ts  -> -webkit-text-stroke
+```
+
+Every module satisfies the same contract:
+
+```ts
+export interface ShorthandModule {
+  readonly longhands: LonghandMap;
+  readonly expand: ShorthandExpander;
+  readonly collapse: ShorthandCollapser;
+  readonly equivalentLonghandValues?: ReadonlyMap<
+    string,
+    LonghandValueEquivalence
+  >;
+  readonly safeToDropWhenFullyShadowed?: boolean;
+}
+```
+
+`LonghandMap` is the single source of truth for both constituent property names and CSS initial values:
+
+```ts
+export type LonghandMap = ReadonlyMap<string, string>;
+```
+
+The property name is intentionally not repeated inside the object. The generated registry derives it from the filename.
+
+There is no executable `strategy` field and no central strategy switch. A shorthand module owns both transformation directions.
+
+`all.ts` still satisfies the interface, but its longhand set is empty, so it is recognized by `isShorthand()` while remaining non-transformable.
+
+## Shared transformation context
+
+`registry/context.ts` owns CSSTree matching and top-level value splitting.
+
+```ts
+export const shorthandExpandContext = {
+  matchProperty,
+  splitWhitespace,
+  splitSlash,
+};
+
+export const shorthandCollapseContext = {
+  matchProperty,
+};
+```
+
+`matchProperty()` delegates to CSSTree's lexer and should be used as the grammar authority instead of maintaining duplicate keyword tables where possible.
+
+Top-level splitting preserves commas, slashes, CSS whitespace, strings, brackets, and functions correctly rather than using naive `String.split()` calls. The scanner compares named Unicode code-point constants instead of repeatedly allocating one-character strings or using a JavaScript whitespace regex whose definition is broader than CSS whitespace.
+
+## Simple shorthand implementations
+
+Simple grammars should compose reusable helpers from `registry/expanders.ts` and `registry/collapsers.ts`.
+
+```ts
+// registry/shorthands/margin.ts
+import { collapseQuad } from "../collapsers.js";
+import { expandQuad } from "../expanders.js";
+import type { ShorthandModule } from "../types.js";
+
+const longhands = new Map([
+  ["margin-top", "0"],
+  ["margin-right", "0"],
+  ["margin-bottom", "0"],
+  ["margin-left", "0"],
+] as const);
+
+const expand = expandQuad(longhands);
+const collapse = collapseQuad(longhands);
+
+export default {
+  longhands,
+  expand,
+  collapse,
+} satisfies ShorthandModule;
+```
+
+Reusable collapse factories currently include:
+
+```text
+collapseQuad
+collapsePair
+collapseTriple
+collapseComponents
+collapseSlashPair
+```
+
+The inverse expansion factories live in `expanders.ts`. Reusable behavior tied to a specific CSS property family, such as logical border axes, lives under `registry/families/` instead of the generic factory files.
+
+## Property-specific implementations
+
+When a shorthand has special ordering, ambiguity, reset behavior, layer alignment, or serialization rules, keep those semantics inside its own module.
+
+For example, `flex.ts` owns `none` and `auto` collapse semantics; `text-decoration.ts` owns omission of its default style/color/thickness components; and `border.ts` owns the requirement that all four side triples agree before producing `border`.
+
+A property-specific module should validate the shorthand candidate with CSSTree before returning it:
+
+```ts
+const collapse: ShorthandCollapser = (declarations, context) => {
+  const candidate = buildCandidate(declarations);
+  return context.matchProperty("example", candidate) ? candidate : null;
+};
+```
+
+Collapse should be conservative. If an equivalent shorthand cannot be reconstructed without guessing, return `null` and leave the longhands unchanged.
+
+## Longhand value equivalence
+
+A shorthand may expose `equivalentLonghandValues` for alternate browser serializations that are semantically equivalent to its canonical longhand values. Keep those rules with the owning property module; `css.ts` consumes the derived registry lookup without hard-coding property names.
+
+## Cascade safety metadata
+
+`safeToDropWhenFullyShadowed` is metadata only; it never chooses expansion/collapse code.
+
+Most simple modules can omit it. Set it to `false` when the shorthand has reset or cascade effects beyond the registered longhands. `css.ts` uses this to decide whether an earlier shorthand can be removed after a complete later longhand set is collapsed.
+
+For example, complex reset shorthands such as `background` remain conservative, while a shorthand whose registered longhands completely describe its effect can be safely replaced.
+
+[← Developer documentation](../page.mdx)

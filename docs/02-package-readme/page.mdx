@@ -1,0 +1,39 @@
+---
+title: "Package README and packaging"
+label: "Package README"
+order: 2
+description: "Maintain the canonical package README and synchronize it for npm packages."
+---
+
+# Package README and packaging
+
+## Package README source of truth
+
+[`README.md`](../../README.md) at the repository root is the **single source of truth** for the published package README.
+
+Never maintain or commit `packages/css-expand-collapse/README.md` separately. That file is generated only for npm packaging and is ignored by Git.
+
+During `npm pack` and `npm publish`, the package lifecycle temporarily creates the package-root README:
+
+```text
+README.md
+  -> packages/css-expand-collapse/README.md
+```
+
+The lifecycle is defined in `packages/css-expand-collapse/package.json`:
+
+- `prepack` runs `scripts/sync-package-readme.mjs --package-directory=packages/css-expand-collapse`, which copies the root `README.md` into the package, then builds the package.
+- npm automatically includes a package-root `README.md` in the generated tarball.
+- `postpack` runs the same script with `--clean` and removes the generated package README.
+
+The helper is exposed as the `workspace-sync-readme` CLI and is reusable for any publishable workspace under `packages/*`:
+
+```bash
+npx workspace-sync-readme --package-directory=packages/my-package
+npx workspace-sync-readme --package-directory=packages/my-package --clean
+npx workspace-sync-readme --help
+```
+
+To change package documentation, edit only the repository-root `README.md`.
+
+[← Developer documentation](../page.mdx)
