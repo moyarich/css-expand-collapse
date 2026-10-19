@@ -1,4 +1,4 @@
-import type { ContentRegistryConfig } from "./vite-plugins/content-registry/content-registry-plugin";
+import type { ContentRegistryConfig } from "./vite-plugins/content-registry/content-registry";
 
 export default {
   sources: {
