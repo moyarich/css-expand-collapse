@@ -17,7 +17,23 @@ on:
 permissions: {}
 
 jobs:
+  validate-workflow-token:
+    name: Verify workflow token is configured
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require _WORKFLOW_TOKEN
+        env:
+          WORKFLOW_TOKEN: ${{ secrets._WORKFLOW_TOKEN }}
+        shell: bash
+        run: |
+          if [[ -z "$WORKFLOW_TOKEN" ]]; then
+            echo "::error title=Missing _WORKFLOW_TOKEN::Configure repository secret _WORKFLOW_TOKEN with permission to update workflow files (Contents: read/write and Workflows: read/write), then rerun this workflow."
+            exit 1
+          fi
+          echo "Workflow token is configured."
+
   sync:
+    needs: validate-workflow-token
     permissions:
       contents: write
     uses: moyarich/reusable-workflows/.github/workflows/reusable_sync-release-package-choices.yml@main
