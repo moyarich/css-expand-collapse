@@ -116,7 +116,11 @@ export function PlaygroundDocs() {
         </button>
       </DocsLayout.Header>
       <DocsLayout.Body collapsed={sidebarCollapsed}>
-        <DocsLayout.Sidebar id="example-navigation" className={menuOpen ? "is-open" : ""} aria-label="Example navigation">
+        <DocsLayout.Sidebar
+          id="example-navigation"
+          className={menuOpen ? "is-open" : ""}
+          aria-label="Example navigation"
+        >
           <div className="sidebar-toolbar">
             <p className="sidebar-caption">Playground</p>
             <button
@@ -138,14 +142,28 @@ export function PlaygroundDocs() {
           </div>
           <nav>
             {collections.map((collection) => {
-              const entries = pages.filter((page) => page.collection === collection && page.navigation !== "hidden");
+              const entries = pages.filter(
+                (page) =>
+                  page.collection === collection &&
+                  page.navigation !== "hidden",
+              );
               if (!entries.length) return null;
               return (
-                <details key={collection} className="sidebar-collection" open={entries.some((page) => page.path === pathname)}>
+                <details
+                  key={collection}
+                  className="sidebar-collection"
+                  open={entries.some((page) => page.path === pathname)}
+                >
                   <summary>{collection}</summary>
                   <div className="navigation-group nav-group-items">
                     {entries.map((page) => (
-                      <NavLink key={page.path} to={page.path} onClick={closeMenu}>{page.label}</NavLink>
+                      <NavLink
+                        key={page.path}
+                        to={page.path}
+                        onClick={closeMenu}
+                      >
+                        {page.label}
+                      </NavLink>
                     ))}
                   </div>
                 </details>
@@ -164,18 +182,47 @@ export function PlaygroundDocs() {
             <span>/</span> <strong>{current?.label ?? "Overview"}</strong>
           </div>
           <Routes>
-            <Route path="/" element={<Navigate to={pages[0]?.path ?? "/docs"} replace />} />
-            <Route path="/converter" element={<Navigate to={pages.find((page) => page.kind === "converter")?.path ?? pages[0]?.path ?? "/docs"} replace />} />
-            <Route path="/api" element={<Navigate to={pages.find((page) => page.kind === "api")?.path ?? pages[0]?.path ?? "/docs"} replace />} />
+            <Route
+              path="/"
+              element={<Navigate to={pages[0]?.path ?? "/docs"} replace />}
+            />
+            <Route
+              path="/converter"
+              element={
+                <Navigate
+                  to={
+                    pages.find((page) => page.kind === "converter")?.path ??
+                    pages[0]?.path ??
+                    "/docs"
+                  }
+                  replace
+                />
+              }
+            />
+            <Route
+              path="/api"
+              element={
+                <Navigate
+                  to={
+                    pages.find((page) => page.kind === "api")?.path ??
+                    pages[0]?.path ??
+                    "/docs"
+                  }
+                  replace
+                />
+              }
+            />
             <Route path="*" element={<RegisteredPage pages={pages} />} />
           </Routes>
           {current && (
             <footer className="article-footer">
               <a
                 className="edit-page"
-                href={isDocs
-                  ? `https://github.com/moyarich/css-expand-collapse/edit/main/${current.collection.toLowerCase()}/${current.key === "index" ? "" : `${current.key}/`}${current.pageFile}`
-                  : `https://github.com/moyarich/css-expand-collapse/edit/main/examples/${current.kind === "api" ? `APIPlayground/${current.key}` : `CSSConverter/${current.key}`}/${current.pageFile}`}
+                href={
+                  isDocs
+                    ? `https://github.com/moyarich/css-expand-collapse/edit/main/${current.collection.toLowerCase()}/${current.key === "index" ? "" : `${current.key}/`}${current.pageFile}`
+                    : `https://github.com/moyarich/css-expand-collapse/edit/main/examples/${current.kind === "api" ? `APIPlayground/${current.key}` : `CSSConverter/${current.key}`}/${current.pageFile}`
+                }
                 target="_blank"
                 rel="noreferrer"
               >
@@ -215,10 +262,20 @@ export function PlaygroundDocs() {
 
 type RegisteredPageEntry = (typeof pages)[number];
 
-function RegisteredPage({ pages: entries }: { pages: readonly RegisteredPageEntry[] }) {
+function RegisteredPage({
+  pages: entries,
+}: {
+  pages: readonly RegisteredPageEntry[];
+}) {
   const { pathname } = useLocation();
   const example = entries.find((page) => page.path === pathname);
   if (!example) return <Navigate to={entries[0]?.path ?? "/docs"} replace />;
   const Page = example.Component;
-  return <article id="overview" className="example-documentation"><MarkdownProvider><Page /></MarkdownProvider></article>;
+  return (
+    <article id="overview" className="example-documentation">
+      <MarkdownProvider>
+        <Page />
+      </MarkdownProvider>
+    </article>
+  );
 }
