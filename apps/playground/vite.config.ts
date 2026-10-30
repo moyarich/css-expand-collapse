@@ -28,7 +28,10 @@ export default defineConfig(({ command }) => ({
   resolve: {
     alias: {
       "@moyarich/css-expand-collapse": fileURLToPath(
-        new URL("../../packages/css-expand-collapse/src/index.ts", import.meta.url),
+        new URL(
+          "../../packages/css-expand-collapse/src/index.ts",
+          import.meta.url,
+        ),
       ),
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },

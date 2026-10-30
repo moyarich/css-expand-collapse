@@ -238,9 +238,9 @@ test.describe("nested console objects", () => {
       await consoleSurface.evaluate((element) => {
         element.scrollLeft = element.scrollWidth;
       });
-      await expect.poll(() => consoleSurface.evaluate(
-        (element) => element.scrollLeft,
-      )).toBeGreaterThan(0);
+      await expect
+        .poll(() => consoleSurface.evaluate((element) => element.scrollLeft))
+        .toBeGreaterThan(0);
     }
 
     await expect(
@@ -251,12 +251,16 @@ test.describe("nested console objects", () => {
     // not previews belonging to collapsed descendants.
     await expandObject(page, "0");
     await expect(
-      page.locator('[data-console-property-key="serviceName"] .console-string').filter({ hasText: '"auth-gateway"' }),
+      page
+        .locator('[data-console-property-key="serviceName"] .console-string')
+        .filter({ hasText: '"auth-gateway"' }),
     ).toBeVisible();
 
     await expandObject(page, "1");
     await expect(
-      page.locator('[data-console-property-key="serviceName"] .console-string').filter({ hasText: '"billing-engine"' }),
+      page
+        .locator('[data-console-property-key="serviceName"] .console-string')
+        .filter({ hasText: '"billing-engine"' }),
     ).toBeVisible();
   });
 });
