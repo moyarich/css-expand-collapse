@@ -30,8 +30,18 @@ it("discovers configured sources and both page extensions without executing edit
   const entries = await buildContentRegistry(
     {
       sources: {
-        API: { base: "api", source: "source.tsx", kind: "api", pages: ["page.md", "page.mdx"] },
-        CSS: { base: "css", source: "source.css", kind: "converter", modes: ["expand", "collapse"] },
+        API: {
+          base: "api",
+          source: "source.tsx",
+          kind: "api",
+          pages: ["page.md", "page.mdx"],
+        },
+        CSS: {
+          base: "css",
+          source: "source.css",
+          kind: "converter",
+          modes: ["expand", "collapse"],
+        },
       },
     },
     root,
@@ -63,7 +73,12 @@ it("rejects invalid converter routes", async () => {
     buildContentRegistry(
       {
         sources: {
-          CSS: { base: ".", source: "source.css", kind: "converter", modes: ["expand", "collapse"] },
+          CSS: {
+            base: ".",
+            source: "source.css",
+            kind: "converter",
+            modes: ["expand", "collapse"],
+          },
         },
       },
       root,
@@ -76,28 +91,54 @@ it("uses configurable page filenames and converter modes", async () => {
     "custom/mobile/demo/readme.mdx",
     "custom/mobile/demo/editor.css",
   ]);
-  const entries = await buildContentRegistry({
-    sources: {
-      Custom: {
-        base: "custom",
-        source: "editor.css",
-        kind: "converter",
-        pages: ["readme.mdx"],
-        modes: ["mobile"],
+  const entries = await buildContentRegistry(
+    {
+      sources: {
+        Custom: {
+          base: "custom",
+          source: "editor.css",
+          kind: "converter",
+          pages: ["readme.mdx"],
+          modes: ["mobile"],
+        },
       },
     },
-  }, root);
-  expect(entries.map(({ key, mode, page }) => ({ key, mode, page: page.split("/").at(-1) }))).toEqual([
-    { key: "mobile/demo", mode: "mobile", page: "readme.mdx" },
-  ]);
+    root,
+  );
+  expect(
+    entries.map(({ key, mode, page }) => ({
+      key,
+      mode,
+      page: page.split("/").at(-1),
+    })),
+  ).toEqual([{ key: "mobile/demo", mode: "mobile", page: "readme.mdx" }]);
 });
 
 it("rejects missing converter modes and invalid page filenames", async () => {
   const root = await fixture(["demo/page.md", "demo/source.css"]);
-  await expect(buildContentRegistry({
-    sources: { CSS: { base: ".", source: "source.css", kind: "converter" } },
-  }, root)).rejects.toThrow("Converter modes must be configured");
-  await expect(buildContentRegistry({
-    sources: { API: { base: ".", source: "source.css", kind: "api", pages: ["../page.md"] } },
-  }, root)).rejects.toThrow("Invalid registry page filenames");
+  await expect(
+    buildContentRegistry(
+      {
+        sources: {
+          CSS: { base: ".", source: "source.css", kind: "converter" },
+        },
+      },
+      root,
+    ),
+  ).rejects.toThrow("Converter modes must be configured");
+  await expect(
+    buildContentRegistry(
+      {
+        sources: {
+          API: {
+            base: ".",
+            source: "source.css",
+            kind: "api",
+            pages: ["../page.md"],
+          },
+        },
+      },
+      root,
+    ),
+  ).rejects.toThrow("Invalid registry page filenames");
 });

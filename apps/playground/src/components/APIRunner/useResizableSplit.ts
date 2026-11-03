@@ -1,4 +1,10 @@
-import { useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from "react";
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+} from "react";
 
 export interface UseResizableSplitOptions {
   /** Initial size of the first pane, as a percentage. */
@@ -14,8 +20,12 @@ export interface UseResizableSplitOptions {
 }
 
 export function useResizableSplit<T extends HTMLElement = HTMLElement>({
-  defaultSize = 50, min = 20, max = 80, step = 2,
-  direction = "horizontal", cssVar = "--split-size",
+  defaultSize = 50,
+  min = 20,
+  max = 80,
+  step = 2,
+  direction = "horizontal",
+  cssVar = "--split-size",
 }: UseResizableSplitOptions = {}) {
   const containerRef = useRef<T>(null);
   const resizingRef = useRef(false);
@@ -30,7 +40,9 @@ export function useResizableSplit<T extends HTMLElement = HTMLElement>({
     const bounds = container.getBoundingClientRect();
     const total = isHorizontal ? bounds.width : bounds.height;
     if (!total) return;
-    const offset = isHorizontal ? event.clientX - bounds.left : event.clientY - bounds.top;
+    const offset = isHorizontal
+      ? event.clientX - bounds.left
+      : event.clientY - bounds.top;
     setSize((offset / total) * 100);
   };
   const onPointerDown = (event: PointerEvent<HTMLElement>) => {
@@ -61,10 +73,18 @@ export function useResizableSplit<T extends HTMLElement = HTMLElement>({
   };
   const separatorProps = {
     role: "separator" as const,
-    "aria-orientation": (isHorizontal ? "vertical" : "horizontal") as "vertical" | "horizontal",
-    "aria-valuemin": min, "aria-valuemax": max, "aria-valuenow": Math.round(size),
-    tabIndex: 0, onDoubleClick: reset, onKeyDown,
-    onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp,
+    "aria-orientation": (isHorizontal ? "vertical" : "horizontal") as
+      "vertical" | "horizontal",
+    "aria-valuemin": min,
+    "aria-valuemax": max,
+    "aria-valuenow": Math.round(size),
+    tabIndex: 0,
+    onDoubleClick: reset,
+    onKeyDown,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    onPointerCancel: onPointerUp,
   };
   const style = { [cssVar]: `${size}%` } as CSSProperties;
   return { containerRef, size, setSize, reset, separatorProps, style };
