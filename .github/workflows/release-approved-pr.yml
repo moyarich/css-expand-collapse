@@ -18,7 +18,7 @@ jobs:
       actions: write
       statuses: read
       pull-requests: read
-    uses: moyarich/reusable-workflows/.github/workflows/reusable_approved-release.yml@main
+    uses: moyarich/reusable-workflows/.github/workflows/reusable_release-approved.yml@main
     with:
       expected-base: main
       required-workflows: .github/workflows/ci.yml
