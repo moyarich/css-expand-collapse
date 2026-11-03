@@ -4,36 +4,15 @@ on:
   push:
     branches: [main]
     paths:
-      - "**/*.js"
-      - "**/*.jsx"
-      - "**/*.ts"
-      - "**/*.tsx"
-      - "**/*.mjs"
-      - "**/*.json"
-      - "**/*.yml"
-      - "**/*.yaml"
-      - "**/*.md"
-      - "**/*.mdx"
+      - "**/*.{js,jsx,ts,tsx,mjs,json,yml,yaml,md,mdx}"
       - ".prettier*"
-      - "package.json"
-      - "package-lock.json"
       - ".github/workflows/ci_prettier.yml"
   pull_request:
     paths:
-      - "**/*.js"
-      - "**/*.jsx"
-      - "**/*.ts"
-      - "**/*.tsx"
-      - "**/*.mjs"
-      - "**/*.json"
-      - "**/*.yml"
-      - "**/*.yaml"
-      - "**/*.md"
-      - "**/*.mdx"
+      - "**/*.{js,jsx,ts,tsx,mjs,json,yml,yaml,md,mdx}"
       - ".prettier*"
-      - "package.json"
-      - "package-lock.json"
       - ".github/workflows/ci_prettier.yml"
+
   workflow_dispatch:
     inputs:
       repair:

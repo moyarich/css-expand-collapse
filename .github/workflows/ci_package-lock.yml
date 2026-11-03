@@ -4,20 +4,17 @@ on:
   push:
     branches: [main]
     paths:
-      - "package.json"
+      - "**/package.json"
       - "package-lock.json"
-      - "packages/**/package.json"
-      - "apps/**/package.json"
       - ".npmrc"
       - ".github/workflows/ci_package-lock.yml"
   pull_request:
     paths:
-      - "package.json"
+      - "**/package.json"
       - "package-lock.json"
-      - "packages/**/package.json"
-      - "apps/**/package.json"
       - ".npmrc"
       - ".github/workflows/ci_package-lock.yml"
+
   workflow_dispatch:
     inputs:
       repair:
