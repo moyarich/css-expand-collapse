@@ -3,13 +3,18 @@ name: CI / package-lock
 on:
   push:
     branches: [main]
-    paths: &lockfile_paths
+    paths:
       - "**/package.json"
       - "package-lock.json"
       - ".npmrc"
       - ".github/workflows/ci_package-lock.yml"
   pull_request:
-    paths: *lockfile_paths
+    paths:
+      - "**/package.json"
+      - "package-lock.json"
+      - ".npmrc"
+      - ".github/workflows/ci_package-lock.yml"
+
   workflow_dispatch:
     inputs:
       repair:
