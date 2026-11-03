@@ -16,7 +16,7 @@ jobs:
     permissions:
       actions: read
       contents: write
-    uses: moyarich/reusable-workflows/.github/workflows/reusable_workspace-package-release.yml@main
+    uses: moyarich/reusable-workflows/.github/workflows/reusable_release-workspace-package.yml@main
     with:
       package: packages/console-core
       version-mode: package-json
@@ -29,7 +29,7 @@ jobs:
     permissions:
       actions: read
       contents: write
-    uses: moyarich/reusable-workflows/.github/workflows/reusable_workspace-package-release.yml@main
+    uses: moyarich/reusable-workflows/.github/workflows/reusable_release-workspace-package.yml@main
     with:
       package: all
       version-mode: package-json
