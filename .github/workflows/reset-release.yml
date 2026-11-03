@@ -13,9 +13,7 @@ on:
         default: all
         options:
           - all
-          - packages/moyaforge
-          - packages/moyaforge-cli
-          - packages/moyaforge-search-sqlite
+          - packages/css-expand-collapse
       target-branch:
         description: Release target branch
         required: true

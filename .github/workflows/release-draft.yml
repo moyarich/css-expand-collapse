@@ -14,9 +14,7 @@ on:
         default: all
         options:
           - all
-          - packages/moyaforge
-          - packages/moyaforge-cli
-          - packages/moyaforge-search-sqlite
+          - packages/css-expand-collapse
       version-mode:
         description: Version mode
         required: true
