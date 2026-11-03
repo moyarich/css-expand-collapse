@@ -15,9 +15,7 @@ on:
         default: all
         options:
           - all
-          - packages/moyaforge
-          - packages/moyaforge-cli
-          - packages/moyaforge-search-sqlite
+          - packages/css-expand-collapse
       registry:
         description: Publish destination
         required: true
