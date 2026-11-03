@@ -57,11 +57,6 @@ on:
         required: true
         default: true
         type: boolean
-      node-version:
-        description: Node.js version for publishing
-        required: true
-        default: "24"
-        type: string
       dry-run:
         description: Preview publishing without changing the npm registry
         required: true
@@ -99,7 +94,7 @@ jobs:
       version-mode: ${{ inputs.version-mode }}
       exact-version: ${{ inputs.exact-version }}
       verify-git-tag: ${{ inputs.verify-git-tag }}
-      node-version: ${{ inputs.node-version }}
+      node-version: "24"
       dry-run: ${{ inputs.dry-run }}
       tag: ${{ inputs.tag }}
     secrets:
