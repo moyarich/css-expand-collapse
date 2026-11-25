@@ -73,6 +73,7 @@ import shorthand68 from "./text-emphasis.js";
 import shorthand69 from "./text-wrap.js";
 import shorthand70 from "./transition.js";
 import shorthand71 from "./view-timeline.js";
+import shorthand72 from "./white-space.js";
 
 export const SHORTHANDS = {
   "-webkit-border-before": shorthand0,
@@ -147,4 +148,5 @@ export const SHORTHANDS = {
   "text-wrap": shorthand69,
   transition: shorthand70,
   "view-timeline": shorthand71,
+  "white-space": shorthand72,
 } as const satisfies Readonly<Record<string, ShorthandModule>>;

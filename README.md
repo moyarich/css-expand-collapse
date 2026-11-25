@@ -483,6 +483,15 @@ getShorthands("margin-top");
 // includes "margin"
 ```
 
+## Newer shorthand coverage
+
+`white-space` expands the legacy aliases and supported collapse/wrap keyword
+combinations, including the CSS Text Level 4 trim reset. Explicit non-default
+trim values are not transformed yet. Browser support for trim is incomplete.
+Other candidates (line-clamp, text-spacing, background-repeat axis decomposition
+and animation-trigger) remain deferred until their grammar and reset semantics
+are verified.
+
 ## Notes
 
 System-font keywords such as `font: menu` are user-agent dependent and cannot be deterministically decomposed in a runtime-neutral way. Explicit `font` shorthand values are supported.
