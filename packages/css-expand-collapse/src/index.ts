@@ -68,3 +68,13 @@ export {
   toCamelCaseDeclarations,
   toKebabCaseDeclarations,
 } from "./property-case.js";
+
+export { getShorthandMetadata, listShorthands } from "./registry/metadata.js";
+export type {
+  ShorthandCategory,
+  ShorthandFilter,
+  ShorthandMetadata,
+} from "./registry/metadata.js";
+
+export { parseCssLayers, splitCssLayers } from "./css-layers.js";
+export type { CssLayer, LayerParseResult, LayeredShorthand } from "./css-layers.js";

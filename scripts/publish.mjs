@@ -132,7 +132,11 @@ function validatePackage(pkg) {
   run(["run", "typecheck", "--workspace", pkg.manifest.name, "--if-present"]);
   run(["run", "test", "--workspace", pkg.manifest.name, "--if-present"]);
   run(["run", "build", "--workspace", pkg.manifest.name, "--if-present"]);
-  run(["pack", "--workspace", pkg.manifest.name, "--dry-run"]);
+  if (pkg.manifest.name === "@moyarich/css-expand-collapse") {
+    run(["run", "pack:verify"]);
+  } else {
+    run(["pack", "--workspace", pkg.manifest.name, "--dry-run"]);
+  }
 }
 
 if (dryRun) {

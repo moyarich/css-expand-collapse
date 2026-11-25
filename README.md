@@ -440,6 +440,31 @@ styleToDeclarations(computed);
 
 `background-position` supports physical x/y axes and equal-length layer lists. Logical-axis syntax and unresolved variables are preserved conservatively. Unequal axis lists are not collapsed.
 
+## Layered CSS values
+
+`splitCssLayers(value)` returns authored top-level layers with source offsets.
+`parseCssLayers(property, value)` also returns grammar diagnostics and expanded
+declarations (including defaults) when safe. It supports background, mask,
+animation and transition. Unresolved variables remain authored and do not
+produce expanded declarations.
+
+```ts
+parseCssLayers("background", "linear-gradient(red, blue), white");
+```
+
+## Registry metadata
+
+```ts
+getShorthandMetadata("margin");
+// { property: "margin", category: "spacing", longhands: [...], transformable: true }
+
+listShorthands({ category: "background", transformable: true });
+```
+
+Metadata is derived from the registered shorthand modules. Categories are
+library browsing groups rather than CSS specification classifications.
+Recognized but non-transformable shorthands are included unless filtered out.
+
 ## Property helpers
 
 ```js
@@ -457,6 +482,15 @@ getLonghands("margin");
 getShorthands("margin-top");
 // includes "margin"
 ```
+
+## Newer shorthand coverage
+
+`white-space` expands the legacy aliases and supported collapse/wrap keyword
+combinations, including the CSS Text Level 4 trim reset. Explicit non-default
+trim values are not transformed yet. Browser support for trim is incomplete.
+Other candidates (line-clamp, text-spacing, background-repeat axis decomposition
+and animation-trigger) remain deferred until their grammar and reset semantics
+are verified.
 
 ## Notes
 
@@ -557,6 +591,19 @@ The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such
 
 Try the package interactively in the [playground](https://moyarich.github.io/css-expand-collapse/). Browse searchable API and developer documentation, experiment with CSS conversions, and run API examples using resizable editor and output panes.
 
+## Benchmarks
+
+Run the opt-in transformation benchmarks with
+`npm run bench --workspace @moyarich/css-expand-collapse`.
+See the library's `bench/README.md` for workloads and comparison methodology.
+
+## Debugging the library
+
+The ESM and CommonJS distributions include JavaScript source maps for debugging
+the library's TypeScript implementation. These are library build maps, not
+source maps for CSS transformed by the public APIs. Declaration maps are not
+generated.
+
 ## Package development
 
 From the repository root:
@@ -569,7 +616,7 @@ npm run build:lib
 npm run release:check
 ```
 
-`npm run release:check` runs the release validation and performs a dry-run package archive without publishing.
+`npm run release:check` runs release validation and verifies a real temporary npm archive without publishing. Run `npm run pack:verify` separately to inspect the library archive, export targets, required documentation and runtime source maps. The verifier requires the system `tar` command and reports map sizes. Consumer installation checks remain separate.
 
 ### Workspace release CLI
 
