@@ -31,7 +31,7 @@
   "scripts": {
     "generate:registry": "node scripts/generate-registry.mjs",
     "check:registry": "node scripts/generate-registry.mjs --check",
-    "build": "npm run check:registry && tsup src/index.ts --format esm,cjs --dts --clean --sourcemap && node -e \"require('node:fs').copyFileSync('dist/index.d.ts', 'dist/index.d.cts')\"",
+    "build": "npm run check:registry && tsup src/index.ts --format esm,cjs --dts --clean && node -e \"require('node:fs').copyFileSync('dist/index.d.ts', 'dist/index.d.cts')\"",
     "typecheck": "npm run check:registry && tsc --noEmit",
     "test": "npm run check:registry && vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
