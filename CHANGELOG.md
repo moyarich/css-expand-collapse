@@ -1,6 +1,6 @@
 # Changelog
 
-Notable user-facing changes to `@moyarich/css-expand-collapse` and its interactive playground are documented here.
+Notable user-facing changes to `@moyarich/css-expand-collapse` are documented here.
 
 ## 0.1.2
 
@@ -11,8 +11,6 @@ Notable user-facing changes to `@moyarich/css-expand-collapse` and its interacti
 ### Improved
 
 - Clarified the supported Node.js runtime (22.22.0 or newer).
-- Made playground documentation easier to browse and search, with improved navigation and breadcrumbs.
-- Added accessible, resizable editor and output panes to interactive API examples.
 
 ## 0.1.1
 
