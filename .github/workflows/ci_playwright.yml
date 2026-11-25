@@ -1,5 +1,18 @@
 name: CI / Playwright
 on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "packages/**"
+      - "apps/**"
+      - "test/**"
+      - "tests/**"
+      - "**/*.{ts,tsx,js,jsx,mjs,cjs,mts,cts,css,html,mdx}"
+      - "**/package*.json"
+      - ".npmrc"
+      - ".github/workflows/ci_playwright.yml"
+  pull_request:
   workflow_call:
     inputs:
       checkout-sha:
