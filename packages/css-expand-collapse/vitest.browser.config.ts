@@ -3,7 +3,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    include: ["test/semantics/**/*.test.ts"],
+    include: ["test/**/*.spec.{ts,tsx}"],
     browser: {
       enabled: true,
       provider: playwright(),
