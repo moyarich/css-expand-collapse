@@ -68,3 +68,10 @@ export {
   toCamelCaseDeclarations,
   toKebabCaseDeclarations,
 } from "./property-case.js";
+
+export { getShorthandMetadata, listShorthands } from "./registry/metadata.js";
+export type {
+  ShorthandCategory,
+  ShorthandFilter,
+  ShorthandMetadata,
+} from "./registry/metadata.js";
