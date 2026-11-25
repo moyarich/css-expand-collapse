@@ -1,17 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseStyleDeclaration,
-  collapseCss,
-  collapseLonghands,
-  collapseToShorthand,
-  expandCss,
-  expandShorthand,
-  expandShorthands,
-  getLonghands,
-  getShorthands,
-  isLonghand,
-  isShorthand,
-} from "../../src/index.js";
+import { expandShorthand } from "../../src/index.js";
 
 it("expands border components and fills shorthand defaults", () => {
   const result = expandShorthand("border", "2px solid red");

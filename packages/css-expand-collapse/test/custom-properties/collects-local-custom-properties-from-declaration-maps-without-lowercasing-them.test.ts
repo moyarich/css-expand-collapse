@@ -1,12 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseCss,
-  collapseToShorthand,
-  expandCss,
-  expandShorthand,
-  expandShorthands,
-  resolveCustomProperties,
-} from "../../src/index.js";
+import { expandShorthands } from "../../src/index.js";
 
 it("collects local custom properties from declaration maps without lowercasing them", () => {
   expect(

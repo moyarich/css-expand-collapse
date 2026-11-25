@@ -1,17 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseStyleDeclaration,
-  collapseCss,
-  collapseLonghands,
-  collapseToShorthand,
-  expandCss,
-  expandShorthand,
-  expandShorthands,
-  getLonghands,
-  getShorthands,
-  isLonghand,
-  isShorthand,
-} from "../../src/index.js";
+import { getLonghands, getShorthands, isLonghand, isShorthand } from "../../src/index.js";
 
 it("recognizes shorthand and longhand relationships", () => {
   expect(isShorthand("margin")).toBe(true);

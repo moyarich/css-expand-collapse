@@ -1,9 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseToShorthand,
-  expandShorthand,
-  supportsTransform,
-} from "../../src/index.js";
+import { expandShorthand } from "../../src/index.js";
 
 it("expands explicit font shorthand without browser CSSOM", () => {
   expect(

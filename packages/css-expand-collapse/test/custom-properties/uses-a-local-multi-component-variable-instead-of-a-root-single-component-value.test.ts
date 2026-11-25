@@ -1,12 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseCss,
-  collapseToShorthand,
-  expandCss,
-  expandShorthand,
-  expandShorthands,
-  resolveCustomProperties,
-} from "../../src/index.js";
+import { expandCss } from "../../src/index.js";
 
 it("uses a local multi-component variable instead of a root single-component value", () => {
   const css = expandCss(`

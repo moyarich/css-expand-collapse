@@ -1,17 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseStyleDeclaration,
-  collapseCss,
-  collapseLonghands,
-  collapseToShorthand,
-  expandCss,
-  expandShorthand,
-  expandShorthands,
-  getLonghands,
-  getShorthands,
-  isLonghand,
-  isShorthand,
-} from "../../src/index.js";
+import { expandShorthands } from "../../src/index.js";
 
 it("preserves source order when shorthand and longhand entries overlap", () => {
   expect(

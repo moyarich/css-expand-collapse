@@ -1,9 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  splitTopLevelComma,
-  splitTopLevelSlash,
-  splitTopLevelWhitespace,
-} from "../../src/registry/context.js";
+import { splitTopLevelComma, splitTopLevelSlash } from "../../src/registry/context.js";
 
 it("splits slash and comma only at the top level", () => {
   expect(splitTopLevelSlash("calc(100% / 2) / span 3")).toEqual([

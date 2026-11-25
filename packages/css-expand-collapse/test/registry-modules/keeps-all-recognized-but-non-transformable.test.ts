@@ -1,10 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  SHORTHAND_PROPERTIES,
-  expandShorthand,
-  isShorthand,
-  supportsTransform,
-} from "../../src/index.js";
+import { expandShorthand, isShorthand, supportsTransform } from "../../src/index.js";
 import { SHORTHAND_MODULES } from "../../src/registry/index.js";
 
 it("keeps all recognized but non-transformable", () => {

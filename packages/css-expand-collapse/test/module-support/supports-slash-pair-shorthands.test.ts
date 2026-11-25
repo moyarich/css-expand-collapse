@@ -1,9 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseToShorthand,
-  expandShorthand,
-  supportsTransform,
-} from "../../src/index.js";
+import { collapseToShorthand, expandShorthand } from "../../src/index.js";
 
 it("supports slash-pair shorthands", () => {
   expect(

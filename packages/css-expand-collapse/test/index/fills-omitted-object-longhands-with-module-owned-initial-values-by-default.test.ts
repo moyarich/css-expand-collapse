@@ -1,24 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseStyleDeclaration,
-  collapseCss,
-  collapseLonghands,
-  collapseToShorthand,
-  expandCss,
-  expandShorthand,
-  expandShorthands,
-  getLonghands,
-  getShorthands,
-  isLonghand,
-  isShorthand,
-} from "../../src/index.js";
-
-const margin = {
-  "margin-top": "10px",
-  "margin-right": "20px",
-  "margin-bottom": "10px",
-  "margin-left": "20px",
-};
+import { collapseToShorthand } from "../../src/index.js";
 
 it("fills omitted object longhands with module-owned initial values by default", () => {
   expect(

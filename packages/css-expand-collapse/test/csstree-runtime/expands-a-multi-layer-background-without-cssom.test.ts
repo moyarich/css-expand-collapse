@@ -1,9 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseToShorthand,
-  expandShorthand,
-  supportsTransform,
-} from "../../src/index.js";
+import { expandShorthand } from "../../src/index.js";
 
 it("expands a multi-layer background without CSSOM", () => {
   expect(

@@ -1,12 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseCss,
-  collapseToShorthand,
-  expandCss,
-  expandShorthand,
-  expandShorthands,
-  resolveCustomProperties,
-} from "../../src/index.js";
+import { collapseCss } from "../../src/index.js";
 
 it("uses background-color var() when deciding whether background can collapse", () => {
   const css = collapseCss(`

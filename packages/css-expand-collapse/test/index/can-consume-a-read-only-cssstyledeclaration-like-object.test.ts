@@ -1,17 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseStyleDeclaration,
-  collapseCss,
-  collapseLonghands,
-  collapseToShorthand,
-  expandCss,
-  expandShorthand,
-  expandShorthands,
-  getLonghands,
-  getShorthands,
-  isLonghand,
-  isShorthand,
-} from "../../src/index.js";
+import { collapseStyleDeclaration } from "../../src/index.js";
 
 it("can consume a read-only CSSStyleDeclaration-like object", () => {
   const values: Record<string, string> = {

@@ -1,9 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseToShorthand,
-  expandShorthand,
-  supportsTransform,
-} from "../../src/index.js";
+import { collapseToShorthand, expandShorthand } from "../../src/index.js";
 
 it("collapses a CSSTree-owned transition", () => {
   const collapsed = collapseToShorthand("transition", {

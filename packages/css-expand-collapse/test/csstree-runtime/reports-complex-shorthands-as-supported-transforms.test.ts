@@ -1,9 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseToShorthand,
-  expandShorthand,
-  supportsTransform,
-} from "../../src/index.js";
+import { supportsTransform } from "../../src/index.js";
 
 it("reports complex shorthands as supported transforms", () => {
   for (const property of [

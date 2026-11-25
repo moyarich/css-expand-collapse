@@ -1,12 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseCss,
-  collapseToShorthand,
-  expandCss,
-  expandShorthand,
-  expandShorthands,
-  resolveCustomProperties,
-} from "../../src/index.js";
+import { collapseToShorthand } from "../../src/index.js";
 
 it("collapses variable longhands when the resolved value validates the shorthand", () => {
   expect(

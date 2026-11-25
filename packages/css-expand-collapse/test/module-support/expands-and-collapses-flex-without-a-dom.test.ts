@@ -1,9 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseToShorthand,
-  expandShorthand,
-  supportsTransform,
-} from "../../src/index.js";
+import { collapseToShorthand, expandShorthand } from "../../src/index.js";
 
 it("expands and collapses flex without a DOM", () => {
   expect(expandShorthand("flex", "2 0 10rem")?.declarations).toEqual({

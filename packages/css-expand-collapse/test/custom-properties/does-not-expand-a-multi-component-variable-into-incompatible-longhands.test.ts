@@ -1,12 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseCss,
-  collapseToShorthand,
-  expandCss,
-  expandShorthand,
-  expandShorthands,
-  resolveCustomProperties,
-} from "../../src/index.js";
+import { expandShorthand } from "../../src/index.js";
 
 it("does not expand a multi-component variable into incompatible longhands", () => {
   expect(

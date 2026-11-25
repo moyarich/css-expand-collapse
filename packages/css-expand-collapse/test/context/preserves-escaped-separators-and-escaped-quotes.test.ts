@@ -1,9 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  splitTopLevelComma,
-  splitTopLevelSlash,
-  splitTopLevelWhitespace,
-} from "../../src/registry/context.js";
+import { splitTopLevelComma } from "../../src/registry/context.js";
 
 it("preserves escaped separators and escaped quotes", () => {
   expect(splitTopLevelComma(String.raw`foo\,bar,baz`)).toEqual([

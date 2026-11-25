@@ -1,11 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  SHORTHAND_PROPERTIES,
-  expandShorthand,
-  isShorthand,
-  supportsTransform,
-} from "../../src/index.js";
-import { SHORTHAND_MODULES } from "../../src/registry/index.js";
+import { SHORTHAND_PROPERTIES } from "../../src/index.js";
 
 it("derives a unique property list from shorthand module filenames", () => {
   expect(new Set(SHORTHAND_PROPERTIES).size).toBe(

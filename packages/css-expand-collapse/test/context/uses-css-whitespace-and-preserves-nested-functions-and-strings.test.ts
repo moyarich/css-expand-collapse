@@ -1,9 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  splitTopLevelComma,
-  splitTopLevelSlash,
-  splitTopLevelWhitespace,
-} from "../../src/registry/context.js";
+import { splitTopLevelWhitespace } from "../../src/registry/context.js";
 
 it("uses CSS whitespace and preserves nested functions and strings", () => {
   expect(

@@ -1,12 +1,5 @@
 import { expect, it } from "vitest";
-import {
-  collapseCss,
-  collapseToShorthand,
-  expandCss,
-  expandShorthand,
-  expandShorthands,
-  resolveCustomProperties,
-} from "../../src/index.js";
+import { collapseCss } from "../../src/index.js";
 
 it("does not collapse invalid longhands backed by a local multi-component variable", () => {
   const css = collapseCss(`
