@@ -418,6 +418,42 @@ getShorthands("margin-top");
 
 System-font keywords such as `font: menu` are user-agent dependent and cannot be deterministically decomposed in a runtime-neutral way. Explicit `font` shorthand values are supported.
 
+## Validate CSS
+
+Validation is independent of expansion and collapse. Use `validateProperty` for
+one value, `validateDeclarations` for declaration fragments, and `validateCss`
+for stylesheets.
+
+```ts
+import {
+  validateCss,
+  validateDeclarations,
+  validateProperty,
+} from "@moyarich/css-expand-collapse";
+
+validateProperty("margin", "10px 20px");
+// { valid: true, diagnostics: [] }
+
+validateDeclarations("padding: red;");
+// { valid: false, diagnostics: [...] }
+
+validateCss(".card { margin: var(--space); }");
+// { valid: null, diagnostics: [...] }
+
+validateProperty("margin", "var(--space)", {
+  customProperties: { "--space": "8px 16px" },
+});
+// { valid: true, diagnostics: [] }
+```
+
+A result of `null` means static validity is indeterminate, for example when a
+variable is unresolved or grammar is unavailable. Errors take precedence over
+indeterminate diagnostics. Source diagnostics include one-based lines and
+columns and zero-based offsets where available. Validation uses CSSTree's
+available grammar, not a browser's computed cascade; it does not infer custom
+property values from selectors or check at-rule descriptor and registered
+custom-property grammar. It cannot guarantee browser support.
+
 ## Public API
 
 | Category          | Function                                                     | Purpose                                                                                                        |
