@@ -656,3 +656,28 @@ npm run release -- css-expand-collapse=minor --dry-run
 ## License
 
 MIT
+
+## Declaration grouping
+
+`formatDeclarations(css, { groupBy: "family" })` adds a separator between adjacent property families. Use `groupBy: "side"` to group adjacent physical directional properties. Both modes preserve declaration order, duplicate declarations and priorities; they never sort declarations across groups.
+
+```ts
+formatDeclarations("margin:0; padding:1px; margin-top:2px", {
+  groupBy: "family",
+});
+```
+
+## Transformation diagnostics
+
+The optional `onDiagnostic` callback is available on property, declaration-map
+and CSS text transformation APIs. Failed expansion attempts distinguish
+unsupported shorthands, invalid grammar, unresolved runtime values, unknown
+grammar and otherwise unsafe transformations. CSS text diagnostics can include
+source coordinates; object inputs do not have source coordinates. Collapse
+diagnostics describe rejected candidates and are not an exhaustive cascade trace.
+
+```ts
+expandShorthand("margin", "var(--missing)", {
+  onDiagnostic: (diagnostic) => console.log(diagnostic),
+});
+```

@@ -20,7 +20,7 @@ import {
 
 export type { DeclarationMap, LonghandMap } from "./registry/index.js";
 
-import type { TransformDiagnostic } from "./transform-diagnostics.js";
+import { describeExpansionFailure, type TransformDiagnostic } from "./transform-diagnostics.js";
 
 export interface TransformOptions {
   /** Receives diagnostics for attempted but skipped transformations. */
@@ -106,14 +106,22 @@ export function supportsTransform(property: string): boolean {
 export function expandShorthand(
   property: string,
   value: string,
-  options?: Pick<TransformOptions, "customProperties">,
+  options?: Pick<TransformOptions, "customProperties" | "onDiagnostic">,
 ): ExpandShorthandResult | null {
   const shorthand = normalizeProperty(property);
   const definition = SHORTHAND_DEFINITIONS[shorthand];
-  if (!definition) return null;
+  const reportFailure = () => {
+    if (options?.onDiagnostic) {
+      options.onDiagnostic(describeExpansionFailure(
+        shorthand, value, Boolean(definition), options.customProperties,
+      ));
+    }
+    return null;
+  };
+  if (!definition) return reportFailure();
 
   const normalizedValue = value.trim();
-  if (!normalizedValue) return null;
+  if (!normalizedValue) return reportFailure();
 
   const expandContext = options?.customProperties
     ? createShorthandExpandContext(options.customProperties)
@@ -127,7 +135,7 @@ export function expandShorthand(
       )
     : definition.expand(normalizedValue, expandContext);
 
-  if (!declarations) return null;
+  if (!declarations) return reportFailure();
 
   return {
     property: shorthand,
@@ -145,7 +153,7 @@ export function expandShorthand(
  */
 export function expandShorthands(
   declarations: DeclarationMap,
-  options?: Pick<TransformOptions, "customProperties">,
+  options?: Pick<TransformOptions, "customProperties" | "onDiagnostic">,
 ): DeclarationMap {
   const output: DeclarationMap = {};
   const customProperties = mergeCustomProperties(
@@ -155,7 +163,10 @@ export function expandShorthands(
 
   for (const [rawProperty, value] of Object.entries(declarations)) {
     const property = normalizeDeclarationProperty(rawProperty);
-    const expanded = expandShorthand(property, value, { customProperties });
+    const expanded = expandShorthand(property, value, {
+      customProperties,
+      onDiagnostic: isShorthand(property) ? options?.onDiagnostic : undefined,
+    });
 
     if (!expanded) {
       output[property] = value;
@@ -186,8 +197,11 @@ export function collapseToShorthand(
 ): CollapseShorthandResult | null {
   const property = normalizeProperty(shorthandProperty);
   const definition = SHORTHAND_DEFINITIONS[property];
-  if (!definition) return null;
-
+  if (!definition) {
+    options?.onDiagnostic?.({ code: "unsupported-transform", severity: "info", property,
+      message: "Shorthand transformation is not supported." });
+    return null;
+  }
   const customProperties = mergeCustomProperties(
     options?.customProperties,
     collectCustomProperties(declarations),
@@ -205,7 +219,12 @@ export function collapseToShorthand(
   const consumed = [...definition.longhands.keys()].filter((longhand) =>
     Object.hasOwn(normalized, longhand),
   );
-  if (!consumed.length) return null;
+  const reportCollapseFailure = () => {
+    options?.onDiagnostic?.({ code: "collapse-not-safe", severity: "info", property,
+      message: "Candidate longhands could not be collapsed safely." });
+    return null;
+  };
+  if (!consumed.length) return reportCollapseFailure();
 
   // Validate each authored longhand before considering the shorthand as a whole.
   // A custom property can be valid for the shorthand grammar while still resolving
@@ -217,7 +236,7 @@ export function collapseToShorthand(
       !GLOBAL_VALUES.has(longhandValue) &&
       !collapseContext.matchProperty(longhand, longhandValue)
     ) {
-      return null;
+      return reportCollapseFailure();
     }
   }
 
@@ -239,12 +258,12 @@ export function collapseToShorthand(
     GLOBAL_VALUES.has(first)
       ? first
       : definition.collapse(completed, collapseContext);
-  if (!value) return null;
+  if (!value) return reportCollapseFailure();
   if (
     !GLOBAL_VALUES.has(value) &&
     !collapseContext.matchProperty(property, value)
   ) {
-    return null;
+    return reportCollapseFailure();
   }
 
   return {
@@ -266,6 +285,9 @@ export function findCollapsibleShorthands(
 ): CollapseShorthandResult[] {
   return Object.entries(SHORTHAND_DEFINITIONS)
     .sort(([, a], [, b]) => b.longhands.size - a.longhands.size)
+    .filter(([, definition]) => [...definition.longhands.keys()].some((longhand) =>
+      Object.keys(declarations).some((key) => normalizeDeclarationProperty(key) === longhand),
+    ))
     .map(([shorthand]) => collapseToShorthand(shorthand, declarations, options))
     .filter((result): result is CollapseShorthandResult => Boolean(result));
 }
