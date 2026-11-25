@@ -440,6 +440,18 @@ styleToDeclarations(computed);
 
 `background-position` supports physical x/y axes and equal-length layer lists. Logical-axis syntax and unresolved variables are preserved conservatively. Unequal axis lists are not collapsed.
 
+## Layered CSS values
+
+`splitCssLayers(value)` returns authored top-level layers with source offsets.
+`parseCssLayers(property, value)` also returns grammar diagnostics and expanded
+declarations (including defaults) when safe. It supports background, mask,
+animation and transition. Unresolved variables remain authored and do not
+produce expanded declarations.
+
+```ts
+parseCssLayers("background", "linear-gradient(red, blue), white");
+```
+
 ## Registry metadata
 
 ```ts
