@@ -440,6 +440,19 @@ styleToDeclarations(computed);
 
 `background-position` supports physical x/y axes and equal-length layer lists. Logical-axis syntax and unresolved variables are preserved conservatively. Unequal axis lists are not collapsed.
 
+## Registry metadata
+
+```ts
+getShorthandMetadata("margin");
+// { property: "margin", category: "spacing", longhands: [...], transformable: true }
+
+listShorthands({ category: "background", transformable: true });
+```
+
+Metadata is derived from the registered shorthand modules. Categories are
+library browsing groups rather than CSS specification classifications.
+Recognized but non-transformable shorthands are included unless filtered out.
+
 ## Property helpers
 
 ```js
