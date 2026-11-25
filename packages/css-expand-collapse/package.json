@@ -33,17 +33,20 @@
     "check:registry": "node scripts/generate-registry.mjs --check",
     "build": "npm run check:registry && tsup src/index.ts --format esm,cjs --dts --clean && node -e \"require('node:fs').copyFileSync('dist/index.d.ts', 'dist/index.d.cts')\"",
     "typecheck": "npm run check:registry && tsc --noEmit",
-    "test": "npm run check:registry && vitest run",
-    "test:watch": "vitest",
+    "test": "npm run check:registry && vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
     "prepack": "node ../../scripts/sync-package-readme.mjs --package-directory=packages/css-expand-collapse && npm run build",
     "postpack": "node ../../scripts/sync-package-readme.mjs --package-directory=packages/css-expand-collapse --clean",
-    "preversion": "npm run test && npm run typecheck && npm run build"
+    "preversion": "npm run test && npm run typecheck && npm run build",
+    "test:semantics": "vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
     "css-tree": "^3.2.1"
   },
   "devDependencies": {
     "@types/css-tree": "^2.3.10",
+    "@vitest/browser-playwright": "^4.1.11",
+    "playwright": "^1.63.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.2",
     "vitest": "^4.1.11"

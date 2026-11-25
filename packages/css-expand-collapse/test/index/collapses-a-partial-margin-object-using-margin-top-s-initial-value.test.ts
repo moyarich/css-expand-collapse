@@ -1,13 +1,6 @@
 import { expect, it } from "vitest";
 import { collapseToShorthand } from "../../src/index.js";
 
-const margin = {
-  "margin-top": "10px",
-  "margin-right": "20px",
-  "margin-bottom": "10px",
-  "margin-left": "20px",
-};
-
 it("collapses a partial margin object using margin-top's initial value", () => {
   expect(
     collapseToShorthand("margin", {
