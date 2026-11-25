@@ -696,3 +696,7 @@ The ESM and CommonJS builds include external JavaScript source maps with embedde
 Run `npm run pack:verify` from the repository root to verify both map references and source availability in the real npm archive. The command also reports actual archive size, raw map/reference bytes, and the compressed size difference between two comparison archives produced by the same tar tool. The second comparison archive removes only runtime maps and their generated references. This is an estimate of compressed map overhead, not a second npm release build. No size threshold is enforced.
 
 Declaration maps are deferred: the bundled declaration files combine sources, and simply copying or synthesizing declaration-map references would not establish correct original positions. Existing declaration entry points are unchanged.
+
+### Verified source-map size baseline
+
+For the 0.1.2 development build at commit `8206846`, the [package archive CI job](https://github.com/moyarich/css-expand-collapse/actions/runs/45665703997/job/139387137357) measured a 166,098-byte npm tarball. The two runtime maps totalled 577,024 uncompressed bytes. Paired comparison archives measured 167,574 bytes with maps and 67,534 bytes without maps, an estimated compressed overhead of 100,040 bytes (148.13%). These measurements are a historical baseline, not a size guarantee for subsequent releases.
