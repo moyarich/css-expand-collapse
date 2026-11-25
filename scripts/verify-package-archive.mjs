@@ -91,7 +91,7 @@ try {
     mapBytes += statSync(map).size;
     rmSync(map);
     const original = readFileSync(file, "utf8");
-    const stripped = original.replace(/(?:\\r?\\n)?\/\/# sourceMappingURL=[^\\r\\n]*(?=\\r?\\n?$)/, "");
+    const stripped = original.replace(/^\/\/# sourceMappingURL=[^\r\n]*(?:\r?\n|$)/gm, "");
     assert(stripped !== original, "Could not remove source map reference: " + name);
     referenceBytes += Buffer.byteLength(original) - Buffer.byteLength(stripped);
     writeFileSync(file, stripped);
