@@ -616,7 +616,7 @@ npm run build:lib
 npm run release:check
 ```
 
-`npm run release:check` runs the release validation and performs a dry-run package archive without publishing.
+`npm run release:check` runs release validation and verifies a real temporary npm archive without publishing. Run `npm run pack:verify` separately to inspect the library archive, export targets, required documentation and runtime source maps. The verifier requires the system `tar` command and reports map sizes. Consumer installation checks remain separate.
 
 ### Workspace release CLI
 
