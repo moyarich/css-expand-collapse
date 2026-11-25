@@ -597,6 +597,13 @@ Run the opt-in transformation benchmarks with
 `npm run bench --workspace @moyarich/css-expand-collapse`.
 See the library's `bench/README.md` for workloads and comparison methodology.
 
+## Debugging the library
+
+The ESM and CommonJS distributions include JavaScript source maps for debugging
+the library's TypeScript implementation. These are library build maps, not
+source maps for CSS transformed by the public APIs. Declaration maps are not
+generated.
+
 ## Package development
 
 From the repository root:
