@@ -591,6 +591,12 @@ The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such
 
 Try the package interactively in the [playground](https://moyarich.github.io/css-expand-collapse/). Browse searchable API and developer documentation, experiment with CSS conversions, and run API examples using resizable editor and output panes.
 
+## Benchmarks
+
+Run the opt-in transformation benchmarks with
+`npm run bench --workspace @moyarich/css-expand-collapse`.
+See the library's `bench/README.md` for workloads and comparison methodology.
+
 ## Package development
 
 From the repository root:
