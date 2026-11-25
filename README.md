@@ -682,7 +682,6 @@ expandShorthand("margin", "var(--missing)", {
 });
 ```
 
-
 ## CSS transformation source maps
 
 Use the opt-in API to trace generated CSS to the original stylesheet:
