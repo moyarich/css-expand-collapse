@@ -45,5 +45,7 @@ export function expectRoundTrip(
   const collapsed = collapseCss(expanded);
   expectEquivalent(css, expanded, markup, selectors);
   expectEquivalent(css, collapsed, markup, selectors);
-  expectEquivalent(css, collapseCss(css), markup, selectors);
+  const directlyCollapsed = collapseCss(css);
+  expectEquivalent(css, directlyCollapsed, markup, selectors);
+  expectEquivalent(css, expandCss(directlyCollapsed), markup, selectors);
 }
