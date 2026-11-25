@@ -27,8 +27,12 @@ export function validateSource(
       enter(node) {
         // Descriptors such as @font-face src are not ordinary CSS properties.
         // Check grammar only in style rules and declaration fragments.
-        const value = generate(node.value);
         const location = node.value.loc ?? node.loc ?? undefined;
+        // Prefer authored value text over generated serialization, so diagnostics
+        // preserve comments, spacing, and original source coordinates.
+        const value = node.value.loc
+          ? source.slice(node.value.loc.start.offset, node.value.loc.end.offset)
+          : generate(node.value);
         if (this.atrule && !this.rule) {
           diagnostics.push({
             code: "unsupported-context",
