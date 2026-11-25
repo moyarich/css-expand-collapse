@@ -597,13 +597,6 @@ Run the opt-in transformation benchmarks with
 `npm run bench --workspace @moyarich/css-expand-collapse`.
 See the library's `bench/README.md` for workloads and comparison methodology.
 
-## Debugging the library
-
-The ESM and CommonJS distributions include JavaScript source maps for debugging
-the library's TypeScript implementation. These are library build maps, not
-source maps for CSS transformed by the public APIs. Declaration maps are not
-generated.
-
 ## Package development
 
 From the repository root:
@@ -616,7 +609,7 @@ npm run build:lib
 npm run release:check
 ```
 
-`npm run release:check` runs release validation and verifies a real temporary npm archive without publishing. Run `npm run pack:verify` separately to inspect the library archive, export targets, required documentation and runtime source maps. The verifier requires the system `tar` command and reports map sizes. Consumer installation checks remain separate.
+`npm run release:check` runs release validation and verifies a real temporary npm archive without publishing. Run `npm run pack:verify` separately to inspect the library archive, export targets, required documentation and absence of build source maps. The verifier requires the system `tar` command and reports archive size. Consumer installation checks remain separate.
 
 ### Workspace release CLI
 
@@ -689,17 +682,6 @@ expandShorthand("margin", "var(--missing)", {
 });
 ```
 
-## Published JavaScript source maps
-
-The ESM and CommonJS builds include external JavaScript source maps with embedded original TypeScript sources. Use a debugger with source-map support, or run Node with `--enable-source-maps`, to inspect original source locations. These are library build maps, not maps of transformed CSS.
-
-Run `npm run pack:verify` from the repository root to verify both map references and source availability in the real npm archive. The command also reports actual archive size, raw map/reference bytes, and the compressed size difference between two comparison archives produced by the same tar tool. The second comparison archive removes only runtime maps and their generated references. This is an estimate of compressed map overhead, not a second npm release build. No size threshold is enforced.
-
-Declaration maps are deferred: the bundled declaration files combine sources, and simply copying or synthesizing declaration-map references would not establish correct original positions. Existing declaration entry points are unchanged.
-
-### Verified source-map size baseline
-
-For the 0.1.2 development build at commit `8206846`, the [package archive CI job](https://github.com/moyarich/css-expand-collapse/actions/runs/45665703997/job/139387137357) measured a 166,098-byte npm tarball. The two runtime maps totalled 577,024 uncompressed bytes. Paired comparison archives measured 167,574 bytes with maps and 67,534 bytes without maps, an estimated compressed overhead of 100,040 bytes (148.13%). These measurements are a historical baseline, not a size guarantee for subsequent releases.
 
 ## CSS transformation source maps
 
