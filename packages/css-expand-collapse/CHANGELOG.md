@@ -1,6 +1,16 @@
 # Changelog
 
-All notable changes to `@moyarich/css-expand-collapse` are documented here.
+Notable user-facing changes to `@moyarich/css-expand-collapse` are documented here.
+
+## 0.1.2
+
+### Fixed
+
+- Improved TypeScript compatibility for CommonJS consumers by providing separate declarations for CommonJS and ES modules.
+
+### Improved
+
+- Clarified the supported Node.js runtime (22.22.0 or newer).
 
 ## 0.1.1
 

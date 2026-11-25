@@ -2,7 +2,7 @@
 
 Expand CSS shorthands into longhands and safely collapse compatible longhands back into shorthands.
 
-[Playground](https://moyarich.github.io/css-expand-collapse/) · [Source](https://github.com/moyarich/css-expand-collapse) · [Issues](https://github.com/moyarich/css-expand-collapse/issues)
+[Playground](https://moyarich.github.io/css-expand-collapse/) · [Source](https://github.com/moyarich/css-expand-collapse) · [Issues](https://github.com/moyarich/css-expand-collapse/issues) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/CHANGELOG.md)
 
 The package works with individual CSS properties, declaration maps, declaration fragments, full stylesheets, browser computed styles, Node.js, and Chrome extension contexts. It uses [CSSTree](https://github.com/csstree/csstree) for parsing, generation, and CSS grammar matching; shorthand transforms do not require browser CSSOM.
 
@@ -21,13 +21,12 @@ The package works with individual CSS properties, declaration maps, declaration 
 npm install @moyarich/css-expand-collapse
 ```
 
+The supported Node.js runtime is 22.22.0 or newer. The package includes TypeScript declarations for both ESM and CommonJS consumers.
+
 ## Quick start
 
 ```js
-import {
-  expandShorthand,
-  collapseToShorthand,
-} from "@moyarich/css-expand-collapse";
+import { expandShorthand, collapseToShorthand } from "@moyarich/css-expand-collapse";
 
 expandShorthand("margin", "10px 20px");
 // {
@@ -73,10 +72,7 @@ console.log(expandShorthand("padding", "8px 16px"));
 CommonJS is also supported:
 
 ```js
-const {
-  expandShorthand,
-  collapseCss,
-} = require("@moyarich/css-expand-collapse");
+const { expandShorthand, collapseCss } = require("@moyarich/css-expand-collapse");
 ```
 
 All registered transformable shorthands use runtime-neutral JavaScript + CSSTree. Complex properties such as `background`, `mask`, `animation`, `transition`, `font`, and `grid` do not require `document` or a `CSSStyleDeclaration`.
@@ -456,7 +452,7 @@ The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such
 
 ## Playground
 
-Try the package interactively at https://moyarich.github.io/css-expand-collapse/.
+Try the package interactively in the [playground](https://moyarich.github.io/css-expand-collapse/). Browse searchable API and developer documentation, experiment with CSS conversions, and run API examples using resizable editor and output panes.
 
 ## Package development
 
