@@ -7,6 +7,11 @@ import {
 import { syntaxDiagnostic, validationResult } from "./diagnostics.js";
 import type { ValidationOptions, ValidationResult } from "./types.js";
 
+// CSSTree 3 exposes these runtime members; @types/css-tree 2 omits them.
+const propertyLexer = lexer as typeof lexer & {
+  getProperty(property: string): unknown;
+};
+
 /** Validate a property value against the available CSS grammar, without transforming it. */
 export function validateProperty(
   property: string,
@@ -44,7 +49,7 @@ export function validateProperty(
       ]);
     }
     const normalized = name.toLowerCase();
-    if (!lexer.getProperty(normalized)) {
+    if (!propertyLexer.getProperty(normalized)) {
       return validationResult([
         {
           ...diagnostic,
@@ -81,7 +86,10 @@ export function validateProperty(
         },
       ]);
     }
-    const match = lexer.matchProperty(normalized, resolved);
+    const match = lexer.matchProperty(normalized, resolved) as unknown as {
+      matched: unknown;
+      error: unknown;
+    };
     if (match.matched && !match.error) return validationResult([]);
     return validationResult([
       {
