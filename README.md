@@ -391,6 +391,18 @@ collapseDeclarations(`
 `);
 ```
 
+## Format declaration fragments
+
+```ts
+formatDeclarations("margin:0;padding:8px", { indent: "  " });
+// "  margin: 0;\n  padding: 8px;"
+```
+
+Formatting preserves declaration order, duplicate declarations, priority, and
+authored value tokens. Invalid fragments and fragments containing comments
+between declarations are preserved unchanged. Grouping that would reorder
+declarations is intentionally deferred until cascade safety can be established.
+
 ## Style declarations
 
 The style-declaration APIs accept any read-only `CSSStyleDeclaration`-like object, including the value returned by `getComputedStyle()`:
