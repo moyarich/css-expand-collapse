@@ -6,5 +6,5 @@ it("reports a skipped shorthand with source coordinates", () => {
   expandCss(".card {\n padding: red; }", {
     onDiagnostic: (item) => diagnostics.push(item),
   });
-  expect(diagnostics).toMatchObject([{ code: "unsafe-or-invalid-value", location: { start: { line: 2 } } }]);
+  expect(diagnostics).toMatchObject([{ code: "invalid-property-value", location: { start: { line: 2 } } }]);
 });
