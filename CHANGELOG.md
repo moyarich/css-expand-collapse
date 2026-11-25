@@ -1,25 +1,19 @@
 # Changelog
 
-Notable changes to `@moyarich/css-expand-collapse` and its playground are recorded here.
+Notable user-facing changes to `@moyarich/css-expand-collapse` and its interactive playground are recorded here.
 
 ## 0.1.2
 
 ### Fixed
 
-- Export separate TypeScript declarations for CommonJS and ES module consumers.
-- Correct npm package metadata and synchronize the supported Node.js engine range in the lockfile.
+- Improved TypeScript compatibility for CommonJS consumers by providing declarations for both CommonJS and ES modules.
 
-### Documentation and playground
+### Improved
 
-- Improve searchable documentation, navigation, breadcrumbs, and edit links.
-- Use accessible, resizable panes for interactive API examples.
-- Clarify supported Node.js versions and module formats in the README.
-
-### Maintenance
-
-- Synchronize shared CI and release workflows, including package selection and lockfile checks.
-- Fix release preparation for the private npm workspace root without changing the library's independent versioning.
+- Made playground documentation easier to browse and search, with improved navigation and breadcrumbs.
+- Added accessible, resizable editor and output panes to interactive API examples.
+- Clarified the minimum supported Node.js version (22.22.0) in the installation documentation.
 
 ## Earlier releases
 
-See the [repository release history](https://github.com/moyarich/css-expand-collapse/releases) for earlier releases.
+See the [release history](https://github.com/moyarich/css-expand-collapse/releases) for earlier releases.
