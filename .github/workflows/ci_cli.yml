@@ -52,3 +52,17 @@ jobs:
     uses: moyarich/reusable-workflows/.github/workflows/reusable_ci_cli.yml@main
     with:
       checkout-sha: ${{ inputs.checkout-sha }}
+
+  package-archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.checkout-sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --include=dev --include=optional --no-audit --no-fund
+      - run: npm run pack:verify
