@@ -39,7 +39,8 @@
     "postpack": "node ../../scripts/sync-package-readme.mjs --package-directory=packages/css-expand-collapse --clean",
     "preversion": "npm run test && npm run typecheck && npm run build",
     "test:semantics": "vitest run --config vitest.browser.config.ts",
-    "bench": "vitest bench --run --config vitest.bench.config.ts"
+    "bench": "vitest bench --run --config vitest.bench.config.ts",
+    "bench:profile": "npm run build && node bench/profile.mjs"
   },
   "dependencies": {
     "css-tree": "^3.2.1"

@@ -1,0 +1,40 @@
+name: Library performance profile
+on:
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: Warm iterations per sample
+        required: true
+        type: string
+        default: "1000"
+      samples:
+        description: Independent processes per mode and workload
+        required: true
+        type: string
+        default: "5"
+permissions:
+  contents: read
+jobs:
+  profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --include=dev --include=optional --no-audit --no-fund
+      - run: npm run build:lib
+      - name: Record profiling results
+        env:
+          BENCH_ITERATIONS: ${{ inputs.iterations }}
+          BENCH_SAMPLES: ${{ inputs.samples }}
+        run: node packages/css-expand-collapse/bench/profile.mjs > performance-profile.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: performance-profile
+          path: performance-profile.json
+          if-no-files-found: error
