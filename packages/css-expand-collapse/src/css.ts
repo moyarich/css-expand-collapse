@@ -25,6 +25,7 @@ import {
   SHORTHAND_DEFINITIONS,
 } from "./registry/index.js";
 import { splitTopLevelComma } from "./registry/context.js";
+import { describeExpansionFailure } from "./transform-diagnostics.js";
 
 export type TransformMode = "expand" | "collapse";
 
@@ -212,18 +213,14 @@ function expandBlock(
     const expanded = expandShorthand(
       child.property,
       declarationValue(child),
-      options,
+      { customProperties: options?.customProperties },
     );
     if (!expanded) {
-      if (isShorthand(child.property)) {
-        const supported = supportsTransform(child.property);
-        options?.onDiagnostic?.({
-          code: supported ? "unsafe-or-invalid-value" : "unsupported-transform",
-          severity: "warning",
-          property: child.property,
-          value: declarationValue(child),
+      if (isShorthand(child.property) && options?.onDiagnostic) {
+        options.onDiagnostic({
+          ...describeExpansionFailure(child.property, declarationValue(child),
+            supportsTransform(child.property), options.customProperties),
           location: child.loc ?? undefined,
-          message: supported ? "Shorthand could not be expanded safely." : "Shorthand transformation is not supported.",
         });
       }
       output.push(child);
@@ -288,7 +285,7 @@ function removeRedundantDeclarations(
     }
 
     if (definition) {
-      const expanded = expandShorthand(property, value, options);
+      const expanded = expandShorthand(property, value, { customProperties: options?.customProperties });
 
       if (expanded) {
         const entries = Object.entries(expanded.declarations);
@@ -472,7 +469,7 @@ function tryCollapseAt(
       declarations[property] = declarationValue(match.node);
     }
 
-    const collapsed = collapseToShorthand(shorthand, declarations, options);
+    const collapsed = collapseToShorthand(shorthand, declarations, { ...options, onDiagnostic: undefined });
     if (!collapsed) {
       options?.onDiagnostic?.({
         code: "collapse-not-safe",
