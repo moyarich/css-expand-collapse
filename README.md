@@ -333,6 +333,19 @@ Result:
 
 Collapse is cascade-aware within declaration blocks. Source order, overlapping shorthands, duplicate constituents, and `!important` are considered before a replacement is emitted.
 
+## Transformation diagnostics
+
+Pass an optional `onDiagnostic` callback to stylesheet transforms to receive
+structured reasons for unsuccessful attempts, with source locations when
+available. Existing string results are unchanged. Diagnostics are best-effort,
+not an exhaustive explanation of every possible collapse candidate.
+
+```ts
+expandCss(".card { all: initial; }", {
+  onDiagnostic: (diagnostic) => console.log(diagnostic),
+});
+```
+
 ## Partial longhands
 
 Raw stylesheet collapse is conservative by default. Missing longhands are not invented because that could override values supplied by another matching rule.
