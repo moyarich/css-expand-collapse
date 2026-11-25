@@ -49,10 +49,13 @@ function makeDeclaration(
   property: string,
   value: string,
   important = false,
+  location?: Declaration["loc"],
 ): Declaration {
-  return parse(`${property}:${value}${important ? "!important" : ""}`, {
+  const node = parse(`${property}:${value}${important ? "!important" : ""}`, {
     context: "declaration",
   }) as Declaration;
+  if (location) node.loc = location;
+  return node;
 }
 
 function declarationValue(node: Declaration): string {
@@ -228,7 +231,7 @@ function expandBlock(
     }
 
     for (const [property, value] of Object.entries(expanded.declarations)) {
-      output.push(makeDeclaration(property, value, Boolean(child.important)));
+      output.push(makeDeclaration(property, value, Boolean(child.important), child.loc));
     }
   }
   return output;
@@ -482,7 +485,7 @@ function tryCollapseAt(
     }
 
     return {
-      node: makeDeclaration(collapsed.property, collapsed.value, important),
+      node: makeDeclaration(collapsed.property, collapsed.value, important, first.loc),
       indices: [...matches.values()].map((match) => match.index),
       shadowedIndices: complete
         ? findFullyShadowedEarlierShorthands(
@@ -533,13 +536,15 @@ function collapseBlock(
   return removeRedundantDeclarations(collapsedOutput, options);
 }
 
-export function transformCss(
+function transformCssAst(
   css: string,
   options: TransformCssOptions,
-): string {
+  filename?: string,
+): StyleSheet {
   const ast = parse(css, {
     context: "stylesheet",
-    positions: Boolean(options.onDiagnostic),
+    positions: filename !== undefined || Boolean(options.onDiagnostic),
+    filename,
     onParseError(error) {
       options.onDiagnostic?.({
         code: "invalid-syntax",
@@ -579,7 +584,11 @@ export function transformCss(
     },
   });
 
-  return generate(ast);
+  return ast;
+}
+
+export function transformCss(css: string, options: TransformCssOptions): string {
+  return generate(transformCssAst(css, options));
 }
 
 export function expandCss(css: string, options?: TransformOptions): string {
@@ -617,4 +626,57 @@ export function collapseDeclarations(
   options?: TransformOptions,
 ): string {
   return transformDeclarationBlock(declarations, "collapse", options);
+}
+
+export interface TransformCssSourceMapOptions extends TransformCssOptions {
+  /** Name of the original CSS source. */
+  filename?: string;
+  /** Name of the generated CSS file. */
+  outputFilename?: string;
+}
+
+export interface CssSourceMap {
+  version: 3;
+  file?: string;
+  sources: string[];
+  sourcesContent: (string | null)[];
+  names: string[];
+  mappings: string;
+}
+
+export interface TransformCssSourceMapResult {
+  css: string;
+  map: CssSourceMap;
+}
+
+/**
+ * Transform CSS and return a standard source map. Generated declarations map
+ * to the source declaration start (the first consumed longhand on collapse).
+ */
+export function transformCssWithSourceMap(
+  css: string,
+  options: TransformCssSourceMapOptions,
+): TransformCssSourceMapResult {
+  const filename = options.filename ?? "input.css";
+  const ast = transformCssAst(css, options, filename);
+  // CSSTree's runtime generator supports sourceMap:true; its older type
+  // declarations do not consistently describe the returned map generator.
+  const mappedGenerate = generate as unknown as (
+    ast: StyleSheet,
+    options: { sourceMap: true },
+  ) => { css: string; map: { toJSON(): Omit<CssSourceMap, "sourcesContent"> } };
+  const generated = mappedGenerate(ast, { sourceMap: true });
+  const raw = generated.map.toJSON();
+  // Empty stylesheets can have no mapped source; still embed the input.
+  const sources = raw.sources.length ? raw.sources : [filename];
+  return {
+    css: generated.css,
+    map: {
+      ...raw,
+      version: 3,
+      ...(options.outputFilename !== undefined ? { file: options.outputFilename } : {}),
+      sources,
+      sourcesContent: sources.map((source) => source === filename ? css : null),
+    },
+  };
 }

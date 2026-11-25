@@ -700,3 +700,25 @@ Declaration maps are deferred: the bundled declaration files combine sources, an
 ### Verified source-map size baseline
 
 For the 0.1.2 development build at commit `8206846`, the [package archive CI job](https://github.com/moyarich/css-expand-collapse/actions/runs/45665703997/job/139387137357) measured a 166,098-byte npm tarball. The two runtime maps totalled 577,024 uncompressed bytes. Paired comparison archives measured 167,574 bytes with maps and 67,534 bytes without maps, an estimated compressed overhead of 100,040 bytes (148.13%). These measurements are a historical baseline, not a size guarantee for subsequent releases.
+
+## CSS transformation source maps
+
+Use the opt-in API to trace generated CSS to the original stylesheet:
+
+```ts
+import { transformCssWithSourceMap } from "@moyarich/css-expand-collapse";
+
+const { css, map } = transformCssWithSourceMap(".card { margin: 10px 20px; }", {
+  mode: "expand",
+  filename: "styles.css",
+  outputFilename: "styles.expanded.css",
+});
+```
+
+The returned map is a JSON-serializable Source Map v3 object with original CSS
+embedded. Generated longhands map to the shorthand's starting position.
+A collapsed shorthand maps to the first consumed longhand; it does not encode
+all contributing declarations. Unchanged nodes retain their original positions.
+Existing string APIs are unchanged. No source-map comment is appended
+automatically. Fragment maps, upstream map composition and multi-origin
+provenance are not yet supported.
