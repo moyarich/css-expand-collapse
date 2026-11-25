@@ -250,6 +250,9 @@ function removeRedundantDeclarations(
 ): CssNode[] {
   const output: CssNode[] = [];
   const effective = new Map<string, EffectiveDeclaration>();
+  const hasPositionAxes = children.some((node) => node.type === "Declaration" && isBackgroundPositionAxis(normalizeProperty(node.property)));
+  const hasBackground = children.some((node) => node.type === "Declaration" && normalizeProperty(node.property) === "background");
+  if (hasPositionAxes && hasBackground) return children;
 
   for (const child of children) {
     if (child.type !== "Declaration") {
@@ -261,6 +264,15 @@ function removeRedundantDeclarations(
     const value = declarationValue(child);
     const important = Boolean(child.important);
     const definition = SHORTHAND_DEFINITIONS[property];
+    const currentValue = effective.get(property);
+    if (
+      property === "background-position" &&
+      currentValue &&
+      currentValue.important === important &&
+      valuesEquivalent(property, currentValue.value, value)
+    ) {
+      continue;
+    }
 
     if (definition) {
       const expanded = expandShorthand(property, value, options);
@@ -324,7 +336,13 @@ function removeRedundantDeclarations(
   return output;
 }
 
+function isBackgroundPositionAxis(property: string): boolean {
+  return /^background-position-(?:x|y|block|inline)$/.test(property);
+}
+
 function overlapsCandidate(property: string, expected: Set<string>): boolean {
+  if (expected.has("background-position") && isBackgroundPositionAxis(property)) return true;
+  if ([...expected].some(isBackgroundPositionAxis) && (property === "background" || property === "background-position" || isBackgroundPositionAxis(property))) return true;
   const definition = SHORTHAND_DEFINITIONS[property];
   return Boolean(
     definition &&
@@ -465,6 +483,9 @@ function collapseBlock(
   children: CssNode[],
   options?: TransformOptions,
 ): CssNode[] {
+  const hasPositionAxes = children.some((node) => node.type === "Declaration" && isBackgroundPositionAxis(normalizeProperty(node.property)));
+  const hasBackground = children.some((node) => node.type === "Declaration" && normalizeProperty(node.property) === "background");
+  if (hasPositionAxes && hasBackground) return children;
   const consumed = new Set<number>();
   const replacements = new Map<number, Declaration>();
 

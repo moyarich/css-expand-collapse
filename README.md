@@ -396,6 +396,10 @@ collapseStyleDeclaration(computed, "margin");
 styleToDeclarations(computed);
 ```
 
+## Background position
+
+`background-position` supports physical x/y axes and equal-length layer lists. Logical-axis syntax and unresolved variables are preserved conservatively. Unequal axis lists are not collapsed.
+
 ## Property helpers
 
 ```js
