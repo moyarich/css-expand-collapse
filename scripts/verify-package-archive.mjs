@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, readdirSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, readdirSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, posix } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -63,15 +63,51 @@ try {
     const mapName = file + ".map";
     const map = JSON.parse(read(mapName));
     assert(map.version === 3 && typeof map.mappings === "string" && map.mappings.length > 0, "Invalid source map: " + mapName);
+    assert(typeof map.sourceRoot !== "string" || !/^(?:[a-z]+:|[\\/])/i.test(map.sourceRoot), "Nonportable source map root: " + mapName);
     assert(Array.isArray(map.sources) && map.sources.length > 0, "Missing source map sources: " + mapName);
     assert(read(file).includes("sourceMappingURL=" + posix.basename(mapName)), "Missing source map reference: " + file);
     for (const [index, source] of map.sources.entries()) {
-      assert(typeof source === "string" && !/^(?:[a-z]+:|\/|\\\\)/i.test(source), "Nonportable source map path: " + source);
+      assert(typeof source === "string" && !/^(?:[a-z]+:|[\\/])/i.test(source), "Nonportable source map path: " + source);
       const resolved = posix.normalize(posix.join(posix.dirname(file), map.sourceRoot || "", source));
       assert(typeof map.sourcesContent?.[index] === "string" || entries.has("package/" + resolved), "Missing source content: " + source);
     }
     console.log(mapName + ": " + Buffer.byteLength(read(mapName)) + " bytes");
   }
+  // Compare the actual npm archive against an equivalent archive with runtime
+  // maps and their generated references removed. Use the same tar implementation
+  // for both comparison archives, avoiding npm-versus-system gzip differences.
+  const extracted = join(temp, "extracted");
+  mkdirSync(extracted);
+  execFileSync("tar", ["-xzf", archive, "-C", extracted]);
+  const withMaps = join(temp, "with-maps.tgz");
+  const withoutMaps = join(temp, "without-maps.tgz");
+  const repack = (target) => execFileSync("tar", ["-czf", target, "-C", extracted, "package"]);
+  repack(withMaps);
+  let mapBytes = 0;
+  let referenceBytes = 0;
+  for (const name of ["dist/index.js", "dist/index.cjs"]) {
+    const file = join(extracted, "package", name);
+    const map = file + ".map";
+    mapBytes += statSync(map).size;
+    rmSync(map);
+    const original = readFileSync(file, "utf8");
+    const stripped = original.replace(/(?:\\r?\\n)?\/\/# sourceMappingURL=[^\\r\\n]*(?=\\r?\\n?$)/, "");
+    assert(stripped !== original, "Could not remove source map reference: " + name);
+    referenceBytes += Buffer.byteLength(original) - Buffer.byteLength(stripped);
+    writeFileSync(file, stripped);
+  }
+  repack(withoutMaps);
+  const withBytes = statSync(withMaps).size;
+  const withoutBytes = statSync(withoutMaps).size;
+  console.log("Source map size report: " + JSON.stringify({
+    actualNpmArchiveBytes: statSync(archive).size,
+    uncompressedMapBytes: mapBytes,
+    uncompressedReferenceBytes: referenceBytes,
+    comparisonWithMapsBytes: withBytes,
+    comparisonWithoutMapsBytes: withoutBytes,
+    comparisonDeltaBytes: withBytes - withoutBytes,
+    comparisonDeltaPercent: (withBytes - withoutBytes) / withoutBytes * 100,
+  }));
   console.log("Verified library archive: " + manifest.name + "@" + manifest.version);
 } finally {
   rmSync(temp, { recursive: true, force: true });
