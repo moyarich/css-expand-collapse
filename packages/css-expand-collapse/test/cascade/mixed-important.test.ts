@@ -1,0 +1,9 @@
+import { expect, it } from "vitest";
+import { collapseDeclarations } from "../../src/index.js";
+
+it("mixed important", () => {
+  const result = collapseDeclarations("margin-top:1px!important;margin-right:2px;margin-bottom:3px;margin-left:4px");
+  expect(result).toContain("margin-top:1px!important");
+  expect(result).toContain("margin-right:2px");
+  expect(result).not.toContain("margin:");
+});
