@@ -597,13 +597,6 @@ Run the opt-in transformation benchmarks with
 `npm run bench --workspace @moyarich/css-expand-collapse`.
 See the library's `bench/README.md` for workloads and comparison methodology.
 
-## Debugging the library
-
-The ESM and CommonJS distributions include JavaScript source maps for debugging
-the library's TypeScript implementation. These are library build maps, not
-source maps for CSS transformed by the public APIs. Declaration maps are not
-generated.
-
 ## Package development
 
 From the repository root:
@@ -616,7 +609,7 @@ npm run build:lib
 npm run release:check
 ```
 
-`npm run release:check` runs release validation and verifies a real temporary npm archive without publishing. Run `npm run pack:verify` separately to inspect the library archive, export targets, required documentation and runtime source maps. The verifier requires the system `tar` command and reports map sizes. Consumer installation checks remain separate.
+`npm run release:check` runs release validation and verifies a real temporary npm archive without publishing. Run `npm run pack:verify` separately to inspect the library archive, export targets, required documentation and absence of build source maps. The verifier requires the system `tar` command and reports archive size. Consumer installation checks remain separate.
 
 ### Workspace release CLI
 
