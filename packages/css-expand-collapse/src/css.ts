@@ -264,6 +264,15 @@ function removeRedundantDeclarations(
     const value = declarationValue(child);
     const important = Boolean(child.important);
     const definition = SHORTHAND_DEFINITIONS[property];
+    const currentValue = effective.get(property);
+    if (
+      property === "background-position" &&
+      currentValue &&
+      currentValue.important === important &&
+      valuesEquivalent(property, currentValue.value, value)
+    ) {
+      continue;
+    }
 
     if (definition) {
       const expanded = expandShorthand(property, value, options);
