@@ -38,11 +38,14 @@ const operations = {
 };
 if (!Object.hasOwn(operations, workload)) throw new Error("Unknown workload: " + workload);
 const run = operations[workload];
-const firstStarted = performance.now();
-let result = run(0);
-const firstCallMs = performance.now() - firstStarted;
-if (result == null) throw new Error("Workload returned no result: " + workload);
-result = undefined;
+function measureFirstCall() {
+  const started = performance.now();
+  const result = run(0);
+  const elapsed = performance.now() - started;
+  if (result == null) throw new Error("Workload returned no result: " + workload);
+  return elapsed;
+}
+const firstCallMs = measureFirstCall();
 global.gc?.();
 const baseline = snapshot();
 let peakSampled = baseline;
