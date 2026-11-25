@@ -54,3 +54,5 @@ export {
 export type { ReadonlyStyleDeclaration } from "./style.js";
 
 export { splitTopLevelWhitespace } from "./registry/context.js";
+
+export * from "./validation/index.js";
