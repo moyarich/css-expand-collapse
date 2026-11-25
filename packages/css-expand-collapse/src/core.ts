@@ -20,7 +20,11 @@ import {
 
 export type { DeclarationMap, LonghandMap } from "./registry/index.js";
 
+import type { TransformDiagnostic } from "./transform-diagnostics.js";
+
 export interface TransformOptions {
+  /** Receives diagnostics for attempted but skipped transformations. */
+  onDiagnostic?: (diagnostic: TransformDiagnostic) => void;
   /**
    * Known custom properties available to var() references while validating whether
    * a shorthand can be safely expanded or collapsed. Authored var() references are

@@ -56,3 +56,15 @@ export type { ReadonlyStyleDeclaration } from "./style.js";
 export { splitTopLevelWhitespace } from "./registry/context.js";
 
 export * from "./validation/index.js";
+
+export type { TransformDiagnostic } from "./transform-diagnostics.js";
+
+export { formatDeclarations } from "./formatDeclarations.js";
+export type { FormatDeclarationsOptions } from "./formatDeclarations.js";
+
+export {
+  toCamelCaseProperty,
+  toKebabCaseProperty,
+  toCamelCaseDeclarations,
+  toKebabCaseDeclarations,
+} from "./property-case.js";

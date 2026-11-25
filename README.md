@@ -333,6 +333,19 @@ Result:
 
 Collapse is cascade-aware within declaration blocks. Source order, overlapping shorthands, duplicate constituents, and `!important` are considered before a replacement is emitted.
 
+## Transformation diagnostics
+
+Pass an optional `onDiagnostic` callback to stylesheet transforms to receive
+structured reasons for unsuccessful attempts, with source locations when
+available. Existing string results are unchanged. Diagnostics are best-effort,
+not an exhaustive explanation of every possible collapse candidate.
+
+```ts
+expandCss(".card { all: initial; }", {
+  onDiagnostic: (diagnostic) => console.log(diagnostic),
+});
+```
+
 ## Partial longhands
 
 Raw stylesheet collapse is conservative by default. Missing longhands are not invented because that could override values supplied by another matching rule.
@@ -377,6 +390,33 @@ collapseDeclarations(`
   margin-left: 20px;
 `);
 ```
+
+## Format declaration fragments
+
+```ts
+formatDeclarations("margin:0;padding:8px", { indent: "  " });
+// "  margin: 0;\n  padding: 8px;"
+```
+
+Formatting preserves declaration order, duplicate declarations, priority, and
+authored value tokens. Invalid fragments and fragments containing comments
+between declarations are preserved unchanged. Grouping that would reorder
+declarations is intentionally deferred until cascade safety can be established.
+
+## CSS and JavaScript property names
+
+```ts
+toCamelCaseDeclarations({ "background-color": "red", "--Space": "8px" });
+// { backgroundColor: "red", "--Space": "8px" }
+
+toKebabCaseDeclarations({ WebkitTextStroke: "1px red", cssFloat: "left" });
+// { "-webkit-text-stroke": "1px red", float: "left" }
+```
+
+Use `toCamelCaseProperty` and `toKebabCaseProperty` for individual names.
+Custom properties are case-sensitive and remain untouched. Values are not
+converted; if multiple source keys normalize to one key, the last value wins.
+These helpers use CSSOM-style naming, not framework-specific style conventions.
 
 ## Style declarations
 

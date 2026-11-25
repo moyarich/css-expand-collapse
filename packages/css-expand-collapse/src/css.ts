@@ -15,6 +15,8 @@ import {
 import {
   collapseToShorthand,
   expandShorthand,
+  isShorthand,
+  supportsTransform,
   type DeclarationMap,
   type TransformOptions,
 } from "./core.js";
@@ -213,6 +215,17 @@ function expandBlock(
       options,
     );
     if (!expanded) {
+      if (isShorthand(child.property)) {
+        const supported = supportsTransform(child.property);
+        options?.onDiagnostic?.({
+          code: supported ? "unsafe-or-invalid-value" : "unsupported-transform",
+          severity: "warning",
+          property: child.property,
+          value: declarationValue(child),
+          location: child.loc ?? undefined,
+          message: supported ? "Shorthand could not be expanded safely." : "Shorthand transformation is not supported.",
+        });
+      }
       output.push(child);
       continue;
     }
@@ -460,7 +473,16 @@ function tryCollapseAt(
     }
 
     const collapsed = collapseToShorthand(shorthand, declarations, options);
-    if (!collapsed) continue;
+    if (!collapsed) {
+      options?.onDiagnostic?.({
+        code: "collapse-not-safe",
+        severity: "info",
+        property: shorthand,
+        location: first.loc ?? undefined,
+        message: "Candidate longhands could not be collapsed safely.",
+      });
+      continue;
+    }
 
     return {
       node: makeDeclaration(collapsed.property, collapsed.value, important),
@@ -518,7 +540,17 @@ export function transformCss(
   css: string,
   options: TransformCssOptions,
 ): string {
-  const ast = parse(css, { context: "stylesheet" }) as StyleSheet;
+  const ast = parse(css, {
+    context: "stylesheet",
+    positions: Boolean(options.onDiagnostic),
+    onParseError(error) {
+      options.onDiagnostic?.({
+        code: "invalid-syntax",
+        severity: "error",
+        message: error.message,
+      });
+    },
+  }) as StyleSheet;
   const globalCustomProperties = collectGlobalCustomProperties(ast);
   const ruleBlocks = new WeakSet<object>();
 
