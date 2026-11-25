@@ -403,6 +403,21 @@ authored value tokens. Invalid fragments and fragments containing comments
 between declarations are preserved unchanged. Grouping that would reorder
 declarations is intentionally deferred until cascade safety can be established.
 
+## CSS and JavaScript property names
+
+```ts
+toCamelCaseDeclarations({ "background-color": "red", "--Space": "8px" });
+// { backgroundColor: "red", "--Space": "8px" }
+
+toKebabCaseDeclarations({ WebkitTextStroke: "1px red", cssFloat: "left" });
+// { "-webkit-text-stroke": "1px red", float: "left" }
+```
+
+Use `toCamelCaseProperty` and `toKebabCaseProperty` for individual names.
+Custom properties are case-sensitive and remain untouched. Values are not
+converted; if multiple source keys normalize to one key, the last value wins.
+These helpers use CSSOM-style naming, not framework-specific style conventions.
+
 ## Style declarations
 
 The style-declaration APIs accept any read-only `CSSStyleDeclaration`-like object, including the value returned by `getComputedStyle()`:
