@@ -1,0 +1,16 @@
+---
+id: "validate-css"
+label: "validateCss()"
+description: "Validate a stylesheet, including declarations inside nested rules."
+order: 32
+---
+
+import source from "./source.tsx?raw";
+
+## validateCss()
+
+{frontmatter.description}
+
+The result's `valid` field is `true` for valid input, `false` for errors, and `null` when static validation is indeterminate. Validation does not modify CSS or guarantee browser support.
+
+<APIPlayground source={source} />

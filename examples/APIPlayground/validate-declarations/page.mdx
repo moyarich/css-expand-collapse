@@ -1,0 +1,16 @@
+---
+id: "validate-declarations"
+label: "validateDeclarations()"
+description: "Validate a declaration fragment and inspect source locations."
+order: 31
+---
+
+import source from "./source.tsx?raw";
+
+## validateDeclarations()
+
+{frontmatter.description}
+
+The result's `valid` field is `true` for valid input, `false` for errors, and `null` when static validation is indeterminate. Validation does not modify CSS or guarantee browser support.
+
+<APIPlayground source={source} />

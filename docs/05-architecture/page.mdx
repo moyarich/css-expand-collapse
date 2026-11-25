@@ -28,6 +28,7 @@ The source layout is intentionally divided by responsibility:
 src/
 ├── core.ts                 # public transformation orchestration
 ├── css.ts                  # stylesheet/cascade orchestration
+├── validation/             # independent grammar and source diagnostics
 └── registry/
     ├── index.ts            # lookup tables derived from modules
     ├── module.ts           # common shorthand contract
@@ -42,6 +43,10 @@ src/
 `core.ts` does not contain property-family parsing or collapse strategy switches. It normalizes input, resolves the module, handles shared global-value/initial-fill behavior, and delegates to that module.
 
 `css.ts` owns stylesheet-level behavior: source order, `!important`, declaration consumption, overlapping shorthands, AST replacement, and cascade-safe removal. Those concerns do not belong in individual shorthand files.
+
+## Validation architecture
+
+The public `validateProperty`, `validateDeclarations`, and `validateCss` APIs live in `src/validation/`. They use CSSTree grammar and the custom-property resolver without invoking expansion or collapse. Source-aware validation preserves diagnostic locations. Unknown grammar, unresolved values and unsupported descriptor contexts are indeterminate rather than transformation failures.
 
 ## Shorthand module architecture
 

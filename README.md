@@ -454,10 +454,33 @@ available grammar, not a browser's computed cascade; it does not infer custom
 property values from selectors or check at-rule descriptor and registered
 custom-property grammar. It cannot guarantee browser support.
 
+### Handling validation results
+
+```ts
+const result = validateDeclarations("margin: 8px; padding: red;");
+
+for (const diagnostic of result.diagnostics) {
+  console.log(diagnostic.severity, diagnostic.message, diagnostic.location?.start);
+}
+
+if (result.valid === false) {
+  // Report errors before applying CSS.
+} else if (result.valid === null) {
+  // Defer checks requiring runtime information.
+}
+```
+
+Unknown property grammar produces a warning, unresolved runtime values produce
+an informational diagnostic, and invalid syntax or values produce errors. A
+valid result is not a browser compatibility or cascade guarantee.
+
 ## Public API
 
 | Category          | Function                                                     | Purpose                                                                                                        |
 | ----------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Validation        | `validateProperty(property, value, options?)`               | Checks one CSS property value against available grammar.                                                       |
+| Validation        | `validateDeclarations(css, options?)`                        | Checks declaration text and reports source-aware diagnostics.                                                  |
+| Validation        | `validateCss(css, options?)`                                 | Checks stylesheet declarations without transforming them.                                                      |
 | Registry          | `isShorthand(property)`                                      | Returns whether a property is a recognized CSS shorthand.                                                      |
 | Registry          | `isLonghand(property)`                                       | Returns whether a property is registered as a longhand of one or more shorthands.                              |
 | Registry          | `getLonghands(shorthand)`                                    | Returns the registered longhand property names for a shorthand.                                                |
@@ -484,7 +507,7 @@ custom-property grammar. It cannot guarantee browser support.
 | Utility           | `hasCustomPropertyReference(value)`                          | Returns whether a CSS value contains a real `var()` reference outside strings/comments.                        |
 | Utility           | `splitTopLevelWhitespace(value)`                             | Splits a CSS value on top-level whitespace while preserving strings, functions, brackets, commas, and slashes. |
 
-The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `ShorthandResult`, `ExpandShorthandResult`, `CollapseShorthandResult`, `TransformOptions`, `TransformCssOptions`, `TransformMode`, `ReadonlyStyleDeclaration`, `CustomPropertyMap`, and `ResolveCustomPropertiesOptions`.
+The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such as `DeclarationMap`, `LonghandMap`, `ShorthandResult`, `ExpandShorthandResult`, `CollapseShorthandResult`, `TransformOptions`, `TransformCssOptions`, `TransformMode`, `ReadonlyStyleDeclaration`, `CustomPropertyMap`, `ResolveCustomPropertiesOptions`, `ValidationOptions`, `ValidationResult`, `ValidationDiagnostic`, `ValidationDiagnosticCode`, `ValidationLocation`, and `ValidationPosition`.
 
 ## Playground
 

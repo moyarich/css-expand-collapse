@@ -1,0 +1,16 @@
+---
+id: "validate-property"
+label: "validateProperty()"
+description: "Validate an individual property value and handle valid, invalid, and indeterminate results."
+order: 30
+---
+
+import source from "./source.tsx?raw";
+
+## validateProperty()
+
+{frontmatter.description}
+
+The result's `valid` field is `true` for valid input, `false` for errors, and `null` when static validation is indeterminate. Validation does not modify CSS or guarantee browser support.
+
+<APIPlayground source={source} />
