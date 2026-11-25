@@ -663,3 +663,13 @@ npm run release -- css-expand-collapse=minor --dry-run
 ## License
 
 MIT
+
+## Declaration grouping
+
+`formatDeclarations(css, { groupBy: "family" })` adds a separator between adjacent property families. Use `groupBy: "side"` to group adjacent physical directional properties. Both modes preserve declaration order, duplicate declarations and priorities; they never sort declarations across groups.
+
+```ts
+formatDeclarations("margin:0; padding:1px; margin-top:2px", {
+  groupBy: "family",
+});
+```
