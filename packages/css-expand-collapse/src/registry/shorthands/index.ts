@@ -5,144 +5,146 @@ import shorthand0 from "./-webkit-border-before.js";
 import shorthand1 from "./-webkit-mask-box-image.js";
 import shorthand2 from "./-webkit-text-stroke.js";
 import shorthand3 from "./all.js";
-import shorthand4 from "./animation-range.js";
-import shorthand5 from "./animation.js";
+import shorthand4 from "./animation.js";
+import shorthand5 from "./animation-range.js";
 import shorthand6 from "./background.js";
-import shorthand7 from "./border-block-end.js";
-import shorthand8 from "./border-block-start.js";
+import shorthand7 from "./background-position.js";
+import shorthand8 from "./border.js";
 import shorthand9 from "./border-block.js";
-import shorthand10 from "./border-bottom.js";
-import shorthand11 from "./border-color.js";
-import shorthand12 from "./border-image.js";
-import shorthand13 from "./border-inline-end.js";
-import shorthand14 from "./border-inline-start.js";
+import shorthand10 from "./border-block-end.js";
+import shorthand11 from "./border-block-start.js";
+import shorthand12 from "./border-bottom.js";
+import shorthand13 from "./border-color.js";
+import shorthand14 from "./border-image.js";
 import shorthand15 from "./border-inline.js";
-import shorthand16 from "./border-left.js";
-import shorthand17 from "./border-radius.js";
-import shorthand18 from "./border-right.js";
-import shorthand19 from "./border-style.js";
-import shorthand20 from "./border-top.js";
-import shorthand21 from "./border-width.js";
-import shorthand22 from "./border.js";
-import shorthand23 from "./column-rule.js";
-import shorthand24 from "./columns.js";
-import shorthand25 from "./contain-intrinsic-size.js";
-import shorthand26 from "./container.js";
-import shorthand27 from "./flex-flow.js";
+import shorthand16 from "./border-inline-end.js";
+import shorthand17 from "./border-inline-start.js";
+import shorthand18 from "./border-left.js";
+import shorthand19 from "./border-radius.js";
+import shorthand20 from "./border-right.js";
+import shorthand21 from "./border-style.js";
+import shorthand22 from "./border-top.js";
+import shorthand23 from "./border-width.js";
+import shorthand24 from "./column-rule.js";
+import shorthand25 from "./columns.js";
+import shorthand26 from "./contain-intrinsic-size.js";
+import shorthand27 from "./container.js";
 import shorthand28 from "./flex.js";
-import shorthand29 from "./font-synthesis.js";
-import shorthand30 from "./font-variant.js";
-import shorthand31 from "./font.js";
-import shorthand32 from "./gap.js";
-import shorthand33 from "./grid-area.js";
-import shorthand34 from "./grid-column.js";
-import shorthand35 from "./grid-row.js";
-import shorthand36 from "./grid-template.js";
-import shorthand37 from "./grid.js";
-import shorthand38 from "./inset-block.js";
-import shorthand39 from "./inset-inline.js";
-import shorthand40 from "./inset.js";
-import shorthand41 from "./list-style.js";
-import shorthand42 from "./margin-block.js";
-import shorthand43 from "./margin-inline.js";
-import shorthand44 from "./margin.js";
-import shorthand45 from "./mask-border.js";
+import shorthand29 from "./flex-flow.js";
+import shorthand30 from "./font.js";
+import shorthand31 from "./font-synthesis.js";
+import shorthand32 from "./font-variant.js";
+import shorthand33 from "./gap.js";
+import shorthand34 from "./grid.js";
+import shorthand35 from "./grid-area.js";
+import shorthand36 from "./grid-column.js";
+import shorthand37 from "./grid-row.js";
+import shorthand38 from "./grid-template.js";
+import shorthand39 from "./inset.js";
+import shorthand40 from "./inset-block.js";
+import shorthand41 from "./inset-inline.js";
+import shorthand42 from "./list-style.js";
+import shorthand43 from "./margin.js";
+import shorthand44 from "./margin-block.js";
+import shorthand45 from "./margin-inline.js";
 import shorthand46 from "./mask.js";
-import shorthand47 from "./offset.js";
-import shorthand48 from "./outline.js";
-import shorthand49 from "./overflow.js";
-import shorthand50 from "./overscroll-behavior.js";
-import shorthand51 from "./padding-block.js";
-import shorthand52 from "./padding-inline.js";
-import shorthand53 from "./padding.js";
-import shorthand54 from "./place-content.js";
-import shorthand55 from "./place-items.js";
-import shorthand56 from "./place-self.js";
-import shorthand57 from "./position-try.js";
-import shorthand58 from "./scroll-margin-block.js";
-import shorthand59 from "./scroll-margin-inline.js";
-import shorthand60 from "./scroll-margin.js";
-import shorthand61 from "./scroll-padding-block.js";
-import shorthand62 from "./scroll-padding-inline.js";
-import shorthand63 from "./scroll-padding.js";
-import shorthand64 from "./scroll-timeline.js";
-import shorthand65 from "./text-box.js";
-import shorthand66 from "./text-decoration.js";
-import shorthand67 from "./text-emphasis.js";
-import shorthand68 from "./text-wrap.js";
-import shorthand69 from "./transition.js";
-import shorthand70 from "./view-timeline.js";
+import shorthand47 from "./mask-border.js";
+import shorthand48 from "./offset.js";
+import shorthand49 from "./outline.js";
+import shorthand50 from "./overflow.js";
+import shorthand51 from "./overscroll-behavior.js";
+import shorthand52 from "./padding.js";
+import shorthand53 from "./padding-block.js";
+import shorthand54 from "./padding-inline.js";
+import shorthand55 from "./place-content.js";
+import shorthand56 from "./place-items.js";
+import shorthand57 from "./place-self.js";
+import shorthand58 from "./position-try.js";
+import shorthand59 from "./scroll-margin.js";
+import shorthand60 from "./scroll-margin-block.js";
+import shorthand61 from "./scroll-margin-inline.js";
+import shorthand62 from "./scroll-padding.js";
+import shorthand63 from "./scroll-padding-block.js";
+import shorthand64 from "./scroll-padding-inline.js";
+import shorthand65 from "./scroll-timeline.js";
+import shorthand66 from "./text-box.js";
+import shorthand67 from "./text-decoration.js";
+import shorthand68 from "./text-emphasis.js";
+import shorthand69 from "./text-wrap.js";
+import shorthand70 from "./transition.js";
+import shorthand71 from "./view-timeline.js";
 
 export const SHORTHANDS = {
   "-webkit-border-before": shorthand0,
   "-webkit-mask-box-image": shorthand1,
   "-webkit-text-stroke": shorthand2,
   all: shorthand3,
-  "animation-range": shorthand4,
-  animation: shorthand5,
+  animation: shorthand4,
+  "animation-range": shorthand5,
   background: shorthand6,
-  "border-block-end": shorthand7,
-  "border-block-start": shorthand8,
+  "background-position": shorthand7,
+  border: shorthand8,
   "border-block": shorthand9,
-  "border-bottom": shorthand10,
-  "border-color": shorthand11,
-  "border-image": shorthand12,
-  "border-inline-end": shorthand13,
-  "border-inline-start": shorthand14,
+  "border-block-end": shorthand10,
+  "border-block-start": shorthand11,
+  "border-bottom": shorthand12,
+  "border-color": shorthand13,
+  "border-image": shorthand14,
   "border-inline": shorthand15,
-  "border-left": shorthand16,
-  "border-radius": shorthand17,
-  "border-right": shorthand18,
-  "border-style": shorthand19,
-  "border-top": shorthand20,
-  "border-width": shorthand21,
-  border: shorthand22,
-  "column-rule": shorthand23,
-  columns: shorthand24,
-  "contain-intrinsic-size": shorthand25,
-  container: shorthand26,
-  "flex-flow": shorthand27,
+  "border-inline-end": shorthand16,
+  "border-inline-start": shorthand17,
+  "border-left": shorthand18,
+  "border-radius": shorthand19,
+  "border-right": shorthand20,
+  "border-style": shorthand21,
+  "border-top": shorthand22,
+  "border-width": shorthand23,
+  "column-rule": shorthand24,
+  columns: shorthand25,
+  "contain-intrinsic-size": shorthand26,
+  container: shorthand27,
   flex: shorthand28,
-  "font-synthesis": shorthand29,
-  "font-variant": shorthand30,
-  font: shorthand31,
-  gap: shorthand32,
-  "grid-area": shorthand33,
-  "grid-column": shorthand34,
-  "grid-row": shorthand35,
-  "grid-template": shorthand36,
-  grid: shorthand37,
-  "inset-block": shorthand38,
-  "inset-inline": shorthand39,
-  inset: shorthand40,
-  "list-style": shorthand41,
-  "margin-block": shorthand42,
-  "margin-inline": shorthand43,
-  margin: shorthand44,
-  "mask-border": shorthand45,
+  "flex-flow": shorthand29,
+  font: shorthand30,
+  "font-synthesis": shorthand31,
+  "font-variant": shorthand32,
+  gap: shorthand33,
+  grid: shorthand34,
+  "grid-area": shorthand35,
+  "grid-column": shorthand36,
+  "grid-row": shorthand37,
+  "grid-template": shorthand38,
+  inset: shorthand39,
+  "inset-block": shorthand40,
+  "inset-inline": shorthand41,
+  "list-style": shorthand42,
+  margin: shorthand43,
+  "margin-block": shorthand44,
+  "margin-inline": shorthand45,
   mask: shorthand46,
-  offset: shorthand47,
-  outline: shorthand48,
-  overflow: shorthand49,
-  "overscroll-behavior": shorthand50,
-  "padding-block": shorthand51,
-  "padding-inline": shorthand52,
-  padding: shorthand53,
-  "place-content": shorthand54,
-  "place-items": shorthand55,
-  "place-self": shorthand56,
-  "position-try": shorthand57,
-  "scroll-margin-block": shorthand58,
-  "scroll-margin-inline": shorthand59,
-  "scroll-margin": shorthand60,
-  "scroll-padding-block": shorthand61,
-  "scroll-padding-inline": shorthand62,
-  "scroll-padding": shorthand63,
-  "scroll-timeline": shorthand64,
-  "text-box": shorthand65,
-  "text-decoration": shorthand66,
-  "text-emphasis": shorthand67,
-  "text-wrap": shorthand68,
-  transition: shorthand69,
-  "view-timeline": shorthand70,
+  "mask-border": shorthand47,
+  offset: shorthand48,
+  outline: shorthand49,
+  overflow: shorthand50,
+  "overscroll-behavior": shorthand51,
+  padding: shorthand52,
+  "padding-block": shorthand53,
+  "padding-inline": shorthand54,
+  "place-content": shorthand55,
+  "place-items": shorthand56,
+  "place-self": shorthand57,
+  "position-try": shorthand58,
+  "scroll-margin": shorthand59,
+  "scroll-margin-block": shorthand60,
+  "scroll-margin-inline": shorthand61,
+  "scroll-padding": shorthand62,
+  "scroll-padding-block": shorthand63,
+  "scroll-padding-inline": shorthand64,
+  "scroll-timeline": shorthand65,
+  "text-box": shorthand66,
+  "text-decoration": shorthand67,
+  "text-emphasis": shorthand68,
+  "text-wrap": shorthand69,
+  transition: shorthand70,
+  "view-timeline": shorthand71,
 } as const satisfies Readonly<Record<string, ShorthandModule>>;

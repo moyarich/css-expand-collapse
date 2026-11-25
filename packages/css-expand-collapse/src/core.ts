@@ -291,6 +291,8 @@ export function collapseLonghands(
   const consumed = new Set<string>();
 
   for (const result of findCollapsibleShorthands(output, scopedOptions)) {
+    if (result.property === "background-position" && Object.hasOwn(output, "background")) continue;
+    if (result.property === "background" && Object.keys(output).some((property) => /^background-position-(?:x|y|block|inline)$/.test(property))) continue;
     if (result.consumed.some((property) => consumed.has(property))) continue;
     if (!result.consumed.every((property) => Object.hasOwn(output, property)))
       continue;
