@@ -41,5 +41,25 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "author": "Moya Richards",
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moyarich/css-expand-collapse.git",
+    "directory": "packages/css-experimental-shorthands"
+  },
+  "homepage": "https://github.com/moyarich/css-expand-collapse/tree/main/packages/css-experimental-shorthands",
+  "bugs": {
+    "url": "https://github.com/moyarich/css-expand-collapse/issues"
+  },
+  "keywords": [
+    "css",
+    "shorthand",
+    "longhand",
+    "experimental",
+    "plugin"
+  ]
 }

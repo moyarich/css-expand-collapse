@@ -415,8 +415,13 @@ export function createCssOperations(
   }
 
   function hasRepeatOverlap(children: CssNode[]): boolean {
-    const properties = children.filter((node): node is Declaration => node.type === "Declaration").map((node) => normalizeProperty(node.property));
-    return properties.includes("background") && properties.some((property) => /^background-repeat(?:-|$)/.test(property));
+    const properties = children
+      .filter((node): node is Declaration => node.type === "Declaration")
+      .map((node) => normalizeProperty(node.property));
+    const hasAxes = properties.some((property) => /^background-repeat-(?:x|y|block|inline)$/.test(property));
+    const repeatActive = Boolean(SHORTHAND_DEFINITIONS["background-repeat"]);
+    return properties.includes("background") &&
+      (hasAxes || (repeatActive && properties.includes("background-repeat")));
   }
 
   function overlapsCandidate(property: string, expected: Set<string>): boolean {
