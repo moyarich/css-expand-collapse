@@ -6,6 +6,7 @@ export {
   expandShorthands,
   findCollapsibleShorthands,
   getLonghands,
+  getShorthandModule,
   getShorthands,
   isLonghand,
   isShorthand,

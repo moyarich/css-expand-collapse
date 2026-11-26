@@ -848,3 +848,16 @@ Plugin discovery returns frozen metadata, not executable handlers or mutable reg
 Instance validation (`validateProperty`, `validateCss`, `validateDeclarations`) and context factories use the registered property predicates. `extendShorthand` adds missing fields; changing existing fields requires explicit override authorization. Metadata distinguishes direct and terminal constituents and reset-only constituents from active transformation capabilities.
 
 Instance `getStyleLonghands`, `collapseStyleDeclaration`, `collapseStyleDeclarations` and `parseCssLayers` use the same registered modules and grammar predicates as other instance operations. Standalone functions continue to use built-ins.
+
+### Reusing built-in modules
+
+```ts
+import { createCssTransformer, getShorthandModule } from "@moyarich/css-expand-collapse";
+
+const margin = getShorthandModule("margin")!;
+const css = createCssTransformer();
+css.registerShorthand("example-margin", margin);
+css.expandShorthand("example-margin", "1px 2px");
+```
+
+Module access returns a defensive copy; editing its maps cannot modify the registered definitions. Handler functions are trusted application code. Registration changes during synchronous transformation or validation callbacks are rejected to keep the operation consistent.

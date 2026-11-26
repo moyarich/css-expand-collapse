@@ -117,10 +117,26 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
     }
   };
 
+  let activeOperations = 0;
+  function assertMutable(): void {
+    if (activeOperations) throw new Error("Cannot change registrations during a transformation or validation.");
+  }
+  function guarded<Args extends unknown[], Result>(operation: (...args: Args) => Result): (...args: Args) => Result {
+    return (...args) => {
+      activeOperations++;
+      try {
+        return operation(...args);
+      } finally {
+        activeOperations--;
+      }
+    };
+  }
+
   let registry = createRegistry();
   let modules: ShorthandModuleMap = registry.SHORTHAND_MODULES;
 
   function registerShorthand(property: string, module: ShorthandModule, options: { override?: boolean } = {}): void {
+    assertMutable();
     const name = normalizeProperty(property);
     if (!/^-?[a-z][a-z0-9-]*$/.test(name)) throw new Error("Invalid shorthand property: " + property);
     if (Object.hasOwn(modules, name) && !options.override) throw new Error("Shorthand already registered: " + name);
@@ -131,6 +147,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
   }
 
   function extendShorthand(property: string, extension: Partial<ShorthandModule>, options: { override?: boolean } = {}): void {
+    assertMutable();
     const name = normalizeProperty(property);
     const current = Object.hasOwn(modules, name) ? modules[name] : undefined;
     if (!current) throw new Error("Unknown shorthand: " + name);
@@ -143,6 +160,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
   }
 
   function addPlugin(plugin: CssTransformerPlugin, options: { override?: boolean } = {}): void {
+    assertMutable();
     if (!plugin.name.trim() || plugins.has(plugin.name)) throw new Error("Invalid or duplicate plugin: " + plugin.name);
     const requires = [...new Set(plugin.requires ?? [])];
     for (const dependency of requires) {
@@ -202,6 +220,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
   }
 
   function removePlugin(name: string): boolean {
+    assertMutable();
     if (!plugins.has(name)) return false;
     for (const plugin of plugins.values()) {
       if (plugin.requires.includes(name)) {
@@ -241,6 +260,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
   }
 
   function unregisterShorthand(property: string): boolean {
+    assertMutable();
     const name = normalizeProperty(property);
     if (!Object.hasOwn(modules, name)) return false;
     const next = { ...modules };
@@ -550,14 +570,50 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
   const getShorthandMetadata = (property: string) => describeShorthand(property, modules);
   const listShorthands = (filter: ShorthandFilter = {}) => describeShorthands(filter, modules);
 
+  const getShorthandModule = (property: string): ShorthandModule | undefined => {
+    const name = normalizeProperty(property);
+    if (!Object.hasOwn(modules, name)) return undefined;
+    const module = modules[name]!;
+    return Object.freeze({ ...module, longhands: new Map(module.longhands), excludedLonghands: module.excludedLonghands && Object.freeze([...module.excludedLonghands]), resetOnlyLonghands: module.resetOnlyLonghands && Object.freeze([...module.resetOnlyLonghands]), equivalentLonghandValues: module.equivalentLonghandValues && new Map(module.equivalentLonghandValues) });
+  };
   const styleOperations = createStyleOperations(getLonghands, collapseToShorthand, () => registry.SHORTHAND_PROPERTIES);
   const parseCssLayers = createLayerParser(validation.validateProperty, expandShorthand);
-  return { ...cssOperations, ...validation, ...styleOperations, parseCssLayers, getShorthandMetadata, listShorthands, addPlugin, removePlugin, hasPlugin, getPlugin, listPlugins, registerShorthand, extendShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
+  return {
+    transformCss: guarded(cssOperations.transformCss),
+    expandCss: guarded(cssOperations.expandCss),
+    collapseCss: guarded(cssOperations.collapseCss),
+    expandDeclarations: guarded(cssOperations.expandDeclarations),
+    collapseDeclarations: guarded(cssOperations.collapseDeclarations),
+    transformCssWithSourceMap: guarded(cssOperations.transformCssWithSourceMap),
+    transformDeclarationsWithSourceMap: guarded(cssOperations.transformDeclarationsWithSourceMap),
+    validateProperty: guarded(validation.validateProperty),
+    validateCss: guarded(validation.validateCss),
+    validateDeclarations: guarded(validation.validateDeclarations),
+    matchProperty: guarded(match),
+    createShorthandExpandContext: (customProperties?: CustomPropertyMap) => createShorthandExpandContext(customProperties, guarded(match)),
+    createShorthandCollapseContext: (customProperties?: CustomPropertyMap) => createShorthandCollapseContext(customProperties, guarded(match)),
+    getStyleLonghands: guarded(styleOperations.getStyleLonghands),
+    collapseStyleDeclaration: guarded(styleOperations.collapseStyleDeclaration),
+    collapseStyleDeclarations: guarded(styleOperations.collapseStyleDeclarations),
+    parseCssLayers: guarded(parseCssLayers),
+    getShorthandModule, getShorthandMetadata, listShorthands,
+    addPlugin, removePlugin, hasPlugin, getPlugin, listPlugins,
+    registerShorthand, extendShorthand, unregisterShorthand,
+    isShorthand, isLonghand, getLonghands, getShorthands,
+    supportsTransform, supportsExpand, supportsCollapse,
+    expandShorthand: guarded(expandShorthand),
+    expandShorthands: guarded(expandShorthands),
+    collapseToShorthand: guarded(collapseToShorthand),
+    findCollapsibleShorthands: guarded(findCollapsibleShorthands),
+    collapseLonghands: guarded(collapseLonghands),
+    expand: guarded(expandShorthands),
+    collapse: guarded(collapseLonghands),
+  };
 }
 
 export type CssTransformer = ReturnType<typeof createCssTransformer>;
 
 const defaultTransformer = createCssTransformer();
-export const { isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands } = defaultTransformer;
+export const { getShorthandModule, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands } = defaultTransformer;
 export const { transformCss, expandCss, collapseCss, expandDeclarations, collapseDeclarations, transformCssWithSourceMap, transformDeclarationsWithSourceMap } = defaultTransformer;
 export { SHORTHAND_PROPERTIES };
