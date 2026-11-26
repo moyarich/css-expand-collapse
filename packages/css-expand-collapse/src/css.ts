@@ -28,6 +28,7 @@ import {
 } from "./registry/index.js";
 import { splitTopLevelComma } from "./registry/context.js";
 import { describeExpansionFailure } from "./transform-diagnostics.js";
+import { syntaxDiagnostic } from "./validation/diagnostics.js";
 
 export type TransformMode = "expand" | "collapse";
 
@@ -579,11 +580,7 @@ function transformCssAst(
     positions: filename !== undefined || Boolean(options.onDiagnostic),
     filename,
     onParseError(error) {
-      options.onDiagnostic?.({
-        code: "invalid-syntax",
-        severity: "error",
-        message: error.message,
-      });
+      options.onDiagnostic?.({ ...syntaxDiagnostic(error), code: "invalid-syntax" });
     },
   }) as StyleSheet;
   const globalCustomProperties = collectGlobalCustomProperties(ast);
@@ -750,11 +747,7 @@ export function transformDeclarationsWithSourceMap(
     filename,
     positions: true,
     onParseError(error) {
-      options.onDiagnostic?.({
-        code: "invalid-syntax",
-        severity: "error",
-        message: error.message,
-      });
+      options.onDiagnostic?.({ ...syntaxDiagnostic(error), code: "invalid-syntax" });
     },
   }) as DeclarationList;
   const children = ast.children.toArray();

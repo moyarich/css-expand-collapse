@@ -742,3 +742,5 @@ const collapsed = transformCssWithSourceMap(expanded.css, {
 ```
 
 The same option works with declaration fragments. The upstream map must describe the exact input text. Only flat encoded v3 maps are accepted; indexed sections are not supported. Diagnostics and optional provenance remain relative to the immediate input CSS, because an upstream map does not necessarily encode complete original declaration ranges. JavaScript build maps remain disabled.
+
+Transformation diagnostics include parser positions when CSSTree provides them. Map collapse identifies invalid or unresolved constituent values using the standalone validator; missing required constituents use `reason: "missing-longhands"`. Diagnostics describe attempted candidates, not an exhaustive browser cascade trace.

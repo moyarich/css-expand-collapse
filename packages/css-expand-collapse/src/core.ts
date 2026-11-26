@@ -20,6 +20,7 @@ import {
 
 export type { DeclarationMap, LonghandMap } from "./registry/index.js";
 
+import { validateProperty } from "./validation/validateProperty.js";
 import { describeExpansionFailure, type TransformDiagnostic } from "./transform-diagnostics.js";
 
 export interface TransformOptions {
@@ -219,12 +220,15 @@ export function collapseToShorthand(
   const consumed = [...definition.longhands.keys()].filter((longhand) =>
     Object.hasOwn(normalized, longhand),
   );
-  const reportCollapseFailure = () => {
-    options?.onDiagnostic?.({ code: "collapse-not-safe", severity: "info", property,
+  const reportCollapseFailure = (reason: TransformDiagnostic["reason"] = "incompatible-values") => {
+    options?.onDiagnostic?.({ code: "collapse-not-safe", severity: "info", property, reason,
       message: "Candidate longhands could not be collapsed safely." });
     return null;
   };
-  if (!consumed.length) return reportCollapseFailure();
+  if (!consumed.length) return reportCollapseFailure("missing-longhands");
+  if (options?.fillMissingLonghands === false && consumed.length !== definition.longhands.size) {
+    return reportCollapseFailure("missing-longhands");
+  }
 
   // Validate each authored longhand before considering the shorthand as a whole.
   // A custom property can be valid for the shorthand grammar while still resolving
@@ -236,6 +240,13 @@ export function collapseToShorthand(
       !GLOBAL_VALUES.has(longhandValue) &&
       !collapseContext.matchProperty(longhand, longhandValue)
     ) {
+      if (options?.onDiagnostic) {
+        const diagnostic = validateProperty(longhand, longhandValue, { customProperties }).diagnostics[0];
+        if (diagnostic && diagnostic.code !== "unsupported-context") {
+          options.onDiagnostic({ ...diagnostic, code: diagnostic.code });
+          return null;
+        }
+      }
       return reportCollapseFailure();
     }
   }
