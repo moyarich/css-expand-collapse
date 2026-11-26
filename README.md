@@ -790,3 +790,17 @@ expandGap("1px 2px", createShorthandExpandContext());
 ```
 
 Directional queries report available operations, not guaranteed success for every value. `supportsTransform` requires both directions. Shared factories, top-level value splitters, grammar matching, constituent helpers and module/context types are available from the package root. Factory contexts currently use the default CSS grammar.
+
+## Transformer instances
+
+Create an independent declaration-map transformer with the built-in shorthand registry:
+
+```ts
+import { createCssTransformer } from "@moyarich/css-expand-collapse";
+
+const css = createCssTransformer();
+css.expand({ margin: "1px 2px" });
+css.collapse({ "margin-top": "1px", "margin-right": "2px", "margin-bottom": "1px", "margin-left": "2px" });
+```
+
+The existing top-level functions remain available. Instance methods also expose property-level expansion, collapse, and shorthand discovery.
