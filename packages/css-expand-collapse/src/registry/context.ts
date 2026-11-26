@@ -194,14 +194,15 @@ export function matchProperty(property: string, value: string): boolean {
 
 function createScopedMatchProperty(
   customProperties?: CustomPropertyMap,
+  matcher: (property: string, value: string) => boolean = matchProperty,
 ): (property: string, value: string) => boolean {
   if (!customProperties || !Object.keys(customProperties).length) {
-    return matchProperty;
+    return matcher;
   }
 
   return (property, value) => {
     if (!hasCustomPropertyReference(value)) {
-      return matchProperty(property, value);
+      return matcher(property, value);
     }
 
     const resolved = resolveCustomProperties(value, customProperties, {
@@ -210,7 +211,7 @@ function createScopedMatchProperty(
       allowFallbackForMissing: false,
     });
 
-    return resolved !== null && matchProperty(property, resolved);
+    return resolved !== null && matcher(property, resolved);
   };
 }
 
@@ -232,9 +233,10 @@ export const shorthandCollapseContext: ShorthandCollapseContext = {
 
 export function createShorthandExpandContext(
   customProperties?: CustomPropertyMap,
+  matcher: (property: string, value: string) => boolean = matchProperty,
 ): ShorthandExpandContext {
   return {
-    matchProperty: createScopedMatchProperty(customProperties),
+    matchProperty: createScopedMatchProperty(customProperties, matcher),
     splitWhitespace: splitTopLevelWhitespace,
     splitSlash: splitTopLevelSlash,
   };
@@ -242,8 +244,9 @@ export function createShorthandExpandContext(
 
 export function createShorthandCollapseContext(
   customProperties?: CustomPropertyMap,
+  matcher: (property: string, value: string) => boolean = matchProperty,
 ): ShorthandCollapseContext {
   return {
-    matchProperty: createScopedMatchProperty(customProperties),
+    matchProperty: createScopedMatchProperty(customProperties, matcher),
   };
 }

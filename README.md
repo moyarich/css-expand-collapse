@@ -806,3 +806,14 @@ css.collapse({ "margin-top": "1px", "margin-right": "2px", "margin-bottom": "1px
 The existing top-level functions remain available. Instance methods also expose property-level expansion, collapse, and shorthand discovery.
 
 Register custom shorthand modules with `css.registerShorthand(property, module)`. Replacing a built-in requires `{ override: true }`; `css.unregisterShorthand(property)` restores the built-in or removes a custom entry. Registration is local to the instance.
+
+### Plugins
+
+A plugin is a named collection of shorthand modules and optional property grammar predicates. Grammar predicates are local to the transformer and receive resolved values when custom properties are available. They do not alter CSSTree’s global lexer or standalone validation.
+
+```ts
+const css = createCssTransformer({ plugins: [customPlugin] });
+css.addPlugin(anotherPlugin);
+```
+
+Duplicate plugin names and conflicting shorthand definitions are rejected. Runtime shorthand overrides may be explicitly enabled with `css.addPlugin(plugin, { override: true })`.
