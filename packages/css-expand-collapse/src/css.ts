@@ -1,3 +1,4 @@
+import remapping from "@jridgewell/remapping";
 import {
   generate,
   List,
@@ -5,6 +6,7 @@ import {
   walk,
   type CssNode,
   type Declaration,
+  type DeclarationList,
   type StyleSheet,
 } from "css-tree";
 import {
@@ -31,6 +33,13 @@ export type TransformMode = "expand" | "collapse";
 
 export interface TransformCssOptions extends TransformOptions {
   mode: TransformMode;
+}
+
+type SourceDeclaration = { property: string; location: NonNullable<Declaration["loc"]> };
+type ProvenanceStore = WeakMap<Declaration, SourceDeclaration[]>;
+
+function authoredDeclaration(node: Declaration): SourceDeclaration[] {
+  return node.loc ? [{ property: node.property, location: node.loc }] : [];
 }
 
 type EffectiveDeclaration = {
@@ -205,6 +214,7 @@ function valuesEquivalent(
 function expandBlock(
   children: CssNode[],
   options?: TransformOptions,
+  provenance?: ProvenanceStore,
 ): CssNode[] {
   const output: CssNode[] = [];
   for (const child of children) {
@@ -231,7 +241,9 @@ function expandBlock(
     }
 
     for (const [property, value] of Object.entries(expanded.declarations)) {
-      output.push(makeDeclaration(property, value, Boolean(child.important), child.loc));
+      const node = makeDeclaration(property, value, Boolean(child.important), child.loc);
+      provenance?.set(node, authoredDeclaration(child));
+      output.push(node);
     }
   }
   return output;
@@ -504,6 +516,7 @@ function tryCollapseAt(
 function collapseBlock(
   children: CssNode[],
   options?: TransformOptions,
+  provenance?: ProvenanceStore,
 ): CssNode[] {
   const hasPositionAxes = children.some((node) => node.type === "Declaration" && isBackgroundPositionAxis(normalizeProperty(node.property)));
   const hasBackground = children.some((node) => node.type === "Declaration" && normalizeProperty(node.property) === "background");
@@ -518,6 +531,12 @@ function collapseBlock(
     if (!collapsed) continue;
 
     replacements.set(index, collapsed.node);
+    if (provenance) {
+      provenance.set(collapsed.node, collapsed.indices.flatMap((matchedIndex) => {
+        const node = children[matchedIndex];
+        return node?.type === "Declaration" ? authoredDeclaration(node) : [];
+      }));
+    }
     for (const matchedIndex of collapsed.indices) consumed.add(matchedIndex);
     for (const shadowedIndex of collapsed.shadowedIndices)
       consumed.add(shadowedIndex);
@@ -540,6 +559,7 @@ function transformCssAst(
   css: string,
   options: TransformCssOptions,
   filename?: string,
+  provenance?: ProvenanceStore,
 ): StyleSheet {
   const ast = parse(css, {
     context: "stylesheet",
@@ -576,8 +596,8 @@ function transformCssAst(
       const blockOptions = scopedTransformOptions(options, customProperties);
       const transformed =
         options.mode === "expand"
-          ? expandBlock(children, blockOptions)
-          : collapseBlock(children, blockOptions);
+          ? expandBlock(children, blockOptions, provenance)
+          : collapseBlock(children, blockOptions, provenance);
       const list = new List<CssNode>();
       for (const child of transformed) list.appendData(child);
       block.children = list;
@@ -633,6 +653,20 @@ export interface TransformCssSourceMapOptions extends TransformCssOptions {
   filename?: string;
   /** Name of the generated CSS file. */
   outputFilename?: string;
+  /** Return all contributing source declarations, including many-to-one collapse. */
+  includeProvenance?: boolean;
+  /** Map from the supplied CSS to its earlier original sources (flat v3 map). */
+  inputSourceMap?: CssInputSourceMap;
+}
+
+export interface CssInputSourceMap {
+  version: 3;
+  file?: string;
+  sourceRoot?: string;
+  sources: string[];
+  sourcesContent?: (string | null)[];
+  names: string[];
+  mappings: string;
 }
 
 export interface CssSourceMap {
@@ -644,9 +678,19 @@ export interface CssSourceMap {
   mappings: string;
 }
 
+/** All contributing authored declarations for an emitted CSS declaration. */
+export interface CssDeclarationProvenance {
+  property: string;
+  /** Zero-based declaration index in generated stylesheet traversal order. */
+  declarationIndex: number;
+  sources: SourceDeclaration[];
+}
+
 export interface TransformCssSourceMapResult {
   css: string;
   map: CssSourceMap;
+  /** Present when includeProvenance is true. */
+  provenance?: CssDeclarationProvenance[];
 }
 
 /**
@@ -657,26 +701,112 @@ export function transformCssWithSourceMap(
   css: string,
   options: TransformCssSourceMapOptions,
 ): TransformCssSourceMapResult {
-  const filename = options.filename ?? "input.css";
-  const ast = transformCssAst(css, options, filename);
+  const filename = options.filename ?? options.inputSourceMap?.file ?? "input.css";
+  const provenanceStore: ProvenanceStore | undefined = options.includeProvenance ? new WeakMap() : undefined;
+  const ast = transformCssAst(css, options, filename, provenanceStore);
+  return generateMappedCss(ast, css, filename, options, provenanceStore);
+}
+
+/** Transform a declaration-only fragment without a synthetic selector or offset. */
+export function transformDeclarationsWithSourceMap(
+  css: string,
+  options: TransformCssSourceMapOptions,
+): TransformCssSourceMapResult {
+  const filename = options.filename ?? options.inputSourceMap?.file ?? "input.css";
+  const provenanceStore: ProvenanceStore | undefined = options.includeProvenance ? new WeakMap() : undefined;
+  const ast = parse(css, {
+    context: "declarationList",
+    filename,
+    positions: true,
+    onParseError(error) {
+      options.onDiagnostic?.({
+        code: "invalid-syntax",
+        severity: "error",
+        message: error.message,
+      });
+    },
+  }) as DeclarationList;
+  const children = ast.children.toArray();
+  const blockOptions = scopedTransformOptions(options, mergeCustomProperties(
+    options.customProperties,
+    collectBlockCustomProperties(children),
+  ));
+  const transformed = options.mode === "expand"
+    ? expandBlock(children, blockOptions, provenanceStore)
+    : collapseBlock(children, blockOptions, provenanceStore);
+  const list = new List<CssNode>();
+  for (const child of transformed) list.appendData(child);
+  // DeclarationList's children are declarations or raw recovery nodes. The
+  // shared block transformer preserves those types.
+  ast.children = list as DeclarationList["children"];
+  return generateMappedCss(ast, css, filename, options, provenanceStore);
+}
+
+function generateMappedCss(
+  ast: StyleSheet | DeclarationList,
+  css: string,
+  filename: string,
+  options: TransformCssSourceMapOptions,
+  provenanceStore?: ProvenanceStore,
+): TransformCssSourceMapResult {
+  const provenance: CssDeclarationProvenance[] = [];
+  if (provenanceStore) {
+    walk(ast, {
+      visit: "Declaration",
+      enter(node) {
+        provenance.push({
+          property: node.property,
+          declarationIndex: provenance.length,
+          sources: provenanceStore.get(node) ?? authoredDeclaration(node),
+        });
+      },
+    });
+  }
   // CSSTree's runtime generator supports sourceMap:true; its older type
   // declarations do not consistently describe the returned map generator.
   const mappedGenerate = generate as unknown as (
-    ast: StyleSheet,
+    ast: StyleSheet | DeclarationList,
     options: { sourceMap: true },
   ) => { css: string; map: { toJSON(): Omit<CssSourceMap, "sourcesContent"> } };
   const generated = mappedGenerate(ast, { sourceMap: true });
   const raw = generated.map.toJSON();
   // Empty stylesheets can have no mapped source; still embed the input.
   const sources = raw.sources.length ? raw.sources : [filename];
+  const map: CssSourceMap = {
+    ...raw,
+    version: 3,
+    ...(options.outputFilename !== undefined ? { file: options.outputFilename } : {}),
+    sources,
+    sourcesContent: sources.map((source) => source === filename ? css : null),
+  };
   return {
     css: generated.css,
-    map: {
-      ...raw,
-      version: 3,
-      ...(options.outputFilename !== undefined ? { file: options.outputFilename } : {}),
-      sources,
-      sourcesContent: sources.map((source) => source === filename ? css : null),
-    },
+    ...(provenanceStore ? { provenance } : {}),
+    map: options.inputSourceMap ? composeCssMap(map, options.inputSourceMap) : map,
+  };
+}
+
+/** Compose a generated-to-input map with the input-to-original map. */
+function composeCssMap(map: CssSourceMap, input: CssInputSourceMap): CssSourceMap {
+  if (input.version !== 3 || typeof input.mappings !== "string" || !Array.isArray(input.sources)) {
+    throw new TypeError("Expected a flat version 3 input source map.");
+  }
+  // The outer map has exactly one source: the CSS text supplied to this API.
+  // Explicit chain order avoids relying on matching intermediate filenames.
+  const composed = remapping([map, input], () => null, { decodedMappings: false });
+  const sources = composed.sources.map((source) => {
+    if (source === null) throw new TypeError("Composed source map contains a null source.");
+    return source;
+  });
+  if (typeof composed.mappings !== "string") {
+    throw new TypeError("Expected encoded source map mappings.");
+  }
+  return {
+    version: 3,
+    ...(map.file !== undefined ? { file: map.file } : {}),
+    sources,
+    names: composed.names,
+    mappings: composed.mappings,
+    sourcesContent: composed.sourcesContent ?? composed.sources.map(() => null),
   };
 }
