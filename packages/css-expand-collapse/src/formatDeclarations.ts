@@ -41,11 +41,13 @@ export function formatDeclarations(
       const colon = original.indexOf(":");
       if (colon === -1) return css;
       const property = original.slice(0, colon).trim();
+      // Use the parsed name for classification: comments before the colon are
+      // authored syntax, not part of the property identifier.
       // Preserve raw custom-property values, including significant whitespace.
       const value = original.slice(colon + 1);
       declarations.push({
-        property,
-        text: (options.indent ?? "") + (property.startsWith("--")
+        property: node.property,
+        text: (options.indent ?? "") + (node.property.startsWith("--")
           ? original
           : property + ": " + value.trim()),
       });

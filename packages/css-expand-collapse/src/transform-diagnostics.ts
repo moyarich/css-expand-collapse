@@ -17,6 +17,8 @@ export interface TransformDiagnostic {
   property?: string;
   value?: string;
   location?: ValidationLocation;
+  /** Optional structured explanation for a rejected collapse candidate. */
+  reason?: "mixed-priority" | "duplicate-longhand" | "overlapping-shorthand" | "missing-longhands" | "incompatible-values";
 }
 
 /** Classify a failed expansion using the standalone validator, only on demand. */

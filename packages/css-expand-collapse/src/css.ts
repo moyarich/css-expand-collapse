@@ -28,6 +28,7 @@ import {
 } from "./registry/index.js";
 import { splitTopLevelComma } from "./registry/context.js";
 import { describeExpansionFailure } from "./transform-diagnostics.js";
+import { syntaxDiagnostic } from "./validation/diagnostics.js";
 
 export type TransformMode = "expand" | "collapse";
 
@@ -436,7 +437,17 @@ function tryCollapseAt(
     const matches = new Map<string, { node: Declaration; index: number }>();
     const important = Boolean(first.important);
     const canFillMissing = options?.fillMissingLonghands === "initial";
-    let blocked = false;
+    let blocked: "mixed-priority" | "duplicate-longhand" | "overlapping-shorthand" | undefined;
+    const report = (reason: NonNullable<import("./transform-diagnostics.js").TransformDiagnostic["reason"]>, message: string) => {
+      options?.onDiagnostic?.({
+        code: "collapse-not-safe",
+        severity: "info",
+        property: shorthand,
+        location: first.loc ?? undefined,
+        reason,
+        message,
+      });
+    };
 
     for (let cursor = index; cursor < children.length; cursor += 1) {
       if (consumed.has(cursor)) continue;
@@ -447,7 +458,7 @@ function tryCollapseAt(
 
       if (expected.has(property)) {
         if (Boolean(node.important) !== important || matches.has(property)) {
-          blocked = true;
+          blocked = Boolean(node.important) !== important ? "mixed-priority" : "duplicate-longhand";
           break;
         }
         matches.set(property, { node, index: cursor });
@@ -456,15 +467,21 @@ function tryCollapseAt(
       }
 
       if (overlapsCandidate(property, expected)) {
-        blocked = true;
+        blocked = "overlapping-shorthand";
         break;
       }
     }
 
-    if (blocked) continue;
+    if (blocked) {
+      report(blocked, "Candidate longhands conflict with declaration order or priority.");
+      continue;
+    }
 
     const complete = matches.size === expected.size;
-    if (!complete && !canFillMissing) continue;
+    if (!complete && !canFillMissing) {
+      report("missing-longhands", "Candidate is missing required longhands.");
+      continue;
+    }
 
     if (!complete) {
       let earlierOverlap = false;
@@ -476,7 +493,10 @@ function tryCollapseAt(
           break;
         }
       }
-      if (earlierOverlap) continue;
+      if (earlierOverlap) {
+        report("overlapping-shorthand", "Earlier shorthand prevents safely filling omitted longhands.");
+        continue;
+      }
     }
 
     const declarations: DeclarationMap = {};
@@ -486,13 +506,7 @@ function tryCollapseAt(
 
     const collapsed = collapseToShorthand(shorthand, declarations, { ...options, onDiagnostic: undefined });
     if (!collapsed) {
-      options?.onDiagnostic?.({
-        code: "collapse-not-safe",
-        severity: "info",
-        property: shorthand,
-        location: first.loc ?? undefined,
-        message: "Candidate longhands could not be collapsed safely.",
-      });
+      report("incompatible-values", "Candidate longhands could not be collapsed safely.");
       continue;
     }
 
@@ -566,11 +580,7 @@ function transformCssAst(
     positions: filename !== undefined || Boolean(options.onDiagnostic),
     filename,
     onParseError(error) {
-      options.onDiagnostic?.({
-        code: "invalid-syntax",
-        severity: "error",
-        message: error.message,
-      });
+      options.onDiagnostic?.({ ...syntaxDiagnostic(error), code: "invalid-syntax" });
     },
   }) as StyleSheet;
   const globalCustomProperties = collectGlobalCustomProperties(ast);
@@ -625,9 +635,27 @@ function transformDeclarationBlock(
   options?: TransformOptions,
 ): string {
   const selector = ".__css_expand_collapse__";
+  const prefixLength = selector.length + 1;
+  const onDiagnostic = options?.onDiagnostic;
   const output = transformCss(`${selector}{${declarations}}`, {
     ...options,
     mode,
+    onDiagnostic: onDiagnostic ? (diagnostic) => {
+      const location = diagnostic.location;
+      if (!location) {
+        onDiagnostic(diagnostic);
+        return;
+      }
+      const relative = (position: typeof location.start) => ({
+        ...position,
+        offset: Math.max(0, Math.min(declarations.length, position.offset - prefixLength)),
+        column: position.line === 1 ? Math.max(1, position.column - prefixLength) : position.column,
+      });
+      onDiagnostic({
+        ...diagnostic,
+        location: { ...location, start: relative(location.start), end: relative(location.end) },
+      });
+    } : undefined,
   });
   const open = output.indexOf("{");
   const close = output.lastIndexOf("}");
@@ -719,11 +747,7 @@ export function transformDeclarationsWithSourceMap(
     filename,
     positions: true,
     onParseError(error) {
-      options.onDiagnostic?.({
-        code: "invalid-syntax",
-        severity: "error",
-        message: error.message,
-      });
+      options.onDiagnostic?.({ ...syntaxDiagnostic(error), code: "invalid-syntax" });
     },
   }) as DeclarationList;
   const children = ast.children.toArray();
