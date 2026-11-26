@@ -673,7 +673,7 @@ The optional `onDiagnostic` callback is available on property, declaration-map
 and CSS text transformation APIs. Failed expansion attempts distinguish
 unsupported shorthands, invalid grammar, unresolved runtime values, unknown
 grammar and otherwise unsafe transformations. CSS text diagnostics can include
-source coordinates; object inputs do not have source coordinates. Collapse
+source coordinates (relative to the supplied stylesheet or declaration fragment); object inputs do not have source coordinates. Collapse
 diagnostics describe rejected candidates and are not an exhaustive cascade trace.
 
 ```ts

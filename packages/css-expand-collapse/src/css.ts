@@ -625,9 +625,27 @@ function transformDeclarationBlock(
   options?: TransformOptions,
 ): string {
   const selector = ".__css_expand_collapse__";
+  const prefixLength = selector.length + 1;
+  const onDiagnostic = options?.onDiagnostic;
   const output = transformCss(`${selector}{${declarations}}`, {
     ...options,
     mode,
+    onDiagnostic: onDiagnostic ? (diagnostic) => {
+      const location = diagnostic.location;
+      if (!location) {
+        onDiagnostic(diagnostic);
+        return;
+      }
+      const relative = (position: typeof location.start) => ({
+        ...position,
+        offset: Math.max(0, Math.min(declarations.length, position.offset - prefixLength)),
+        column: position.line === 1 ? Math.max(1, position.column - prefixLength) : position.column,
+      });
+      onDiagnostic({
+        ...diagnostic,
+        location: { ...location, start: relative(location.start), end: relative(location.end) },
+      });
+    } : undefined,
   });
   const open = output.indexOf("{");
   const close = output.lastIndexOf("}");
