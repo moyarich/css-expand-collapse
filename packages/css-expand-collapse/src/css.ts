@@ -5,6 +5,7 @@ import {
   walk,
   type CssNode,
   type Declaration,
+  type DeclarationList,
   type StyleSheet,
 } from "css-tree";
 import {
@@ -690,6 +691,51 @@ export function transformCssWithSourceMap(
   const filename = options.filename ?? "input.css";
   const provenanceStore: ProvenanceStore | undefined = options.includeProvenance ? new WeakMap() : undefined;
   const ast = transformCssAst(css, options, filename, provenanceStore);
+  return generateMappedCss(ast, css, filename, options, provenanceStore);
+}
+
+/** Transform a declaration-only fragment without a synthetic selector or offset. */
+export function transformDeclarationsWithSourceMap(
+  css: string,
+  options: TransformCssSourceMapOptions,
+): TransformCssSourceMapResult {
+  const filename = options.filename ?? "input.css";
+  const provenanceStore: ProvenanceStore | undefined = options.includeProvenance ? new WeakMap() : undefined;
+  const ast = parse(css, {
+    context: "declarationList",
+    filename,
+    positions: true,
+    onParseError(error) {
+      options.onDiagnostic?.({
+        code: "invalid-syntax",
+        severity: "error",
+        message: error.message,
+      });
+    },
+  }) as DeclarationList;
+  const children = ast.children.toArray();
+  const blockOptions = scopedTransformOptions(options, mergeCustomProperties(
+    options.customProperties,
+    collectBlockCustomProperties(children),
+  ));
+  const transformed = options.mode === "expand"
+    ? expandBlock(children, blockOptions, provenanceStore)
+    : collapseBlock(children, blockOptions, provenanceStore);
+  const list = new List<CssNode>();
+  for (const child of transformed) list.appendData(child);
+  // DeclarationList's children are declarations or raw recovery nodes. The
+  // shared block transformer preserves those types.
+  ast.children = list as DeclarationList["children"];
+  return generateMappedCss(ast, css, filename, options, provenanceStore);
+}
+
+function generateMappedCss(
+  ast: StyleSheet | DeclarationList,
+  css: string,
+  filename: string,
+  options: TransformCssSourceMapOptions,
+  provenanceStore?: ProvenanceStore,
+): TransformCssSourceMapResult {
   const provenance: CssDeclarationProvenance[] = [];
   if (provenanceStore) {
     walk(ast, {
@@ -706,7 +752,7 @@ export function transformCssWithSourceMap(
   // CSSTree's runtime generator supports sourceMap:true; its older type
   // declarations do not consistently describe the returned map generator.
   const mappedGenerate = generate as unknown as (
-    ast: StyleSheet,
+    ast: StyleSheet | DeclarationList,
     options: { sourceMap: true },
   ) => { css: string; map: { toJSON(): Omit<CssSourceMap, "sourcesContent"> } };
   const generated = mappedGenerate(ast, { sourceMap: true });
