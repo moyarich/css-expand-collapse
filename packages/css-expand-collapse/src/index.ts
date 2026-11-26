@@ -87,3 +87,6 @@ export type { CssLayer, LayerParseResult, LayeredShorthand } from "./css-layers.
 
 export { transformCssWithSourceMap, transformDeclarationsWithSourceMap } from "./css.js";
 export type { CssDeclarationProvenance, CssInputSourceMap, CssSourceMap, TransformCssSourceMapOptions, TransformCssSourceMapResult } from "./css.js";
+
+export { createCssTransformer } from "./core.js";
+export type { CssTransformer } from "./core.js";

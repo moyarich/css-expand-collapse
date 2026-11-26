@@ -20,12 +20,17 @@ export type {
   ShorthandExpander,
 } from "./types.js";
 
-const shorthandEntries = Object.entries(SHORTHANDS) as [
-  string,
-  ShorthandModule,
-][];
-
-function buildDefinitions(): ShorthandModuleMap {
+export function createRegistry(modules: ShorthandModuleMap = SHORTHANDS) {
+  const SHORTHAND_MODULES: ShorthandModuleMap = Object.freeze(Object.fromEntries(
+    Object.entries(modules).map(([property, module]) => [property, {
+      ...module,
+      longhands: new Map(module.longhands),
+      excludedLonghands: module.excludedLonghands ? [...module.excludedLonghands] : undefined,
+      equivalentLonghandValues: module.equivalentLonghandValues ? new Map(module.equivalentLonghandValues) : undefined,
+    }]),
+  ));
+  const shorthandEntries = Object.entries(SHORTHAND_MODULES);
+  function buildDefinitions(): ShorthandModuleMap {
   const definitions: Record<string, ShorthandModule> = {};
   for (const [property, module] of shorthandEntries) {
     const longhands = activeLonghands(module.longhands, module.excludedLonghands);
@@ -36,14 +41,13 @@ function buildDefinitions(): ShorthandModuleMap {
   return Object.freeze(definitions);
 }
 
-export const SHORTHAND_MODULES: ShorthandModuleMap = Object.freeze(SHORTHANDS);
-export const SHORTHAND_PROPERTIES = Object.freeze(
+const SHORTHAND_PROPERTIES = Object.freeze(
   Object.keys(SHORTHAND_MODULES),
 );
-export const SHORTHAND_DEFINITIONS = buildDefinitions();
-export const SHORTHAND_SET = new Set<string>(SHORTHAND_PROPERTIES);
+const SHORTHAND_DEFINITIONS = buildDefinitions();
+const SHORTHAND_SET = new Set<string>(SHORTHAND_PROPERTIES);
 
-export const LONGHAND_TO_SHORTHANDS = (() => {
+const LONGHAND_TO_SHORTHANDS = (() => {
   const map = new Map<string, string[]>();
   for (const [shorthand, module] of shorthandEntries) {
     for (const longhand of module.longhands.keys()) {
@@ -55,7 +59,7 @@ export const LONGHAND_TO_SHORTHANDS = (() => {
   return map;
 })();
 
-export const LONGHAND_VALUE_EQUIVALENCE = (() => {
+const LONGHAND_VALUE_EQUIVALENCE = (() => {
   const map = new Map<string, LonghandValueEquivalence[]>();
   for (const [, module] of shorthandEntries) {
     for (const [longhand, equivalent] of module.equivalentLonghandValues ??
@@ -68,3 +72,8 @@ export const LONGHAND_VALUE_EQUIVALENCE = (() => {
   }
   return map;
 })();
+
+  return { SHORTHAND_MODULES, SHORTHAND_PROPERTIES, SHORTHAND_DEFINITIONS, SHORTHAND_SET, LONGHAND_TO_SHORTHANDS, LONGHAND_VALUE_EQUIVALENCE };
+}
+
+export const { SHORTHAND_MODULES, SHORTHAND_PROPERTIES, SHORTHAND_DEFINITIONS, SHORTHAND_SET, LONGHAND_TO_SHORTHANDS, LONGHAND_VALUE_EQUIVALENCE } = createRegistry();
