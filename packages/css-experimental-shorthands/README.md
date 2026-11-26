@@ -24,4 +24,14 @@ css.removePlugin(backgroundRepeatPlugin.name);
 
 The named plugin registers only the physical repeat module and its grammar predicates. The lower-level `backgroundRepeat` and `backgroundRepeatGrammars` exports remain available for custom plugins.
 
-Build the core package first, then run npm run build --workspace @moyarich/css-experimental-shorthands. The package is not published yet.
+## Development
+
+From the repository root, build the workspaces before checking the public package entry points:
+
+```sh
+npm run build
+npm run typecheck --workspace @moyarich/css-experimental-shorthands
+npm test --workspace @moyarich/css-experimental-shorthands
+```
+
+The companion package uses the core public API as a peer dependency. Its public exports test imports the built package by name, not a private source path. The package is not published yet.
