@@ -11,6 +11,7 @@ import {
   matchProperty,
 } from "./registry/context.js";
 
+import { hasBackgroundRepeatOverlap } from "./registry/background-repeat-overlap.js";
 import { createCssOperations } from "./css.js";
 import { getShorthandMetadata as describeShorthand, listShorthands as describeShorthands, type ShorthandFilter } from "./registry/metadata.js";
 
@@ -280,6 +281,8 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
     declarations: DeclarationMap,
     options?: Pick<TransformOptions, "customProperties" | "onDiagnostic">,
   ): DeclarationMap {
+    const normalized = Object.fromEntries(Object.entries(declarations).map(([property, value]) => [normalizeDeclarationProperty(property), value]));
+    if (hasBackgroundRepeatOverlap(Object.keys(normalized), supportsExpand("background-repeat"))) return normalized;
     const output: DeclarationMap = {};
     const customProperties = mergeCustomProperties(
       options?.customProperties,
@@ -439,6 +442,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
         value,
       ]),
     );
+    if (hasBackgroundRepeatOverlap(Object.keys(output), supportsCollapse("background-repeat"))) return output;
     const scopedOptions: TransformOptions = {
       ...options,
       customProperties: mergeCustomProperties(

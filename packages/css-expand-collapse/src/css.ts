@@ -16,6 +16,7 @@ import {
 } from "./custom-properties.js";
 import type { CollapseShorthandResult, DeclarationMap, ExpandShorthandResult, TransformOptions } from "./core.js";
 import type { createRegistry } from "./registry/index.js";
+import { hasBackgroundRepeatOverlap } from "./registry/background-repeat-overlap.js";
 import { splitTopLevelComma } from "./registry/context.js";
 import { describeExpansionFailure } from "./transform-diagnostics.js";
 import { syntaxDiagnostic } from "./validation/diagnostics.js";
@@ -418,10 +419,7 @@ export function createCssOperations(
     const properties = children
       .filter((node): node is Declaration => node.type === "Declaration")
       .map((node) => normalizeProperty(node.property));
-    const hasAxes = properties.some((property) => /^background-repeat-(?:x|y|block|inline)$/.test(property));
-    const repeatActive = Boolean(SHORTHAND_DEFINITIONS["background-repeat"]);
-    return properties.includes("background") &&
-      (hasAxes || (repeatActive && properties.includes("background-repeat")));
+    return hasBackgroundRepeatOverlap(properties, Boolean(SHORTHAND_DEFINITIONS["background-repeat"]));
   }
 
   function overlapsCandidate(property: string, expected: Set<string>): boolean {

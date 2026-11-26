@@ -10,7 +10,7 @@ const css = createCssTransformer({ plugins: [experimentalShorthands] });
 css.expandShorthand("background-repeat", "repeat-x");
 ```
 
-The initial module implements physical background-repeat axes, single and paired keywords, aliases and comma-separated layers. Logical aliases, unresolved variables and unequal layer counts are not decomposed. Axis properties are draft-defined; support varies. Use property-level operations until overlapping background declarations are fully audited. No browser detection. All other emerging shorthands remain deferred.
+The initial module implements physical background-repeat axes, single and paired keywords, aliases and comma-separated layers. Logical aliases, unresolved variables and unequal layer counts are not decomposed. Axis properties are draft-defined; support varies. Overlapping background and repeat-axis declarations are preserved conservatively in map and stylesheet transformations. Native equivalence is not guaranteed. No browser detection. All other emerging shorthands remain deferred.
 
 Selective registration: import backgroundRepeat and backgroundRepeatGrammars and supply them in a custom plugin.
 
