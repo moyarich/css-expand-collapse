@@ -744,3 +744,35 @@ const collapsed = transformCssWithSourceMap(expanded.css, {
 The same option works with declaration fragments. The upstream map must describe the exact input text. Only flat encoded v3 maps are accepted; indexed sections are not supported. Diagnostics and optional provenance remain relative to the immediate input CSS, because an upstream map does not necessarily encode complete original declaration ranges. JavaScript build maps remain disabled.
 
 Transformation diagnostics include parser positions when CSSTree provides them. Map collapse identifies invalid or unresolved constituent values using the standalone validator; missing required constituents use `reason: "missing-longhands"`. Diagnostics describe attempted candidates, not an exhaustive browser cascade trace.
+
+## Emerging shorthand support
+
+| Property | Transformation status | Reason |
+| --- | --- | --- |
+| `white-space` | Supported subset | CSS Text 4 reset semantics; nondefault trim syntax is preserved unchanged. |
+| `line-clamp`, `-webkit-line-clamp` | Recognized, not transformed | Overflow 4 constituent support and legacy display/orientation behavior differ. |
+| `text-spacing` | Recognized, not transformed | Text 4 shorthand and constituent grammar are evolving; cross-browser equivalence not verified. |
+| `background-repeat` | Recognized, not transformed | Backgrounds 4 defines physical axis longhands, but emitting them without verified support is unsafe. |
+| `timeline-trigger` | Recognized, not transformed | Emerging animation trigger shorthand; constituent support not verified. |
+| `animation-trigger` | Reset-only longhand, excluded from transformations | Known constituent of `animation`, with initial value `none`. |
+
+Recognized-only entries return false from `supportsTransform` and preserve authored declarations. They intentionally expose no transformable longhands. See [CSS Text 4](https://www.w3.org/TR/css-text-4/), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/), [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), and [animation trigger guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Animation_triggers).
+
+The constituent audit exercises `text-spacing: normal`, `line-clamp: 3`, legacy `-webkit-line-clamp: 3`, and `background-repeat: repeat-x`. Browser tests record grammar recognition and support for each shorthand and its constituent values; computed-style comparisons run only when all constituents are supported. These probes are not a guarantee of general transformation support. The legacy line-clamp probe includes the required box orientation and display context.
+
+### Compatibility findings
+
+The [three-browser constituent audit](https://github.com/moyarich/css-expand-collapse/actions/runs/45751529376/job/139680207866) produced the following results for the specific values above:
+
+| Shorthand | Available shorthand grammar | Available constituent grammars | All values supported in Chromium / Firefox / WebKit |
+| --- | --- | --- | --- |
+| text-spacing | Unknown | 2 of 2 | No / No / No |
+| line-clamp | Known | 1 of 3 | No / No / No |
+| -webkit-line-clamp | Known | 1 of 3 | No / No / No |
+| background-repeat | Known | 0 of 2 | No / No / No |
+
+None of the four constituent equivalence comparisons ran because the complete browser support prerequisite was not satisfied. Keep these properties recognized-only; do not treat a skipped comparison as proof of equivalence. The audit is specific to the tested values and installed grammar/browser versions.
+
+### Animation trigger properties
+
+The [CSS Animation Triggers Level 1 draft](https://drafts.csswg.org/animation-triggers-1/) distinguishes the `animation-trigger` longhand from the `timeline-trigger` shorthand. The latter groups name, source, activation range and active range; both range properties are themselves shorthands for their start and end values. The draft also defines `event-trigger` as a shorthand for its name and source. All three additional shorthands are recognized-only. No speculative longhands are generated. Animation expansion resets `animation-timeline` to `auto` and both animation range endpoints to `normal`, using single initial values even for multiple animation layers. The [CSS Animation Triggers draft](https://drafts.csswg.org/animation-triggers-1/#animation-trigger) defines `animation-trigger` as reset-only with initial value `none`. Chromium's tested implementation preserves earlier triggers instead. The library retains this constituent for discovery but temporarily excludes it from expansion, collapse and cascade consumption. Browser tests compare the original authored CSS against transformed CSS in supporting engines. This compatibility compromise is not full draft compliance and may differ in browsers that implement the reset. See [#undefined](https://github.com/moyarich/css-expand-collapse/issues/undefined).

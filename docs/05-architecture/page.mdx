@@ -37,7 +37,7 @@ src/
     ├── collapsers.ts       # reusable collapse factories
     ├── helpers.ts          # longhand-map helpers
     ├── families/           # reusable behavior for related CSS property families
-    └── shorthands/         # one implementation per shorthand
+    └── shorthands/         # feature folders, one implementation per shorthand
 ```
 
 `core.ts` does not contain property-family parsing or collapse strategy switches. It normalizes input, resolves the module, handles shared global-value/initial-fill behavior, and delegates to that module.
@@ -53,7 +53,7 @@ The public `validateProperty`, `validateDeclarations`, and `validateCss` APIs li
 Each CSS shorthand lives in its own file under:
 
 ```text
-packages/css-expand-collapse/src/registry/shorthands/
+packages/css-expand-collapse/src/registry/shorthands/<feature>/
 ```
 
 The **filename is the CSS property name**:
@@ -117,10 +117,10 @@ Top-level splitting preserves commas, slashes, CSS whitespace, strings, brackets
 Simple grammars should compose reusable helpers from `registry/expanders.ts` and `registry/collapsers.ts`.
 
 ```ts
-// registry/shorthands/margin.ts
-import { collapseQuad } from "../collapsers.js";
-import { expandQuad } from "../expanders.js";
-import type { ShorthandModule } from "../types.js";
+// registry/shorthands/spacing/margin.ts
+import { collapseQuad } from "../../collapsers.js";
+import { expandQuad } from "../../expanders.js";
+import type { ShorthandModule } from "../../types.js";
 
 const longhands = new Map([
   ["margin-top", "0"],

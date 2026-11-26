@@ -7,6 +7,7 @@ import {
 import {
   LONGHAND_TO_SHORTHANDS,
   SHORTHAND_DEFINITIONS,
+  SHORTHAND_MODULES,
   SHORTHAND_PROPERTIES,
   SHORTHAND_SET,
   type DeclarationMap,
@@ -85,7 +86,7 @@ export function isLonghand(property: string): boolean {
 
 export function getLonghands(shorthand: string): string[] {
   return [
-    ...(SHORTHAND_DEFINITIONS[normalizeProperty(shorthand)]?.longhands.keys() ??
+    ...(SHORTHAND_MODULES[normalizeProperty(shorthand)]?.longhands.keys() ??
       []),
   ];
 }

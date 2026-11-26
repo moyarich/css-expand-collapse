@@ -1,4 +1,4 @@
-import { SHORTHAND_MODULES, SHORTHAND_PROPERTIES } from "./index.js";
+import { SHORTHAND_DEFINITIONS, SHORTHAND_MODULES, SHORTHAND_PROPERTIES } from "./index.js";
 
 export type ShorthandCategory =
   | "background"
@@ -30,7 +30,7 @@ function categoryFor(property: string): ShorthandCategory {
   if (/^(?:margin|padding|gap)(?:-|$)/.test(name)) return "spacing";
   if (/^(?:font|text|line|white-space|list-style)(?:-|$)/.test(name))
     return "typography";
-  if (/^(?:animation|transition|offset|view-timeline)(?:-|$)/.test(name))
+  if (/^(?:animation|transition|offset|view-timeline|timeline-trigger|event-trigger)(?:-|$)/.test(name))
     return "animation";
   if (name.startsWith("mask")) return "mask";
   if (/^(?:scroll|overscroll)(?:-|$)/.test(name)) return "scroll";
@@ -48,7 +48,7 @@ export function getShorthandMetadata(property: string): ShorthandMetadata | unde
     property: name,
     category: categoryFor(name),
     longhands: Object.freeze([...module.longhands.keys()]),
-    transformable: module.longhands.size > 0,
+    transformable: Object.hasOwn(SHORTHAND_DEFINITIONS, name),
   });
 }
 

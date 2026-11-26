@@ -29,6 +29,8 @@ export type ShorthandCollapser = (
  */
 export interface ShorthandModule {
   readonly longhands: LonghandMap;
+  /** Known constituents temporarily excluded from transformations. */
+  readonly excludedLonghands?: readonly string[];
   readonly expand: ShorthandExpander;
   readonly collapse: ShorthandCollapser;
   /** Property-specific equivalence rules for alternate longhand serializations. */
