@@ -674,7 +674,7 @@ and CSS text transformation APIs. Failed expansion attempts distinguish
 unsupported shorthands, invalid grammar, unresolved runtime values, unknown
 grammar and otherwise unsafe transformations. CSS text diagnostics can include
 source coordinates (relative to the supplied stylesheet or declaration fragment); object inputs do not have source coordinates. Collapse
-diagnostics describe rejected candidates and are not an exhaustive cascade trace.
+diagnostics describe rejected candidates and are not an exhaustive cascade trace. Stylesheet collapse diagnostics include an optional structured `reason` for missing longhands, duplicate longhands, mixed priority, overlapping shorthands or incompatible values.
 
 ```ts
 expandShorthand("margin", "var(--missing)", {
