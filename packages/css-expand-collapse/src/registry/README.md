@@ -1,6 +1,6 @@
 # Shorthand registry
 
-Each CSS shorthand lives in its own module under `shorthands/`. The **filename is the CSS property name**, and every default export satisfies the same `ShorthandModule` contract.
+Each CSS shorthand lives in its own module under `shorthands/<feature>/`. The **filename is the CSS property name**, and every default export satisfies the same `ShorthandModule` contract.
 
 ```ts
 export interface ShorthandModule {
@@ -34,7 +34,7 @@ registry/
 ├── families/         # reusable behavior for related CSS property families
 ├── module.ts        # common module contract
 ├── index.ts         # derived lookup tables
-└── shorthands/      # one module per CSS shorthand
+└── shorthands/      # feature folders, one module per CSS shorthand
 ```
 
 `shorthands/index.ts` is generated from filenames and must not be edited manually. `SHORTHAND_MODULES`, `SHORTHAND_PROPERTIES`, `SHORTHAND_DEFINITIONS`, `SHORTHAND_SET`, and `LONGHAND_TO_SHORTHANDS` are derived from that generated map.
@@ -44,10 +44,10 @@ registry/
 Simple grammars compose reusable expand/collapse factories:
 
 ```ts
-// shorthands/margin.ts
-import { collapseQuad } from "../collapsers.js";
-import { expandQuad } from "../expanders.js";
-import type { ShorthandModule } from "../types.js";
+// shorthands/spacing/margin.ts
+import { collapseQuad } from "../../collapsers.js";
+import { expandQuad } from "../../expanders.js";
+import type { ShorthandModule } from "../../types.js";
 
 const longhands = new Map([
   ["margin-top", "0"],
@@ -126,7 +126,7 @@ Set it to `false` when a shorthand has reset/cascade effects beyond the register
 
 ## Adding a shorthand
 
-1. Add `shorthands/<property>.ts`.
+1. Add `shorthands/<feature>/<property>.ts`.
 2. Declare its `LonghandMap`, pairing every longhand with its CSS initial value.
 3. Implement `expand` and `collapse` in that module.
 4. Reuse `expanders.ts` and `collapsers.ts` factories when the grammar matches.
@@ -138,3 +138,5 @@ Set it to `false` when a shorthand has reset/cascade effects beyond the register
 Collapse must be conservative. If an equivalent shorthand cannot be reconstructed without guessing, return `null` and leave the longhands unchanged.
 
 `all.ts` follows the same interface but has an empty longhand set, so it remains recognized by `isShorthand()` while `supportsTransform("all")` returns `false`.
+
+Feature folders organize related modules; the basename remains the public property key. Shared local helpers must use an underscore-prefixed filename. Longhand lookup tables are derived from shorthand modules; no parallel longhand registry is required.

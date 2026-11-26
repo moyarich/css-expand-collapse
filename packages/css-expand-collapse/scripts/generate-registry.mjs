@@ -8,21 +8,28 @@ const indexPath = fileURLToPath(
   new URL("../src/registry/shorthands/index.ts", import.meta.url),
 );
 
-const files = (await readdir(shorthandsDirectory, { withFileTypes: true }))
-  .filter(
-    (entry) =>
-      entry.isFile() && entry.name.endsWith(".ts") && entry.name !== "index.ts",
-  )
-  .map((entry) => entry.name)
-  .sort();
+const groups = (await readdir(shorthandsDirectory, { withFileTypes: true }))
+  .filter((entry) => entry.isDirectory());
+const files = (await Promise.all(groups.map(async (group) =>
+  (await readdir(new URL("../src/registry/shorthands/" + group.name + "/", import.meta.url), { withFileTypes: true }))
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".ts") &&
+      entry.name !== "index.ts" && !entry.name.startsWith("_") && !entry.name.endsWith(".d.ts"))
+    .map((entry) => ({ file: group.name + "/" + entry.name, property: entry.name.slice(0, -3) })),
+))).flat().sort((a, b) => {
+  const left = a.property + ".ts";
+  const right = b.property + ".ts";
+  return left < right ? -1 : left > right ? 1 : 0;
+});
+if (new Set(files.map(({ property }) => property)).size !== files.length) {
+  throw new Error("Duplicate shorthand property filenames.");
+}
 
-const imports = files.map((file, index) => {
+const imports = files.map(({ file }, index) => {
   const moduleName = file.replace(/\.ts$/, ".js");
   return `import shorthand${index} from "./${moduleName}";`;
 });
 
-const entries = files.map((file, index) => {
-  const property = file.replace(/\.ts$/, "");
+const entries = files.map(({ property }, index) => {
   const key = /^[$A-Z_a-z][$\w]*$/.test(property)
     ? property
     : JSON.stringify(property);
