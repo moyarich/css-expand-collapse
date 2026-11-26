@@ -30,7 +30,7 @@ function categoryFor(property: string): ShorthandCategory {
   if (/^(?:margin|padding|gap)(?:-|$)/.test(name)) return "spacing";
   if (/^(?:font|text|line|white-space|list-style)(?:-|$)/.test(name))
     return "typography";
-  if (/^(?:animation|transition|offset|view-timeline)(?:-|$)/.test(name))
+  if (/^(?:animation|transition|offset|view-timeline|timeline-trigger)(?:-|$)/.test(name))
     return "animation";
   if (name.startsWith("mask")) return "mask";
   if (/^(?:scroll|overscroll)(?:-|$)/.test(name)) return "scroll";

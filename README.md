@@ -742,3 +742,16 @@ const collapsed = transformCssWithSourceMap(expanded.css, {
 ```
 
 The same option works with declaration fragments. The upstream map must describe the exact input text. Only flat encoded v3 maps are accepted; indexed sections are not supported. Diagnostics and optional provenance remain relative to the immediate input CSS, because an upstream map does not necessarily encode complete original declaration ranges. JavaScript build maps remain disabled.
+
+## Emerging shorthand support
+
+| Property | Transformation status | Reason |
+| --- | --- | --- |
+| `white-space` | Supported subset | CSS Text 4 reset semantics; nondefault trim syntax is preserved unchanged. |
+| `line-clamp`, `-webkit-line-clamp` | Recognized, not transformed | Overflow 4 constituent support and legacy display/orientation behavior differ. |
+| `text-spacing` | Recognized, not transformed | Text 4 shorthand and constituent grammar are evolving; cross-browser equivalence not verified. |
+| `background-repeat` | Recognized, not transformed | Backgrounds 4 defines physical axis longhands, but emitting them without verified support is unsafe. |
+| `timeline-trigger` | Recognized, not transformed | Emerging animation trigger shorthand; constituent support not verified. |
+| `animation-trigger` | Deferred | Current animation-trigger syntax is not treated as a shorthand; do not invent constituent properties. |
+
+Recognized-only entries return false from `supportsTransform` and preserve authored declarations. They intentionally expose no transformable longhands. See [CSS Text 4](https://www.w3.org/TR/css-text-4/), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/), [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), and [animation trigger guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Animation_triggers).
