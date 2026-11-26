@@ -33,7 +33,10 @@ export function validateSource(
         const value = node.value.loc
           ? source.slice(node.value.loc.start.offset, node.value.loc.end.offset)
           : generate(node.value);
-        if (this.atrule && !this.rule) {
+        if (this.atrule && (!this.rule || (
+          this.block === this.atrule.block &&
+          ["font-face", "font-palette-values", "counter-style", "property", "page", "position-try", "view-transition", "color-profile"].includes(this.atrule.name.toLowerCase())
+        ))) {
           diagnostics.push({
             code: "unsupported-context",
             severity: "info",
