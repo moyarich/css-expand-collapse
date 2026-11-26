@@ -31,7 +31,7 @@ const operations = {
   "unique": (index) => css.expandShorthand("margin", index + "px " + (index + 1) + "px"),
   "layered": () => css.expandShorthand("background", layered),
   "variables": () => css.expandShorthand("margin", "var(--space)", {
-    customProperties: { "--space": repeated },
+    customProperties: { "--space": "8px" },
   }),
   "collapse-property": () => css.collapseToShorthand("margin", margin),
   "expand-map": () => css.expandShorthands(declarations),
