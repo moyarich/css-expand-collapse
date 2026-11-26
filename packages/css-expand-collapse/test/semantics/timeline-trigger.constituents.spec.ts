@@ -7,7 +7,7 @@ it("compares a timeline trigger reset with its specified constituents when suppo
     ["timeline-trigger-name", "none"],
     ["timeline-trigger-source", "auto"],
     ["timeline-trigger-activation-range", "normal"],
-    ["timeline-trigger-active-range", "normal"],
+    ["timeline-trigger-active-range", "auto"],
   ] as const;
   const grammar = [validateProperty("timeline-trigger", "none").valid, ...parts.map(([name, value]) => validateProperty(name, value).valid)];
   const supported = CSS.supports("timeline-trigger", "none") && parts.every(([name, value]) => CSS.supports(name, value));
