@@ -682,3 +682,24 @@ expandShorthand("margin", "var(--missing)", {
 });
 ```
 
+## CSS transformation source maps
+
+Use the opt-in API to trace generated CSS to the original stylesheet:
+
+```ts
+import { transformCssWithSourceMap } from "@moyarich/css-expand-collapse";
+
+const { css, map } = transformCssWithSourceMap(".card { margin: 10px 20px; }", {
+  mode: "expand",
+  filename: "styles.css",
+  outputFilename: "styles.expanded.css",
+});
+```
+
+The returned map is a JSON-serializable Source Map v3 object with original CSS
+embedded. Generated longhands map to the shorthand's starting position.
+A collapsed shorthand maps to the first consumed longhand; it does not encode
+all contributing declarations. Unchanged nodes retain their original positions.
+Existing string APIs are unchanged. No source-map comment is appended
+automatically. Fragment maps, upstream map composition and multi-origin
+provenance are not yet supported.
