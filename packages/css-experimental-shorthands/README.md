@@ -6,8 +6,7 @@ Opt-in experimental plugin for @moyarich/css-expand-collapse. Not a guarantee of
 import { createCssTransformer } from "@moyarich/css-expand-collapse";
 import experimentalShorthands from "@moyarich/css-experimental-shorthands";
 
-const css = createCssTransformer();
-css.addPlugin(experimentalShorthands, { override: true });
+const css = createCssTransformer({ plugins: [experimentalShorthands] });
 css.expandShorthand("background-repeat", "repeat-x");
 ```
 

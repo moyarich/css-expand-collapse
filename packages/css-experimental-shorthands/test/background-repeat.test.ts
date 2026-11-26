@@ -3,8 +3,7 @@ import { createCssTransformer } from "@moyarich/css-expand-collapse";
 import experimentalShorthands from "../src/index.js";
 
 it("expands physical repeat aliases only in an opted-in instance", () => {
-  const css = createCssTransformer();
-  css.addPlugin(experimentalShorthands, { override: true });
+  const css = createCssTransformer({ plugins: [experimentalShorthands] });
   expect(css.expandShorthand("background-repeat", "repeat-x, repeat-y")?.declarations).toEqual({
     "background-repeat-x": "repeat, no-repeat",
     "background-repeat-y": "no-repeat, repeat",

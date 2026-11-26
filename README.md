@@ -823,3 +823,5 @@ Duplicate plugin names and conflicting shorthand definitions are rejected. Runti
 The registry records draft-defined constituent names and initial values for background-repeat, line-clamp (including its legacy spelling), text-spacing, timeline-trigger and its two range shorthands, and event-trigger. These remain recognized-only. Draft metadata is not evidence of interoperable browser behavior. Logical repeat aliases, legacy clamp behavior and trigger range defaults require separate semantic verification before default transformations are enabled.
 
 References: [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/), [CSS Text 4](https://drafts.csswg.org/css-text-4/), [Animation Triggers 1](https://drafts.csswg.org/animation-triggers-1/).
+
+Instance transformers also support `expandCss`, `collapseCss`, `transformCss`, declaration fragments and both source-map APIs. Plugins may explicitly declare `replaceRecognized` for recognized-only shorthands without overriding active built-in transformations.

@@ -11,6 +11,8 @@ import {
   matchProperty,
 } from "./registry/context.js";
 
+import { createCssOperations } from "./css.js";
+
 export type { DeclarationMap, LonghandMap } from "./registry/index.js";
 
 import { validateProperty } from "./validation/validateProperty.js";
@@ -74,6 +76,8 @@ export interface CssTransformerPlugin {
   readonly name: string;
   readonly shorthands?: ShorthandModuleMap;
   readonly grammars?: Readonly<Record<string, PropertyGrammar>>;
+  /** Explicitly replace these recognized-only definitions when installing the plugin. */
+  readonly replaceRecognized?: readonly string[];
 }
 
 export interface CssTransformerOptions {
@@ -111,7 +115,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
     for (const [property, module] of Object.entries(plugin.shorthands ?? {})) {
       const name = normalizeProperty(property);
       if (!/^-?[a-z][a-z0-9-]*$/.test(name)) throw new Error("Invalid shorthand property: " + property);
-      if (Object.hasOwn(next, name) && !options.override) throw new Error("Shorthand already registered: " + name);
+      if (Object.hasOwn(next, name) && !options.override && !(plugin.replaceRecognized?.includes(name) && !supportsExpand(name) && !supportsCollapse(name))) throw new Error("Shorthand already registered: " + name);
       next[name] = module;
     }
     for (const [property, grammar] of Object.entries(plugin.grammars ?? {})) {
@@ -409,11 +413,23 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
 
   for (const plugin of configuration.plugins ?? []) addPlugin(plugin);
 
-  return { addPlugin, registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
+  const operations = () => createCssOperations(registry, { expandShorthand, collapseToShorthand, isShorthand, supportsExpand });
+  const cssOperations = {
+    transformCss: (...args: Parameters<ReturnType<typeof createCssOperations>["transformCss"]>) => operations().transformCss(...args),
+    expandCss: (...args: Parameters<ReturnType<typeof createCssOperations>["expandCss"]>) => operations().expandCss(...args),
+    collapseCss: (...args: Parameters<ReturnType<typeof createCssOperations>["collapseCss"]>) => operations().collapseCss(...args),
+    expandDeclarations: (...args: Parameters<ReturnType<typeof createCssOperations>["expandDeclarations"]>) => operations().expandDeclarations(...args),
+    collapseDeclarations: (...args: Parameters<ReturnType<typeof createCssOperations>["collapseDeclarations"]>) => operations().collapseDeclarations(...args),
+    transformCssWithSourceMap: (...args: Parameters<ReturnType<typeof createCssOperations>["transformCssWithSourceMap"]>) => operations().transformCssWithSourceMap(...args),
+    transformDeclarationsWithSourceMap: (...args: Parameters<ReturnType<typeof createCssOperations>["transformDeclarationsWithSourceMap"]>) => operations().transformDeclarationsWithSourceMap(...args),
+  };
+
+  return { ...cssOperations, addPlugin, registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
 }
 
 export type CssTransformer = ReturnType<typeof createCssTransformer>;
 
 const defaultTransformer = createCssTransformer();
 export const { isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands } = defaultTransformer;
+export const { transformCss, expandCss, collapseCss, expandDeclarations, collapseDeclarations, transformCssWithSourceMap, transformDeclarationsWithSourceMap } = defaultTransformer;
 export { SHORTHAND_PROPERTIES };

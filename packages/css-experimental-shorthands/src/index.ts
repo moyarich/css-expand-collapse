@@ -5,5 +5,6 @@ const experimentalShorthands: CssTransformerPlugin = {
   name: "@moyarich/css-experimental-shorthands",
   shorthands: { "background-repeat": backgroundRepeat },
   grammars: backgroundRepeatGrammars,
+  replaceRecognized: ["background-repeat"],
 };
 export default experimentalShorthands;
