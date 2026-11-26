@@ -24,12 +24,15 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --clean && node -e \"require('node:fs').copyFileSync('dist/index.d.ts', 'dist/index.d.cts')\"",
     "prepack": "npm run build",
-    "test": "vitest run"
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
     "@moyarich/css-expand-collapse": "^0.1.2"

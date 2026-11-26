@@ -823,3 +823,11 @@ Duplicate plugin names and conflicting shorthand definitions are rejected. Runti
 The registry records draft-defined constituent names and initial values for background-repeat, line-clamp (including its legacy spelling), text-spacing, timeline-trigger and its two range shorthands, and event-trigger. These remain recognized-only. Draft metadata is not evidence of interoperable browser behavior. Logical repeat aliases, legacy clamp behavior and trigger range defaults require separate semantic verification before default transformations are enabled.
 
 References: [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/), [CSS Text 4](https://drafts.csswg.org/css-text-4/), [Animation Triggers 1](https://drafts.csswg.org/animation-triggers-1/).
+
+Instance transformers also support `expandCss`, `collapseCss`, `transformCss`, declaration fragments and both source-map APIs. Plugins may explicitly declare `replaceRecognized` for recognized-only shorthands without overriding active built-in transformations.
+
+Instance metadata discovery (`css.getShorthandMetadata(property)` and `css.listShorthands(filter)`) reflects the current registered modules and directional capabilities. Top-level discovery continues to describe built-ins.
+
+Remove a plugin with `css.removePlugin(name)`. This removes its shorthand and grammar contributions, revealing earlier registrations or built-in definitions while retaining later overrides. Removing an unknown plugin returns `false`. Direct `unregisterShorthand` clears the registration history for that property and restores the built-in if present.
+
+Background repeat overlap protection applies to declaration maps and stylesheet blocks, preserving authored declarations when repeat shorthands and physical or logical axes interact.

@@ -5,9 +5,13 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
-const directory = join(root, "packages", "css-expand-collapse");
+const selector = process.argv[2] ?? "css-expand-collapse";
+if (!/^[a-z0-9][a-z0-9._-]*$/i.test(selector)) {
+  throw new Error("Expected a package directory name under packages/.");
+}
+const directory = join(root, "packages", selector);
 const expected = JSON.parse(readFileSync(join(directory, "package.json"), "utf8"));
-const temp = mkdtempSync(join(tmpdir(), "css-expand-collapse-pack-"));
+const temp = mkdtempSync(join(tmpdir(), "workspace-package-pack-"));
 const npm = process.platform === "win32" ? "npm.cmd" : "npm";
 
 function assert(condition, message) {
