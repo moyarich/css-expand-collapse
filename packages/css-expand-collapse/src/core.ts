@@ -80,6 +80,15 @@ export interface CssTransformerPlugin {
   readonly grammars?: Readonly<Record<string, PropertyGrammar>>;
   /** Explicitly replace these recognized-only definitions when installing the plugin. */
   readonly replaceRecognized?: readonly string[];
+  /** Names of plugins that must already be installed. */
+  readonly requires?: readonly string[];
+}
+
+export interface CssTransformerPluginInfo {
+  readonly name: string;
+  readonly requires: readonly string[];
+  readonly shorthands: readonly string[];
+  readonly grammars: readonly string[];
 }
 
 export interface CssTransformerOptions {
@@ -88,7 +97,7 @@ export interface CssTransformerOptions {
 
 export function createCssTransformer(configuration: CssTransformerOptions = {}) {
   const grammars = new Map<string, PropertyGrammar>();
-  const plugins = new Set<string>();
+  const plugins = new Map<string, CssTransformerPluginInfo>();
   type ModuleLayer = { owner?: string; module: ShorthandModule };
   type GrammarLayer = { owner: string; grammar: PropertyGrammar };
   const moduleLayers = new Map<string, ModuleLayer[]>();
@@ -118,6 +127,12 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
 
   function addPlugin(plugin: CssTransformerPlugin, options: { override?: boolean } = {}): void {
     if (!plugin.name.trim() || plugins.has(plugin.name)) throw new Error("Invalid or duplicate plugin: " + plugin.name);
+    const requires = [...new Set(plugin.requires ?? [])];
+    for (const dependency of requires) {
+      if (dependency === plugin.name || !plugins.has(dependency)) {
+        throw new Error("Missing or cyclic plugin dependency: " + dependency);
+      }
+    }
     const next = { ...modules };
     const nextGrammars = new Map(grammars);
     const moduleNames = new Set<string>();
@@ -149,11 +164,33 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
       const layers = grammarLayers.get(name) ?? [];
       grammarLayers.set(name, [...layers, { owner: plugin.name, grammar: nextGrammars.get(name)! }]);
     }
-    plugins.add(plugin.name);
+    plugins.set(plugin.name, Object.freeze({
+      name: plugin.name,
+      requires: Object.freeze(requires),
+      shorthands: Object.freeze([...moduleNames]),
+      grammars: Object.freeze([...grammarNames]),
+    }));
+  }
+
+  function hasPlugin(name: string): boolean {
+    return plugins.has(name);
+  }
+
+  function getPlugin(name: string): CssTransformerPluginInfo | undefined {
+    return plugins.get(name);
+  }
+
+  function listPlugins(): readonly CssTransformerPluginInfo[] {
+    return Object.freeze([...plugins.values()]);
   }
 
   function removePlugin(name: string): boolean {
     if (!plugins.has(name)) return false;
+    for (const plugin of plugins.values()) {
+      if (plugin.requires.includes(name)) {
+        throw new Error("Plugin is required by: " + plugin.name);
+      }
+    }
     const next = { ...modules };
     for (const [property, layers] of moduleLayers) {
       const remaining = layers.filter((layer) => layer.owner !== name);
@@ -483,7 +520,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
   const getShorthandMetadata = (property: string) => describeShorthand(property, modules);
   const listShorthands = (filter: ShorthandFilter = {}) => describeShorthands(filter, modules);
 
-  return { ...cssOperations, getShorthandMetadata, listShorthands, addPlugin, removePlugin, registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
+  return { ...cssOperations, getShorthandMetadata, listShorthands, addPlugin, removePlugin, hasPlugin, getPlugin, listPlugins, registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
 }
 
 export type CssTransformer = ReturnType<typeof createCssTransformer>;

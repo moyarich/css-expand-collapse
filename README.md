@@ -831,3 +831,16 @@ Instance metadata discovery (`css.getShorthandMetadata(property)` and `css.listS
 Remove a plugin with `css.removePlugin(name)`. This removes its shorthand and grammar contributions, revealing earlier registrations or built-in definitions while retaining later overrides. Removing an unknown plugin returns `false`. Direct `unregisterShorthand` clears the registration history for that property and restores the built-in if present.
 
 Background repeat overlap protection applies to declaration maps and stylesheet blocks, preserving authored declarations when repeat shorthands and physical or logical axes interact.
+
+### Plugin discovery and dependencies
+
+```ts
+const css = createCssTransformer({ plugins: [basePlugin] });
+css.addPlugin({ name: "extra", requires: [basePlugin.name] });
+css.hasPlugin("extra");
+css.getPlugin("extra");
+css.listPlugins();
+css.removePlugin("extra");
+```
+
+Plugin discovery returns frozen metadata, not executable handlers or mutable registry maps. Dependencies are explicitly installed by the consumer in order. Removing a required plugin throws before modifying the instance.

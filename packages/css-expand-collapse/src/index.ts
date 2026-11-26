@@ -91,4 +91,4 @@ export type { CssDeclarationProvenance, CssInputSourceMap, CssSourceMap, Transfo
 export { createCssTransformer } from "./core.js";
 export type { CssTransformer } from "./core.js";
 
-export type { CssTransformerPlugin, CssTransformerOptions, PropertyGrammar } from "./core.js";
+export type { CssTransformerPlugin, CssTransformerPluginInfo, CssTransformerOptions, PropertyGrammar } from "./core.js";
