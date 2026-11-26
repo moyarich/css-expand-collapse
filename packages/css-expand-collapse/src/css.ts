@@ -33,6 +33,13 @@ export interface TransformCssOptions extends TransformOptions {
   mode: TransformMode;
 }
 
+type SourceDeclaration = { property: string; location: NonNullable<Declaration["loc"]> };
+type ProvenanceStore = WeakMap<Declaration, SourceDeclaration[]>;
+
+function authoredDeclaration(node: Declaration): SourceDeclaration[] {
+  return node.loc ? [{ property: node.property, location: node.loc }] : [];
+}
+
 type EffectiveDeclaration = {
   value: string;
   important: boolean;
@@ -205,6 +212,7 @@ function valuesEquivalent(
 function expandBlock(
   children: CssNode[],
   options?: TransformOptions,
+  provenance?: ProvenanceStore,
 ): CssNode[] {
   const output: CssNode[] = [];
   for (const child of children) {
@@ -231,7 +239,9 @@ function expandBlock(
     }
 
     for (const [property, value] of Object.entries(expanded.declarations)) {
-      output.push(makeDeclaration(property, value, Boolean(child.important), child.loc));
+      const node = makeDeclaration(property, value, Boolean(child.important), child.loc);
+      provenance?.set(node, authoredDeclaration(child));
+      output.push(node);
     }
   }
   return output;
@@ -504,6 +514,7 @@ function tryCollapseAt(
 function collapseBlock(
   children: CssNode[],
   options?: TransformOptions,
+  provenance?: ProvenanceStore,
 ): CssNode[] {
   const hasPositionAxes = children.some((node) => node.type === "Declaration" && isBackgroundPositionAxis(normalizeProperty(node.property)));
   const hasBackground = children.some((node) => node.type === "Declaration" && normalizeProperty(node.property) === "background");
@@ -518,6 +529,12 @@ function collapseBlock(
     if (!collapsed) continue;
 
     replacements.set(index, collapsed.node);
+    if (provenance) {
+      provenance.set(collapsed.node, collapsed.indices.flatMap((matchedIndex) => {
+        const node = children[matchedIndex];
+        return node?.type === "Declaration" ? authoredDeclaration(node) : [];
+      }));
+    }
     for (const matchedIndex of collapsed.indices) consumed.add(matchedIndex);
     for (const shadowedIndex of collapsed.shadowedIndices)
       consumed.add(shadowedIndex);
@@ -540,6 +557,7 @@ function transformCssAst(
   css: string,
   options: TransformCssOptions,
   filename?: string,
+  provenance?: ProvenanceStore,
 ): StyleSheet {
   const ast = parse(css, {
     context: "stylesheet",
@@ -576,8 +594,8 @@ function transformCssAst(
       const blockOptions = scopedTransformOptions(options, customProperties);
       const transformed =
         options.mode === "expand"
-          ? expandBlock(children, blockOptions)
-          : collapseBlock(children, blockOptions);
+          ? expandBlock(children, blockOptions, provenance)
+          : collapseBlock(children, blockOptions, provenance);
       const list = new List<CssNode>();
       for (const child of transformed) list.appendData(child);
       block.children = list;
@@ -633,6 +651,8 @@ export interface TransformCssSourceMapOptions extends TransformCssOptions {
   filename?: string;
   /** Name of the generated CSS file. */
   outputFilename?: string;
+  /** Return all contributing source declarations, including many-to-one collapse. */
+  includeProvenance?: boolean;
 }
 
 export interface CssSourceMap {
@@ -644,9 +664,19 @@ export interface CssSourceMap {
   mappings: string;
 }
 
+/** All contributing authored declarations for an emitted CSS declaration. */
+export interface CssDeclarationProvenance {
+  property: string;
+  /** Zero-based declaration index in generated stylesheet traversal order. */
+  declarationIndex: number;
+  sources: SourceDeclaration[];
+}
+
 export interface TransformCssSourceMapResult {
   css: string;
   map: CssSourceMap;
+  /** Present when includeProvenance is true. */
+  provenance?: CssDeclarationProvenance[];
 }
 
 /**
@@ -658,7 +688,21 @@ export function transformCssWithSourceMap(
   options: TransformCssSourceMapOptions,
 ): TransformCssSourceMapResult {
   const filename = options.filename ?? "input.css";
-  const ast = transformCssAst(css, options, filename);
+  const provenanceStore: ProvenanceStore | undefined = options.includeProvenance ? new WeakMap() : undefined;
+  const ast = transformCssAst(css, options, filename, provenanceStore);
+  const provenance: CssDeclarationProvenance[] = [];
+  if (provenanceStore) {
+    walk(ast, {
+      visit: "Declaration",
+      enter(node) {
+        provenance.push({
+          property: node.property,
+          declarationIndex: provenance.length,
+          sources: provenanceStore.get(node) ?? authoredDeclaration(node),
+        });
+      },
+    });
+  }
   // CSSTree's runtime generator supports sourceMap:true; its older type
   // declarations do not consistently describe the returned map generator.
   const mappedGenerate = generate as unknown as (
@@ -671,6 +715,7 @@ export function transformCssWithSourceMap(
   const sources = raw.sources.length ? raw.sources : [filename];
   return {
     css: generated.css,
+    ...(provenanceStore ? { provenance } : {}),
     map: {
       ...raw,
       version: 3,

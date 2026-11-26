@@ -80,4 +80,4 @@ export { parseCssLayers, splitCssLayers } from "./css-layers.js";
 export type { CssLayer, LayerParseResult, LayeredShorthand } from "./css-layers.js";
 
 export { transformCssWithSourceMap } from "./css.js";
-export type { CssSourceMap, TransformCssSourceMapOptions, TransformCssSourceMapResult } from "./css.js";
+export type { CssDeclarationProvenance, CssSourceMap, TransformCssSourceMapOptions, TransformCssSourceMapResult } from "./css.js";

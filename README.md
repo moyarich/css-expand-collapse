@@ -701,5 +701,15 @@ embedded. Generated longhands map to the shorthand's starting position.
 A collapsed shorthand maps to the first consumed longhand; it does not encode
 all contributing declarations. Unchanged nodes retain their original positions.
 Existing string APIs are unchanged. No source-map comment is appended
-automatically. Fragment maps, upstream map composition and multi-origin
-provenance are not yet supported.
+automatically. Fragment maps and upstream map composition are not yet supported.
+
+### Declaration provenance
+
+Pass `includeProvenance: true` to obtain an optional `provenance` array alongside the standard map. Each entry identifies the generated declaration by its zero-based traversal index and property and lists original contributing declaration names and source ranges. A collapsed shorthand lists all consumed longhands, not earlier shadowed declarations or synthetic initial values. Expanded longhands share their original shorthand range. Unchanged declarations list themselves. The standard map continues to use the first consumed declaration for collapse.
+
+```ts
+const { css, map, provenance } = transformCssWithSourceMap(source, {
+  mode: "collapse",
+  includeProvenance: true,
+});
+```
