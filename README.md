@@ -673,8 +673,8 @@ The optional `onDiagnostic` callback is available on property, declaration-map
 and CSS text transformation APIs. Failed expansion attempts distinguish
 unsupported shorthands, invalid grammar, unresolved runtime values, unknown
 grammar and otherwise unsafe transformations. CSS text diagnostics can include
-source coordinates; object inputs do not have source coordinates. Collapse
-diagnostics describe rejected candidates and are not an exhaustive cascade trace.
+source coordinates (relative to the supplied stylesheet or declaration fragment); object inputs do not have source coordinates. Collapse
+diagnostics describe rejected candidates and are not an exhaustive cascade trace. Stylesheet collapse diagnostics include an optional structured `reason` for missing longhands, duplicate longhands, mixed priority, overlapping shorthands or incompatible values.
 
 ```ts
 expandShorthand("margin", "var(--missing)", {
@@ -742,3 +742,5 @@ const collapsed = transformCssWithSourceMap(expanded.css, {
 ```
 
 The same option works with declaration fragments. The upstream map must describe the exact input text. Only flat encoded v3 maps are accepted; indexed sections are not supported. Diagnostics and optional provenance remain relative to the immediate input CSS, because an upstream map does not necessarily encode complete original declaration ranges. JavaScript build maps remain disabled.
+
+Transformation diagnostics include parser positions when CSSTree provides them. Map collapse identifies invalid or unresolved constituent values using the standalone validator; missing required constituents use `reason: "missing-longhands"`. Diagnostics describe attempted candidates, not an exhaustive browser cascade trace.
