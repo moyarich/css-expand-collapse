@@ -1,7 +1,10 @@
 import type { ShorthandModule } from "../../module.js";
 
-// Recognize the shorthand without emitting unverified constituent syntax.
+// Specification-defined constituents; transformation remains opt-in.
 export default {
-  longhands: new Map<string, string>(),
+  longhands: new Map<string, string>([
+    ["background-repeat-x","repeat"],
+    ["background-repeat-y","repeat"],
+  ]),
   experimental: true,
 } satisfies ShorthandModule;
