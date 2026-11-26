@@ -88,6 +88,10 @@ export interface CssTransformerOptions {
 export function createCssTransformer(configuration: CssTransformerOptions = {}) {
   const grammars = new Map<string, PropertyGrammar>();
   const plugins = new Set<string>();
+  type ModuleLayer = { owner?: string; module: ShorthandModule };
+  type GrammarLayer = { owner: string; grammar: PropertyGrammar };
+  const moduleLayers = new Map<string, ModuleLayer[]>();
+  const grammarLayers = new Map<string, GrammarLayer[]>();
   const match = (property: string, value: string): boolean => {
     const grammar = grammars.get(normalizeProperty(property));
     if (!grammar) return matchProperty(property, value);
@@ -107,28 +111,74 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
     if (Object.hasOwn(modules, name) && !options.override) throw new Error("Shorthand already registered: " + name);
     registry = createRegistry({ ...modules, [name]: module });
     modules = registry.SHORTHAND_MODULES;
+    const layers = moduleLayers.get(name) ?? [];
+    moduleLayers.set(name, [...layers, { module: modules[name]! }]);
   }
 
   function addPlugin(plugin: CssTransformerPlugin, options: { override?: boolean } = {}): void {
     if (!plugin.name.trim() || plugins.has(plugin.name)) throw new Error("Invalid or duplicate plugin: " + plugin.name);
     const next = { ...modules };
     const nextGrammars = new Map(grammars);
+    const moduleNames = new Set<string>();
+    const grammarNames = new Set<string>();
     for (const [property, module] of Object.entries(plugin.shorthands ?? {})) {
       const name = normalizeProperty(property);
       if (!/^-?[a-z][a-z0-9-]*$/.test(name)) throw new Error("Invalid shorthand property: " + property);
       if (Object.hasOwn(next, name) && !options.override && !(plugin.replaceRecognized?.includes(name) && !supportsExpand(name) && !supportsCollapse(name))) throw new Error("Shorthand already registered: " + name);
+      if (moduleNames.has(name)) throw new Error("Duplicate plugin shorthand: " + name);
+      moduleNames.add(name);
       next[name] = module;
     }
     for (const [property, grammar] of Object.entries(plugin.grammars ?? {})) {
       const name = normalizeProperty(property);
       if (!/^-?[a-z][a-z0-9-]*$/.test(name) || typeof grammar !== "function") throw new Error("Invalid property grammar: " + property);
       if (nextGrammars.has(name) && !options.override) throw new Error("Grammar already registered: " + name);
+      if (grammarNames.has(name)) throw new Error("Duplicate plugin grammar: " + name);
+      grammarNames.add(name);
       nextGrammars.set(name, grammar);
     }
     registry = createRegistry(next);
     modules = registry.SHORTHAND_MODULES;
     for (const [name, grammar] of nextGrammars) grammars.set(name, grammar);
+    for (const name of moduleNames) {
+      const layers = moduleLayers.get(name) ?? [];
+      moduleLayers.set(name, [...layers, { owner: plugin.name, module: modules[name]! }]);
+    }
+    for (const name of grammarNames) {
+      const layers = grammarLayers.get(name) ?? [];
+      grammarLayers.set(name, [...layers, { owner: plugin.name, grammar: nextGrammars.get(name)! }]);
+    }
     plugins.add(plugin.name);
+  }
+
+  function removePlugin(name: string): boolean {
+    if (!plugins.has(name)) return false;
+    const next = { ...modules };
+    for (const [property, layers] of moduleLayers) {
+      const remaining = layers.filter((layer) => layer.owner !== name);
+      if (remaining.length === layers.length) continue;
+      const replacement = remaining.at(-1)?.module ?? (Object.hasOwn(BUILTIN_MODULES, property) ? BUILTIN_MODULES[property] : undefined);
+      if (replacement) next[property] = replacement;
+      else delete next[property];
+      if (remaining.length) moduleLayers.set(property, remaining);
+      else moduleLayers.delete(property);
+    }
+    for (const [property, layers] of grammarLayers) {
+      const remaining = layers.filter((layer) => layer.owner !== name);
+      if (remaining.length === layers.length) continue;
+      const replacement = remaining.at(-1);
+      if (replacement) {
+        grammars.set(property, replacement.grammar);
+        grammarLayers.set(property, remaining);
+      } else {
+        grammars.delete(property);
+        grammarLayers.delete(property);
+      }
+    }
+    registry = createRegistry(next);
+    modules = registry.SHORTHAND_MODULES;
+    plugins.delete(name);
+    return true;
   }
 
   function unregisterShorthand(property: string): boolean {
@@ -137,6 +187,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
     const next = { ...modules };
     if (Object.hasOwn(BUILTIN_MODULES, name)) next[name] = BUILTIN_MODULES[name]!;
     else delete next[name];
+    moduleLayers.delete(name);
     registry = createRegistry(next);
     modules = registry.SHORTHAND_MODULES;
     return true;
@@ -428,7 +479,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
   const getShorthandMetadata = (property: string) => describeShorthand(property, modules);
   const listShorthands = (filter: ShorthandFilter = {}) => describeShorthands(filter, modules);
 
-  return { ...cssOperations, getShorthandMetadata, listShorthands, addPlugin, registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
+  return { ...cssOperations, getShorthandMetadata, listShorthands, addPlugin, removePlugin, registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
 }
 
 export type CssTransformer = ReturnType<typeof createCssTransformer>;

@@ -827,3 +827,5 @@ References: [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), [C
 Instance transformers also support `expandCss`, `collapseCss`, `transformCss`, declaration fragments and both source-map APIs. Plugins may explicitly declare `replaceRecognized` for recognized-only shorthands without overriding active built-in transformations.
 
 Instance metadata discovery (`css.getShorthandMetadata(property)` and `css.listShorthands(filter)`) reflects the current registered modules and directional capabilities. Top-level discovery continues to describe built-ins.
+
+Remove a plugin with `css.removePlugin(name)`. This removes its shorthand and grammar contributions, revealing earlier registrations or built-in definitions while retaining later overrides. Removing an unknown plugin returns `false`. Direct `unregisterShorthand` clears the registration history for that property and restores the built-in if present.
