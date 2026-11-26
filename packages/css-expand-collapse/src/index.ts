@@ -10,6 +10,8 @@ export {
   isLonghand,
   isShorthand,
   supportsTransform,
+  supportsExpand,
+  supportsCollapse,
 } from "./core.js";
 
 export type {
@@ -53,7 +55,11 @@ export {
 
 export type { ReadonlyStyleDeclaration } from "./style.js";
 
-export { splitTopLevelWhitespace } from "./registry/context.js";
+export { splitTopLevelWhitespace, splitTopLevelComma, splitTopLevelSlash, matchProperty, createShorthandExpandContext, createShorthandCollapseContext } from "./registry/context.js";
+export { expandQuad, expandPair, expandTriple, expandComponents, expandSlashPair } from "./registry/expanders.js";
+export { collapseQuad, collapsePair, collapseTriple, collapseComponents, collapseSlashPair } from "./registry/collapsers.js";
+export { activeLonghands, longhandNames, longhandInitialValues, getModuleCapabilities } from "./registry/helpers.js";
+export type { ShorthandModule, ShorthandModuleMap, ShorthandCapabilities, ShorthandExpander, ShorthandCollapser, ShorthandExpandContext, ShorthandCollapseContext, LonghandValueEquivalence } from "./registry/module.js";
 
 export * from "./validation/index.js";
 

@@ -1,4 +1,6 @@
-import { SHORTHAND_DEFINITIONS, SHORTHAND_MODULES, SHORTHAND_PROPERTIES } from "./index.js";
+import { getModuleCapabilities } from "./helpers.js";
+import type { ShorthandCapabilities } from "./module.js";
+import { SHORTHAND_MODULES, SHORTHAND_PROPERTIES } from "./index.js";
 
 export type ShorthandCategory =
   | "background"
@@ -16,11 +18,16 @@ export interface ShorthandMetadata {
   readonly category: ShorthandCategory;
   readonly longhands: readonly string[];
   readonly transformable: boolean;
+  readonly capabilities: ShorthandCapabilities;
+  readonly experimental: boolean;
 }
 
 export interface ShorthandFilter {
   category?: ShorthandCategory;
   transformable?: boolean;
+  expand?: boolean;
+  collapse?: boolean;
+  experimental?: boolean;
 }
 
 function categoryFor(property: string): ShorthandCategory {
@@ -44,11 +51,14 @@ export function getShorthandMetadata(property: string): ShorthandMetadata | unde
   const name = property.trim().toLowerCase();
   if (!Object.hasOwn(SHORTHAND_MODULES, name)) return undefined;
   const module = SHORTHAND_MODULES[name]!;
+  const capabilities = getModuleCapabilities(module);
   return Object.freeze({
     property: name,
     category: categoryFor(name),
     longhands: Object.freeze([...module.longhands.keys()]),
-    transformable: Object.hasOwn(SHORTHAND_DEFINITIONS, name),
+    transformable: capabilities.expand && capabilities.collapse,
+    capabilities,
+    experimental: module.experimental ?? false,
   });
 }
 
@@ -58,7 +68,10 @@ export function listShorthands(filter: ShorthandFilter = {}): readonly Shorthand
     SHORTHAND_PROPERTIES.map((name) => getShorthandMetadata(name)!).filter(
       (item) =>
         (filter.category === undefined || item.category === filter.category) &&
-        (filter.transformable === undefined || item.transformable === filter.transformable),
+        (filter.transformable === undefined || item.transformable === filter.transformable) &&
+        (filter.expand === undefined || item.capabilities.expand === filter.expand) &&
+        (filter.collapse === undefined || item.capabilities.collapse === filter.collapse) &&
+        (filter.experimental === undefined || item.experimental === filter.experimental),
     ),
   );
 }

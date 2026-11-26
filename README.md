@@ -776,3 +776,17 @@ None of the four constituent equivalence comparisons ran because the complete br
 ### Animation trigger properties
 
 The [CSS Animation Triggers Level 1 draft](https://drafts.csswg.org/animation-triggers-1/) distinguishes the `animation-trigger` longhand from the `timeline-trigger` shorthand. The latter groups name, source, activation range and active range; both range properties are themselves shorthands for their start and end values. The draft also defines `event-trigger` as a shorthand for its name and source. All three additional shorthands are recognized-only. No speculative longhands are generated. Animation expansion resets `animation-timeline` to `auto` and both animation range endpoints to `normal`, using single initial values even for multiple animation layers. The [CSS Animation Triggers draft](https://drafts.csswg.org/animation-triggers-1/#animation-trigger) defines `animation-trigger` as reset-only with initial value `none`. Chromium's tested implementation preserves earlier triggers instead. The library retains this constituent for discovery but temporarily excludes it from expansion, collapse and cascade consumption. Browser tests compare the original authored CSS against transformed CSS in supporting engines. This compatibility compromise is not full draft compliance and may differ in browsers that implement the reset. See [#undefined](https://github.com/moyarich/css-expand-collapse/issues/undefined).
+
+
+### Reusable transformation helpers
+
+```ts
+import { supportsExpand, supportsCollapse, expandPair, createShorthandExpandContext } from "@moyarich/css-expand-collapse";
+
+supportsExpand("margin"); // true
+supportsCollapse("margin"); // true
+const expandGap = expandPair(new Map([["row-gap", "normal"], ["column-gap", "normal"]]));
+expandGap("1px 2px", createShorthandExpandContext());
+```
+
+Directional queries report available operations, not guaranteed success for every value. `supportsTransform` requires both directions. Shared factories, top-level value splitters, grammar matching, constituent helpers and module/context types are available from the package root. Factory contexts currently use the default CSS grammar.

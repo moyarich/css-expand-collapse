@@ -7,5 +7,7 @@ it("exposes public metadata for a recognized shorthand", () => {
     category: "spacing",
     longhands: getLonghands("margin"),
     transformable: true,
+    capabilities: { expand: true, collapse: true },
+    experimental: false,
   });
 });

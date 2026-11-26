@@ -5,8 +5,10 @@ Each CSS shorthand lives in its own module under `shorthands/<feature>/`. The **
 ```ts
 export interface ShorthandModule {
   readonly longhands: LonghandMap;
-  readonly expand: ShorthandExpander;
-  readonly collapse: ShorthandCollapser;
+  readonly excludedLonghands?: readonly string[];
+  readonly experimental?: boolean;
+  readonly expand?: ShorthandExpander;
+  readonly collapse?: ShorthandCollapser;
   readonly equivalentLonghandValues?: ReadonlyMap<
     string,
     LonghandValueEquivalence
@@ -21,7 +23,7 @@ export interface ShorthandModule {
 export type LonghandMap = ReadonlyMap<string, string>;
 ```
 
-There is no strategy dispatcher. A shorthand module owns both transformation directions. Adding a new shorthand should not require adding a case to `core.ts`.
+There is no strategy dispatcher. A shorthand module owns its implemented transformation directions. Capabilities are derived from callable handlers and a nonempty active constituent set. Adding a new shorthand should not require adding a case to `core.ts`.
 
 ## Registry responsibilities
 
@@ -130,7 +132,7 @@ Set it to `false` when a shorthand has reset/cascade effects beyond the register
 
 1. Add `shorthands/<feature>/<property>.ts`.
 2. Declare its `LonghandMap`, pairing every longhand with its CSS initial value.
-3. Implement `expand` and `collapse` in that module.
+3. Implement either or both supported directions; omit unavailable handlers.
 4. Reuse `expanders.ts` and `collapsers.ts` factories when the grammar matches.
 5. Keep special parsing/serialization semantics in the shorthand file and validate candidates with `context.matchProperty(...)`.
 6. Set `safeToDropWhenFullyShadowed: false` only when the registered longhands do not represent every cascade/reset effect.

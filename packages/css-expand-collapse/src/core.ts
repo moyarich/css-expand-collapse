@@ -96,7 +96,15 @@ export function getShorthands(longhand: string): string[] {
 }
 
 export function supportsTransform(property: string): boolean {
-  return Boolean(SHORTHAND_DEFINITIONS[normalizeProperty(property)]);
+  return supportsExpand(property) && supportsCollapse(property);
+}
+
+export function supportsExpand(property: string): boolean {
+  return typeof SHORTHAND_DEFINITIONS[normalizeProperty(property)]?.expand === "function";
+}
+
+export function supportsCollapse(property: string): boolean {
+  return typeof SHORTHAND_DEFINITIONS[normalizeProperty(property)]?.collapse === "function";
 }
 
 /**
@@ -115,12 +123,12 @@ export function expandShorthand(
   const reportFailure = () => {
     if (options?.onDiagnostic) {
       options.onDiagnostic(describeExpansionFailure(
-        shorthand, value, Boolean(definition), options.customProperties,
+        shorthand, value, Boolean(definition?.expand), options.customProperties,
       ));
     }
     return null;
   };
-  if (!definition) return reportFailure();
+  if (!definition?.expand) return reportFailure();
 
   const normalizedValue = value.trim();
   if (!normalizedValue) return reportFailure();
@@ -199,7 +207,7 @@ export function collapseToShorthand(
 ): CollapseShorthandResult | null {
   const property = normalizeProperty(shorthandProperty);
   const definition = SHORTHAND_DEFINITIONS[property];
-  if (!definition) {
+  if (!definition?.collapse) {
     options?.onDiagnostic?.({ code: "unsupported-transform", severity: "info", property,
       message: "Shorthand transformation is not supported." });
     return null;
@@ -297,7 +305,7 @@ export function findCollapsibleShorthands(
 ): CollapseShorthandResult[] {
   return Object.entries(SHORTHAND_DEFINITIONS)
     .sort(([, a], [, b]) => b.longhands.size - a.longhands.size)
-    .filter(([, definition]) => [...definition.longhands.keys()].some((longhand) =>
+    .filter(([, definition]) => definition.collapse && [...definition.longhands.keys()].some((longhand) =>
       Object.keys(declarations).some((key) => normalizeDeclarationProperty(key) === longhand),
     ))
     .map(([shorthand]) => collapseToShorthand(shorthand, declarations, options))
