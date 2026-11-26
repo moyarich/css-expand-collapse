@@ -804,3 +804,5 @@ css.collapse({ "margin-top": "1px", "margin-right": "2px", "margin-bottom": "1px
 ```
 
 The existing top-level functions remain available. Instance methods also expose property-level expansion, collapse, and shorthand discovery.
+
+Register custom shorthand modules with `css.registerShorthand(property, module)`. Replacing a built-in requires `{ override: true }`; `css.unregisterShorthand(property)` restores the built-in or removes a custom entry. Registration is local to the instance.
