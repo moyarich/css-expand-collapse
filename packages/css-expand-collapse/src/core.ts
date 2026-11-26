@@ -4,7 +4,7 @@ import {
   mergeCustomProperties,
   type CustomPropertyMap,
 } from "./custom-properties.js";
-import { createRegistry, SHORTHAND_PROPERTIES, type DeclarationMap } from "./registry/index.js";
+import { createRegistry, SHORTHAND_PROPERTIES, SHORTHAND_MODULES as BUILTIN_MODULES, type ShorthandModule, type ShorthandModuleMap, type DeclarationMap } from "./registry/index.js";
 import {
   createShorthandCollapseContext,
   createShorthandExpandContext,
@@ -70,25 +70,45 @@ const normalizeDeclarationProperty = (property: string) => {
 };
 
 export function createCssTransformer() {
-  const { LONGHAND_TO_SHORTHANDS, SHORTHAND_DEFINITIONS, SHORTHAND_MODULES, SHORTHAND_SET } = createRegistry();
+  let registry = createRegistry();
+  let modules: ShorthandModuleMap = registry.SHORTHAND_MODULES;
+
+  function registerShorthand(property: string, module: ShorthandModule, options: { override?: boolean } = {}): void {
+    const name = normalizeProperty(property);
+    if (!/^-?[a-z][a-z0-9-]*$/.test(name)) throw new Error("Invalid shorthand property: " + property);
+    if (Object.hasOwn(modules, name) && !options.override) throw new Error("Shorthand already registered: " + name);
+    registry = createRegistry({ ...modules, [name]: module });
+    modules = registry.SHORTHAND_MODULES;
+  }
+
+  function unregisterShorthand(property: string): boolean {
+    const name = normalizeProperty(property);
+    if (!Object.hasOwn(modules, name)) return false;
+    const next = { ...modules };
+    if (Object.hasOwn(BUILTIN_MODULES, name)) next[name] = BUILTIN_MODULES[name]!;
+    else delete next[name];
+    registry = createRegistry(next);
+    modules = registry.SHORTHAND_MODULES;
+    return true;
+  }
 
   function isShorthand(property: string): boolean {
-    return SHORTHAND_SET.has(normalizeProperty(property));
+    return registry.SHORTHAND_SET.has(normalizeProperty(property));
   }
 
   function isLonghand(property: string): boolean {
-    return LONGHAND_TO_SHORTHANDS.has(normalizeProperty(property));
+    return registry.LONGHAND_TO_SHORTHANDS.has(normalizeProperty(property));
   }
 
   function getLonghands(shorthand: string): string[] {
     return [
-      ...(SHORTHAND_MODULES[normalizeProperty(shorthand)]?.longhands.keys() ??
+      ...(registry.SHORTHAND_MODULES[normalizeProperty(shorthand)]?.longhands.keys() ??
         []),
     ];
   }
 
   function getShorthands(longhand: string): string[] {
-    return [...(LONGHAND_TO_SHORTHANDS.get(normalizeProperty(longhand)) ?? [])];
+    return [...(registry.LONGHAND_TO_SHORTHANDS.get(normalizeProperty(longhand)) ?? [])];
   }
 
   function supportsTransform(property: string): boolean {
@@ -96,11 +116,11 @@ export function createCssTransformer() {
   }
 
   function supportsExpand(property: string): boolean {
-    return typeof SHORTHAND_DEFINITIONS[normalizeProperty(property)]?.expand === "function";
+    return typeof registry.SHORTHAND_DEFINITIONS[normalizeProperty(property)]?.expand === "function";
   }
 
   function supportsCollapse(property: string): boolean {
-    return typeof SHORTHAND_DEFINITIONS[normalizeProperty(property)]?.collapse === "function";
+    return typeof registry.SHORTHAND_DEFINITIONS[normalizeProperty(property)]?.collapse === "function";
   }
 
   /**
@@ -115,7 +135,7 @@ export function createCssTransformer() {
     options?: Pick<TransformOptions, "customProperties" | "onDiagnostic">,
   ): ExpandShorthandResult | null {
     const shorthand = normalizeProperty(property);
-    const definition = SHORTHAND_DEFINITIONS[shorthand];
+    const definition = registry.SHORTHAND_DEFINITIONS[shorthand];
     const reportFailure = () => {
       if (options?.onDiagnostic) {
         options.onDiagnostic(describeExpansionFailure(
@@ -202,7 +222,7 @@ export function createCssTransformer() {
     options?: TransformOptions,
   ): CollapseShorthandResult | null {
     const property = normalizeProperty(shorthandProperty);
-    const definition = SHORTHAND_DEFINITIONS[property];
+    const definition = registry.SHORTHAND_DEFINITIONS[property];
     if (!definition?.collapse) {
       options?.onDiagnostic?.({ code: "unsupported-transform", severity: "info", property,
         message: "Shorthand transformation is not supported." });
@@ -299,7 +319,7 @@ export function createCssTransformer() {
     declarations: DeclarationMap,
     options?: TransformOptions,
   ): CollapseShorthandResult[] {
-    return Object.entries(SHORTHAND_DEFINITIONS)
+    return Object.entries(registry.SHORTHAND_DEFINITIONS)
       .sort(([, a], [, b]) => b.longhands.size - a.longhands.size)
       .filter(([, definition]) => definition.collapse && [...definition.longhands.keys()].some((longhand) =>
         Object.keys(declarations).some((key) => normalizeDeclarationProperty(key) === longhand),
@@ -347,7 +367,7 @@ export function createCssTransformer() {
     return output;
   }
 
-  return { isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
+  return { registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
 }
 
 export type CssTransformer = ReturnType<typeof createCssTransformer>;
