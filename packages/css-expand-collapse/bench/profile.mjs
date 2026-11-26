@@ -3,7 +3,7 @@ import { cpus, platform, release, arch } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const worker = fileURLToPath(new URL("./profile-worker.mjs", import.meta.url));
-const workloads = ["repeated", "unique", "layered", "variables", "collapse-property", "expand-sheet", "collapse-sheet"];
+const workloads = ["repeated", "unique", "layered", "variables", "collapse-property", "expand-map", "collapse-map", "expand-fragment", "collapse-fragment", "invalid", "unsupported", "expand-sheet", "collapse-sheet"];
 const iterations = Number(process.env.BENCH_ITERATIONS ?? 1000);
 const samples = Number(process.env.BENCH_SAMPLES ?? 5);
 if (!Number.isSafeInteger(samples) || samples < 1 || samples > 30) {
