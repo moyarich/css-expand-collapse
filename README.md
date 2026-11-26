@@ -757,3 +757,5 @@ Transformation diagnostics include parser positions when CSSTree provides them. 
 | `animation-trigger` | Deferred | Current animation-trigger syntax is not treated as a shorthand; do not invent constituent properties. |
 
 Recognized-only entries return false from `supportsTransform` and preserve authored declarations. They intentionally expose no transformable longhands. See [CSS Text 4](https://www.w3.org/TR/css-text-4/), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/), [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), and [animation trigger guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Animation_triggers).
+
+The constituent audit exercises `text-spacing: normal`, `line-clamp: 3`, legacy `-webkit-line-clamp: 3`, and `background-repeat: repeat-x`. Browser tests record grammar recognition and support for each shorthand and its constituent values; computed-style comparisons run only when all constituents are supported. These probes are not a guarantee of general transformation support. The legacy line-clamp probe includes the required box orientation and display context.
