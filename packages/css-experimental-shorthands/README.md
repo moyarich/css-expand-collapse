@@ -40,6 +40,29 @@ css.removePlugin(animationTriggerPlugin.name);
 
 The plugin reuses core animation handlers, adds the reset to ordinary and CSS-wide expansion, and refuses ordinary collapse with a noninitial trigger. It is deliberately not part of the default aggregate plugin: overriding an already active shorthand requires explicit authorization. Tested Chromium behavior can differ from the draft; the plugin may change computed styles there. It does not perform runtime browser detection or claim native equivalence. The core remains unchanged when the plugin is absent.
 
+### Processing CSS from a website
+
+```ts
+const source = ".target{animation-trigger:--reveal play;animation:1s ease example}";
+const compatible = createCssTransformer();
+const draft = createCssTransformer();
+draft.addPlugin(animationTriggerPlugin, { override: true });
+
+const preserved = compatible.expandCss(source);
+const reset = draft.expandCss(source);
+```
+
+For the earlier-trigger scenario, the default expansion keeps the authored trigger and does not emit a reset. The draft expansion emits `animation-trigger: none` instead. A later explicit trigger overrides the draft reset. Parsing or inspecting a stylesheet without rewriting it does not change its behavior.
+
+| Scenario | Default | Draft plugin |
+| --- | --- | --- |
+| Trigger before animation | Preserve authored trigger | Reset to none |
+| Trigger after animation | Preserve later trigger | Preserve later trigger |
+| CSS-wide animation keyword | Exclude trigger from expansion | Apply keyword to trigger |
+| Noninitial trigger during collapse | Do not consume trigger | Refuse incompatible collapse |
+
+These are transformation policies, not a promise of identical native behavior. Browser specs compare authored CSS to transformed CSS and report the observed trigger reset; unsupported syntax is skipped. Use the default for website CSS unless deliberately targeting the draft behavior.
+
 ## Development
 
 From the repository root, build the workspaces before checking the public package entry points:
