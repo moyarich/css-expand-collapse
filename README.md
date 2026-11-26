@@ -772,3 +772,7 @@ The [three-browser constituent audit](https://github.com/moyarich/css-expand-col
 | background-repeat | Known | 0 of 2 | No / No / No |
 
 None of the four constituent equivalence comparisons ran because the complete browser support prerequisite was not satisfied. Keep these properties recognized-only; do not treat a skipped comparison as proof of equivalence. The audit is specific to the tested values and installed grammar/browser versions.
+
+### Animation trigger properties
+
+The [CSS Animation Triggers Level 1 draft](https://drafts.csswg.org/animation-triggers-1/) distinguishes the `animation-trigger` longhand from the `timeline-trigger` shorthand. The latter groups name, source, activation range and active range; both range properties are themselves shorthands for their start and end values. The draft also defines `event-trigger` as a shorthand for its name and source. All three additional shorthands are recognized-only. No speculative longhands are generated. The existing animation transformation's reset semantics for emerging trigger/range properties require separate consideration before extending its constituent list.
