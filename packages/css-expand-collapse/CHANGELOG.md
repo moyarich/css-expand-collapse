@@ -2,6 +2,12 @@
 
 Notable user-facing changes to `@moyarich/css-expand-collapse` are documented here.
 
+## Unreleased
+
+### Added
+
+- Recognize `line-clamp`, `-webkit-line-clamp`, `text-spacing`, `background-repeat` and `timeline-trigger` in shorthand metadata without rewriting their values. Transformation support remains disabled for these properties.
+
 ## 0.1.2
 
 ### Fixed

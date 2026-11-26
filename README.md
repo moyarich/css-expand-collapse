@@ -759,3 +759,16 @@ Transformation diagnostics include parser positions when CSSTree provides them. 
 Recognized-only entries return false from `supportsTransform` and preserve authored declarations. They intentionally expose no transformable longhands. See [CSS Text 4](https://www.w3.org/TR/css-text-4/), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/), [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), and [animation trigger guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Animation_triggers).
 
 The constituent audit exercises `text-spacing: normal`, `line-clamp: 3`, legacy `-webkit-line-clamp: 3`, and `background-repeat: repeat-x`. Browser tests record grammar recognition and support for each shorthand and its constituent values; computed-style comparisons run only when all constituents are supported. These probes are not a guarantee of general transformation support. The legacy line-clamp probe includes the required box orientation and display context.
+
+### Compatibility findings
+
+The [three-browser constituent audit](https://github.com/moyarich/css-expand-collapse/actions/runs/45751529376/job/139680207866) produced the following results for the specific values above:
+
+| Shorthand | Available shorthand grammar | Available constituent grammars | All values supported in Chromium / Firefox / WebKit |
+| --- | --- | --- | --- |
+| text-spacing | Unknown | 2 of 2 | No / No / No |
+| line-clamp | Known | 1 of 3 | No / No / No |
+| -webkit-line-clamp | Known | 1 of 3 | No / No / No |
+| background-repeat | Known | 0 of 2 | No / No / No |
+
+None of the four constituent equivalence comparisons ran because the complete browser support prerequisite was not satisfied. Keep these properties recognized-only; do not treat a skipped comparison as proof of equivalence. The audit is specific to the tested values and installed grammar/browser versions.
