@@ -125,6 +125,18 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
     moduleLayers.set(name, [...layers, { module: modules[name]! }]);
   }
 
+  function extendShorthand(property: string, extension: Partial<ShorthandModule>, options: { override?: boolean } = {}): void {
+    const name = normalizeProperty(property);
+    const current = Object.hasOwn(modules, name) ? modules[name] : undefined;
+    if (!current) throw new Error("Unknown shorthand: " + name);
+    for (const key of Object.keys(extension) as (keyof ShorthandModule)[]) {
+      if (current[key] !== undefined && current[key] !== extension[key] && !options.override) {
+        throw new Error("Shorthand field already registered: " + name + "." + key);
+      }
+    }
+    registerShorthand(name, { ...current, ...extension }, { override: true });
+  }
+
   function addPlugin(plugin: CssTransformerPlugin, options: { override?: boolean } = {}): void {
     if (!plugin.name.trim() || plugins.has(plugin.name)) throw new Error("Invalid or duplicate plugin: " + plugin.name);
     const requires = [...new Set(plugin.requires ?? [])];
@@ -192,15 +204,19 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
       }
     }
     const next = { ...modules };
+    const nextLayers = new Map(moduleLayers);
     for (const [property, layers] of moduleLayers) {
       const remaining = layers.filter((layer) => layer.owner !== name);
       if (remaining.length === layers.length) continue;
       const replacement = remaining.at(-1)?.module ?? (Object.hasOwn(BUILTIN_MODULES, property) ? BUILTIN_MODULES[property] : undefined);
       if (replacement) next[property] = replacement;
       else delete next[property];
-      if (remaining.length) moduleLayers.set(property, remaining);
-      else moduleLayers.delete(property);
+      if (remaining.length) nextLayers.set(property, remaining);
+      else nextLayers.delete(property);
     }
+    const nextRegistry = createRegistry(next);
+    moduleLayers.clear();
+    for (const [property, layers] of nextLayers) moduleLayers.set(property, layers);
     for (const [property, layers] of grammarLayers) {
       const remaining = layers.filter((layer) => layer.owner !== name);
       if (remaining.length === layers.length) continue;
@@ -213,7 +229,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
         grammarLayers.delete(property);
       }
     }
-    registry = createRegistry(next);
+    registry = nextRegistry;
     modules = registry.SHORTHAND_MODULES;
     plugins.delete(name);
     return true;
@@ -225,8 +241,8 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
     const next = { ...modules };
     if (Object.hasOwn(BUILTIN_MODULES, name)) next[name] = BUILTIN_MODULES[name]!;
     else delete next[name];
-    moduleLayers.delete(name);
     registry = createRegistry(next);
+    moduleLayers.delete(name);
     modules = registry.SHORTHAND_MODULES;
     return true;
   }
@@ -520,7 +536,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
   const getShorthandMetadata = (property: string) => describeShorthand(property, modules);
   const listShorthands = (filter: ShorthandFilter = {}) => describeShorthands(filter, modules);
 
-  return { ...cssOperations, getShorthandMetadata, listShorthands, addPlugin, removePlugin, hasPlugin, getPlugin, listPlugins, registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
+  return { ...cssOperations, getShorthandMetadata, listShorthands, addPlugin, removePlugin, hasPlugin, getPlugin, listPlugins, registerShorthand, extendShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
 }
 
 export type CssTransformer = ReturnType<typeof createCssTransformer>;
