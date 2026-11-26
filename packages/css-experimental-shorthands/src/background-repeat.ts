@@ -1,5 +1,5 @@
 import { splitTopLevelComma, splitTopLevelWhitespace } from "@moyarich/css-expand-collapse";
-import type { ShorthandModule } from "@moyarich/css-expand-collapse";
+import type { CssTransformerPlugin, ShorthandModule } from "@moyarich/css-expand-collapse";
 
 const x = "background-repeat-x";
 const y = "background-repeat-y";
@@ -21,15 +21,23 @@ export const backgroundRepeat: ShorthandModule = {
     return { [x]: layers.map((layer) => layer![0]).join(", "), [y]: layers.map((layer) => layer![1]).join(", ") };
   },
   collapse(values) {
-    const xs = splitTopLevelComma(values[x] ?? "");
-    const ys = splitTopLevelComma(values[y] ?? "");
+    const xs = splitTopLevelComma((values[x] ?? "").toLowerCase());
+    const ys = splitTopLevelComma((values[y] ?? "").toLowerCase());
     if (xs.length !== ys.length || ![...xs, ...ys].every((token) => keywords.has(token))) return null;
     return xs.map((a, i) => a === ys[i] ? a : a + " " + ys[i]).join(", ");
   },
 };
-const axisGrammar = (value: string) => splitTopLevelComma(value).every((token) => keywords.has(token));
+const axisGrammar = (value: string) => splitTopLevelComma(value.toLowerCase()).every((token) => keywords.has(token));
 export const backgroundRepeatGrammars = {
   [x]: axisGrammar,
   [y]: axisGrammar,
   "background-repeat": (value: string) => splitTopLevelComma(value).every((layer) => parseLayer(layer) !== null),
+};
+
+/** Register only physical background-repeat transformations and their grammars. */
+export const backgroundRepeatPlugin: CssTransformerPlugin = {
+  name: "@moyarich/css-experimental-shorthands/background-repeat",
+  shorthands: { "background-repeat": backgroundRepeat },
+  grammars: backgroundRepeatGrammars,
+  replaceRecognized: ["background-repeat"],
 };
