@@ -793,11 +793,18 @@ function composeCssMap(map: CssSourceMap, input: CssInputSourceMap): CssSourceMa
   }
   // The outer map has exactly one source: the CSS text supplied to this API.
   // Explicit chain order avoids relying on matching intermediate filenames.
-  const composed = remapping([map, input], () => null);
+  const composed = remapping([map, input], () => null, { decodedMappings: false });
+  const sources = composed.sources.map((source) => {
+    if (source === null) throw new TypeError("Composed source map contains a null source.");
+    return source;
+  });
+  if (typeof composed.mappings !== "string") {
+    throw new TypeError("Expected encoded source map mappings.");
+  }
   return {
     version: 3,
     ...(map.file !== undefined ? { file: map.file } : {}),
-    sources: composed.sources,
+    sources,
     names: composed.names,
     mappings: composed.mappings,
     sourcesContent: composed.sourcesContent ?? composed.sources.map(() => null),
