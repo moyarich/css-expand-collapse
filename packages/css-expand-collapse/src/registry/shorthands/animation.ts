@@ -17,6 +17,7 @@ const longhands = new Map([
   ["animation-timeline", "auto"],
   ["animation-range-start", "normal"],
   ["animation-range-end", "normal"],
+  ["animation-trigger", "none"],
 ] as const);
 const longhandNames = [...longhands.keys()];
 const initialValues = [...longhands.values()];
@@ -59,15 +60,15 @@ const expand: ShorthandExpander = (value, context) => {
       assigned.add(property);
     }
 
-    // Timeline and range constituents are reset-only; their initial values
+    // Timeline, range and trigger constituents are reset-only; their initial values
     // were populated above and cannot be assigned by shorthand tokens.
     expanded.push(result);
   }
 
   return Object.fromEntries(
-    longhandNames.map((longhand) => [
+    longhandNames.map((longhand, index) => [
       longhand,
-      expanded.map((layer) => layer[longhand]).join(", "),
+      index >= 8 ? initialValues[index]! : expanded.map((layer) => layer[longhand]).join(", "),
     ]),
   );
 };
@@ -81,9 +82,9 @@ export default {
       splitTopLevelComma(declarations[longhand] ?? ""),
     );
     const count = values[0]?.length ?? 0;
-    if (!count || values.some((layers) => layers.length !== count)) return null;
+    if (!count || values.slice(0, 8).some((layers) => layers.length !== count)) return null;
     if (values.slice(8).some((layers, index) =>
-      layers.some((value) => value !== initialValues[index + 8]),
+      layers.length !== 1 || layers[0] !== initialValues[index + 8],
     )) return null;
 
     const candidate = Array.from({ length: count }, (_, index) =>

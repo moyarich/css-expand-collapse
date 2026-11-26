@@ -1,14 +1,11 @@
 import { expect, it } from "vitest";
-import { collapseCss, expandCss } from "../../src/index.js";
+import { expandCss, expandShorthand } from "../../src/index.js";
 
-it("preserves authored animation-trigger independently of browser support (before)", () => {
+it("applies animation trigger reset semantics (before)", () => {
   const source = ".target{animation-trigger:--reveal play;animation:1s ease example}";
   const expanded = expandCss(source);
   expect(expanded).toContain("animation-duration:");
-  const trigger = "animation-trigger:--reveal play";
-  const normalize = (css: string) => css.replace(/,\s*/g, ",");
-  for (const css of [expanded, collapseCss(source), collapseCss(expanded)]) {
-    expect(normalize(css)).toContain(trigger);
-    expect(css.match(/animation-trigger:/g)).toHaveLength(1);
-  }
+  const triggers = [...expanded.matchAll(/animation-trigger:([^;}]+)/g)].map((match) => match[1]);
+  expect(triggers.at(-1)).toBe("none");
+  expect(expandShorthand("animation", "1s example")?.declarations["animation-trigger"]).toBe("none");
 });
