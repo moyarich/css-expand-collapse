@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { expandCss } from "../../src/index.js";
 import { expectRoundTrip } from "./helpers.js";
 
-it("preserves an animation trigger authored after the animation shorthand", ({ skip }) => {
+it("matches native animation-trigger behavior (override)", ({ skip }) => {
   if (!CSS.supports("animation-trigger", "--reveal play reset")) {
     skip("Browser does not support animation triggers");
     return;
