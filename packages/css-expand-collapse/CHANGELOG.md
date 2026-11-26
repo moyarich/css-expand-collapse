@@ -10,7 +10,7 @@ Notable user-facing changes to `@moyarich/css-expand-collapse` are documented he
 
 ### Fixed
 
-- Preserve animation shorthand range and trigger reset semantics during expansion and collapse.
+- Preserve animation shorthand range reset semantics during expansion and collapse; recognize the draft-defined animation-trigger reset but temporarily exclude it from transformations due to native browser differences.
 
 ## 0.1.2
 

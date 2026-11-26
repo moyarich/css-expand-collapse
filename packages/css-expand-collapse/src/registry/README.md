@@ -39,6 +39,8 @@ registry/
 
 `shorthands/index.ts` is generated from filenames and must not be edited manually. `SHORTHAND_MODULES`, `SHORTHAND_PROPERTIES`, `SHORTHAND_DEFINITIONS`, `SHORTHAND_SET`, and `LONGHAND_TO_SHORTHANDS` are derived from that generated map.
 
+The optional `excludedLonghands` field retains known constituents in discovery while excluding them from active transformation definitions. Modules with exclusions use the shared `activeLonghands` helper to select the same constituents for their handlers. Excluded constituents are not emitted for CSS-wide values or consumed during collapse. This is a temporary compatibility mechanism, not a browser-support check.
+
 ## Simple shorthand
 
 Simple grammars compose reusable expand/collapse factories:

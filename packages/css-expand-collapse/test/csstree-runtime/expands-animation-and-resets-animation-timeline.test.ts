@@ -17,6 +17,5 @@ it("expands animation and resets animation-timeline", () => {
     "animation-timeline": "auto",
     "animation-range-start": "normal",
     "animation-range-end": "normal",
-    "animation-trigger": "none",
   });
 });

@@ -1,3 +1,4 @@
+import { activeLonghands } from "../../helpers.js";
 import { splitTopLevelComma } from "../../context.js";
 import type {
   DeclarationMap,
@@ -19,8 +20,11 @@ const longhands = new Map([
   ["animation-range-end", "normal"],
   ["animation-trigger", "none"],
 ] as const);
-const longhandNames = [...longhands.keys()];
-const initialValues = [...longhands.values()];
+// The draft-defined trigger reset is retained, but native equivalence is not yet established.
+const excludedLonghands = ["animation-trigger"] as const;
+const active = activeLonghands(longhands, excludedLonghands);
+const longhandNames = [...active.keys()];
+const initialValues = [...active.values()];
 
 const expand: ShorthandExpander = (value, context) => {
   const layers = splitTopLevelComma(value);
@@ -75,6 +79,7 @@ const expand: ShorthandExpander = (value, context) => {
 
 export default {
   longhands,
+  excludedLonghands,
   safeToDropWhenFullyShadowed: false,
   expand,
   collapse(declarations, context) {

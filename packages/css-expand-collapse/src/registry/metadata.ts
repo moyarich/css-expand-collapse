@@ -1,4 +1,4 @@
-import { SHORTHAND_MODULES, SHORTHAND_PROPERTIES } from "./index.js";
+import { SHORTHAND_DEFINITIONS, SHORTHAND_MODULES, SHORTHAND_PROPERTIES } from "./index.js";
 
 export type ShorthandCategory =
   | "background"
@@ -48,7 +48,7 @@ export function getShorthandMetadata(property: string): ShorthandMetadata | unde
     property: name,
     category: categoryFor(name),
     longhands: Object.freeze([...module.longhands.keys()]),
-    transformable: module.longhands.size > 0,
+    transformable: Object.hasOwn(SHORTHAND_DEFINITIONS, name),
   });
 }
 

@@ -6,6 +6,5 @@ it("resets both range constituents to single initial values for multiple animati
     "animation-range-start": "normal",
     "animation-range-end": "normal",
     "animation-timeline": "auto",
-    "animation-trigger": "none",
   });
 });

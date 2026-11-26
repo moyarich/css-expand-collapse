@@ -9,9 +9,6 @@ it("matches native animation-trigger behavior (multiple)", ({ skip }) => {
   }
   const source = ".target{animation-trigger:--first play,--second play pause;animation:1s first,2s second}";
   expect(expandCss(source)).toContain("animation-duration:");
-  const reference = ".target{animation:1s first,2s second;animation-trigger:none}";
-  // Compare to the explicit draft-defined reset: current engines may not
-  // implement animation-trigger as a reset-only constituent yet.
-  expectEquivalent(reference, expandCss(source));
-  expectRoundTrip(reference);
+  expectEquivalent(source, expandCss(source));
+  expectRoundTrip(source);
 });
