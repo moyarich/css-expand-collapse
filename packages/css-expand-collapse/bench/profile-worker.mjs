@@ -25,6 +25,7 @@ const margin = {
   "margin-top": "8px", "margin-right": "16px",
   "margin-bottom": "8px", "margin-left": "16px",
 };
+const declarations = { margin: repeated, padding: "4px", background: layered };
 const operations = {
   "repeated": () => css.expandShorthand("margin", repeated),
   "unique": (index) => css.expandShorthand("margin", index + "px " + (index + 1) + "px"),
@@ -33,6 +34,12 @@ const operations = {
     customProperties: { "--space": repeated },
   }),
   "collapse-property": () => css.collapseToShorthand("margin", margin),
+  "expand-map": () => css.expandShorthands(declarations),
+  "collapse-map": () => css.collapseLonghands(margin),
+  "expand-fragment": () => css.expandDeclarations(fragment),
+  "collapse-fragment": () => css.collapseDeclarations("margin-top:8px;margin-right:16px;margin-bottom:8px;margin-left:16px"),
+  "invalid": () => css.expandShorthand("margin", "potato"),
+  "unsupported": () => css.expandShorthand("all", "initial"),
   "expand-sheet": () => css.expandCss(sheet),
   "collapse-sheet": () => css.collapseCss(sheet),
 };
@@ -42,7 +49,10 @@ function measureFirstCall() {
   const started = performance.now();
   const result = run(0);
   const elapsed = performance.now() - started;
-  if (result == null) throw new Error("Workload returned no result: " + workload);
+  const expectsNull = workload === "invalid" || workload === "unsupported";
+  if (expectsNull ? result !== null : result == null) {
+    throw new Error("Unexpected workload result: " + workload);
+  }
   return elapsed;
 }
 const firstCallMs = measureFirstCall();

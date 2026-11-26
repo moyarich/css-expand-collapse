@@ -49,3 +49,5 @@ Compare repeated and unique workloads on the same machine across multiple
 samples. These results are observational, not CI pass/fail thresholds. A cache
 is deliberately deferred until measured gains outweigh memory and correctness
 costs. No baseline result is claimed until the profiler has actually run.
+
+The profiler also covers map and fragment expansion/collapse, invalid values and unsupported shorthands. Benchmark-related pull requests run a small observational profile (100 iterations, three processes per mode and workload) and publish raw JSON in the job log and artifact. Manual runs retain configurable iterations and sample counts. No timing threshold or caching is introduced.
