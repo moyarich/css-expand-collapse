@@ -12,6 +12,7 @@ import {
 } from "./registry/context.js";
 
 import { createCssOperations } from "./css.js";
+import { getShorthandMetadata as describeShorthand, listShorthands as describeShorthands, type ShorthandFilter } from "./registry/metadata.js";
 
 export type { DeclarationMap, LonghandMap } from "./registry/index.js";
 
@@ -424,7 +425,10 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
     transformDeclarationsWithSourceMap: (...args: Parameters<ReturnType<typeof createCssOperations>["transformDeclarationsWithSourceMap"]>) => operations().transformDeclarationsWithSourceMap(...args),
   };
 
-  return { ...cssOperations, addPlugin, registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
+  const getShorthandMetadata = (property: string) => describeShorthand(property, modules);
+  const listShorthands = (filter: ShorthandFilter = {}) => describeShorthands(filter, modules);
+
+  return { ...cssOperations, getShorthandMetadata, listShorthands, addPlugin, registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
 }
 
 export type CssTransformer = ReturnType<typeof createCssTransformer>;

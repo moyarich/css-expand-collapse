@@ -825,3 +825,5 @@ The registry records draft-defined constituent names and initial values for back
 References: [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/), [CSS Text 4](https://drafts.csswg.org/css-text-4/), [Animation Triggers 1](https://drafts.csswg.org/animation-triggers-1/).
 
 Instance transformers also support `expandCss`, `collapseCss`, `transformCss`, declaration fragments and both source-map APIs. Plugins may explicitly declare `replaceRecognized` for recognized-only shorthands without overriding active built-in transformations.
+
+Instance metadata discovery (`css.getShorthandMetadata(property)` and `css.listShorthands(filter)`) reflects the current registered modules and directional capabilities. Top-level discovery continues to describe built-ins.

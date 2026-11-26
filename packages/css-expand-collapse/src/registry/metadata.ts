@@ -1,6 +1,6 @@
 import { getModuleCapabilities } from "./helpers.js";
-import type { ShorthandCapabilities } from "./module.js";
-import { SHORTHAND_MODULES, SHORTHAND_PROPERTIES } from "./index.js";
+import type { ShorthandCapabilities, ShorthandModuleMap } from "./module.js";
+import { SHORTHAND_MODULES } from "./index.js";
 
 export type ShorthandCategory =
   | "background"
@@ -47,10 +47,10 @@ function categoryFor(property: string): ShorthandCategory {
 }
 
 /** Return metadata for one recognized shorthand, or undefined for unknown names. */
-export function getShorthandMetadata(property: string): ShorthandMetadata | undefined {
+export function getShorthandMetadata(property: string, modules: ShorthandModuleMap = SHORTHAND_MODULES): ShorthandMetadata | undefined {
   const name = property.trim().toLowerCase();
-  if (!Object.hasOwn(SHORTHAND_MODULES, name)) return undefined;
-  const module = SHORTHAND_MODULES[name]!;
+  if (!Object.hasOwn(modules, name)) return undefined;
+  const module = modules[name]!;
   const capabilities = getModuleCapabilities(module);
   return Object.freeze({
     property: name,
@@ -63,9 +63,9 @@ export function getShorthandMetadata(property: string): ShorthandMetadata | unde
 }
 
 /** List recognized shorthands, optionally filtered by category and transformability. */
-export function listShorthands(filter: ShorthandFilter = {}): readonly ShorthandMetadata[] {
+export function listShorthands(filter: ShorthandFilter = {}, modules: ShorthandModuleMap = SHORTHAND_MODULES): readonly ShorthandMetadata[] {
   return Object.freeze(
-    SHORTHAND_PROPERTIES.map((name) => getShorthandMetadata(name)!).filter(
+    Object.keys(modules).map((name) => getShorthandMetadata(name, modules)!).filter(
       (item) =>
         (filter.category === undefined || item.category === filter.category) &&
         (filter.transformable === undefined || item.transformable === filter.transformable) &&
