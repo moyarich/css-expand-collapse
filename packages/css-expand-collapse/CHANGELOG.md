@@ -8,6 +8,10 @@ Notable user-facing changes to `@moyarich/css-expand-collapse` are documented he
 
 - Recognize `line-clamp`, `-webkit-line-clamp`, `text-spacing`, `background-repeat` `timeline-trigger`, `timeline-trigger-activation-range`, `timeline-trigger-active-range` and `event-trigger` in shorthand metadata without rewriting their values. Transformation support remains disabled for these properties.
 
+### Fixed
+
+- Preserve animation shorthand range reset semantics during expansion and collapse.
+
 ## 0.1.2
 
 ### Fixed

@@ -15,6 +15,8 @@ const longhands = new Map([
   ["animation-fill-mode", "none"],
   ["animation-play-state", "running"],
   ["animation-timeline", "auto"],
+  ["animation-range-start", "normal"],
+  ["animation-range-end", "normal"],
 ] as const);
 const longhandNames = [...longhands.keys()];
 const initialValues = [...longhands.values()];
@@ -57,9 +59,8 @@ const expand: ShorthandExpander = (value, context) => {
       assigned.add(property);
     }
 
-    // animation-timeline is reset by the animation shorthand but is not settable
-    // through the shorthand grammar itself.
-    result["animation-timeline"] = "auto";
+    // Timeline and range constituents are reset-only; their initial values
+    // were populated above and cannot be assigned by shorthand tokens.
     expanded.push(result);
   }
 
@@ -81,7 +82,9 @@ export default {
     );
     const count = values[0]?.length ?? 0;
     if (!count || values.some((layers) => layers.length !== count)) return null;
-    if (values[8]!.some((timeline) => timeline !== "auto")) return null;
+    if (values.slice(8).some((layers, index) =>
+      layers.some((value) => value !== initialValues[index + 8]),
+    )) return null;
 
     const candidate = Array.from({ length: count }, (_, index) =>
       [

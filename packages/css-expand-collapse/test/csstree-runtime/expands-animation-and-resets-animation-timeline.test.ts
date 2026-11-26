@@ -15,5 +15,7 @@ it("expands animation and resets animation-timeline", () => {
     "animation-fill-mode": "both",
     "animation-play-state": "paused",
     "animation-timeline": "auto",
+    "animation-range-start": "normal",
+    "animation-range-end": "normal",
   });
 });
