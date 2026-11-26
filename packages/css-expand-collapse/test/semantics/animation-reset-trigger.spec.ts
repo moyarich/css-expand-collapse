@@ -1,14 +1,15 @@
 import { expect, it } from "vitest";
 import { expandCss } from "../../src/index.js";
-import { expectRoundTrip } from "./helpers.js";
+import { expectEquivalent, expectRoundTrip } from "./helpers.js";
 
-it("preserves animation shorthand reset interactions with animation-trigger", ({ skip }) => {
-  if (!CSS.supports("animation-trigger", "--reveal")) {
-    skip("Browser does not support the tested property value");
+it("resets a previously authored animation trigger to none", ({ skip }) => {
+  if (!CSS.supports("animation-trigger", "--reveal play")) {
+    skip("Browser does not support animation triggers");
     return;
   }
-  const source = ".target{animation-trigger:--reveal;animation:1s ease example}";
-  const expanded = expandCss(source);
-  expect(expanded).toContain("animation-duration:1s");
+  const source = ".target{animation-trigger:--reveal play;animation:1s ease example}";
+  const reference = ".target{animation:1s ease example;animation-trigger:none}";
+  expectEquivalent(source, reference);
+  expect(expandCss(source)).toContain("animation-duration:1s");
   expectRoundTrip(source);
 });
