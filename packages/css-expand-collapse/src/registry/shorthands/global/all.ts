@@ -4,6 +4,4 @@ const longhands = new Map<string, string>();
 
 export default {
   longhands,
-  expand: () => null,
-  collapse: () => null,
 } satisfies ShorthandModule;

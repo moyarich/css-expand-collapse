@@ -18,7 +18,7 @@ import {
   collapseToShorthand,
   expandShorthand,
   isShorthand,
-  supportsTransform,
+  supportsExpand,
   type DeclarationMap,
   type TransformOptions,
 } from "./core.js";
@@ -233,7 +233,7 @@ function expandBlock(
       if (isShorthand(child.property) && options?.onDiagnostic) {
         options.onDiagnostic({
           ...describeExpansionFailure(child.property, declarationValue(child),
-            supportsTransform(child.property), options.customProperties),
+            supportsExpand(child.property), options.customProperties),
           location: child.loc ?? undefined,
         });
       }
@@ -251,7 +251,7 @@ function expandBlock(
 }
 
 const COLLAPSE_CANDIDATES = Object.entries(SHORTHAND_DEFINITIONS)
-  .filter(([, definition]) => definition.longhands.size > 0)
+  .filter(([, definition]) => Boolean(definition.collapse))
   .sort(([, a], [, b]) => b.longhands.size - a.longhands.size);
 
 function declarationWouldApply(

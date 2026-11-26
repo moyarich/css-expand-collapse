@@ -1,4 +1,4 @@
-import { activeLonghands } from "./helpers.js";
+import { activeLonghands, getModuleCapabilities } from "./helpers.js";
 import { SHORTHANDS } from "./shorthands/index.js";
 import type {
   LonghandValueEquivalence,
@@ -29,8 +29,9 @@ function buildDefinitions(): ShorthandModuleMap {
   const definitions: Record<string, ShorthandModule> = {};
   for (const [property, module] of shorthandEntries) {
     const longhands = activeLonghands(module.longhands, module.excludedLonghands);
-    if (!longhands.size) continue;
-    definitions[property] = longhands === module.longhands ? module : { ...module, longhands, safeToDropWhenFullyShadowed: false };
+    const capabilities = getModuleCapabilities(module);
+    if (!capabilities.expand && !capabilities.collapse) continue;
+    definitions[property] = longhands === module.longhands && capabilities.expand && capabilities.collapse ? module : { ...module, longhands, safeToDropWhenFullyShadowed: false };
   }
   return Object.freeze(definitions);
 }
