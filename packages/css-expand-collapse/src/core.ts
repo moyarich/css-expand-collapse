@@ -18,6 +18,9 @@ import { getShorthandMetadata as describeShorthand, listShorthands as describeSh
 export type { DeclarationMap, LonghandMap } from "./registry/index.js";
 
 import { validateProperty } from "./validation/validateProperty.js";
+import { validateCss } from "./validation/validateCss.js";
+import { validateDeclarations } from "./validation/validateDeclarations.js";
+import type { ValidationOptions } from "./validation/types.js";
 import { describeExpansionFailure, type TransformDiagnostic } from "./transform-diagnostics.js";
 
 export interface TransformOptions {
@@ -418,7 +421,7 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
         !collapseContext.matchProperty(longhand, longhandValue)
       ) {
         if (options?.onDiagnostic) {
-          const diagnostic = validateProperty(longhand, longhandValue, { customProperties }).diagnostics[0];
+          const diagnostic = validateProperty(longhand, longhandValue, scopedValidation({ customProperties })).diagnostics[0];
           if (diagnostic && diagnostic.code !== "unsupported-context") {
             options.onDiagnostic({ ...diagnostic, code: diagnostic.code });
             return null;
@@ -533,10 +536,19 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
     transformDeclarationsWithSourceMap: (...args: Parameters<ReturnType<typeof createCssOperations>["transformDeclarationsWithSourceMap"]>) => operations().transformDeclarationsWithSourceMap(...args),
   };
 
+  const scopedValidation = (options: ValidationOptions = {}): ValidationOptions => ({ ...options, hasGrammar: (property) => grammars.has(normalizeProperty(property)), matchProperty: match });
+  const validation = {
+    validateProperty: (property: string, value: string, options?: ValidationOptions) => validateProperty(property, value, scopedValidation(options)),
+    validateCss: (source: string, options?: ValidationOptions) => validateCss(source, scopedValidation(options)),
+    validateDeclarations: (source: string, options?: ValidationOptions) => validateDeclarations(source, scopedValidation(options)),
+    matchProperty: match,
+    createShorthandExpandContext: (customProperties?: CustomPropertyMap) => createShorthandExpandContext(customProperties, match),
+    createShorthandCollapseContext: (customProperties?: CustomPropertyMap) => createShorthandCollapseContext(customProperties, match),
+  };
   const getShorthandMetadata = (property: string) => describeShorthand(property, modules);
   const listShorthands = (filter: ShorthandFilter = {}) => describeShorthands(filter, modules);
 
-  return { ...cssOperations, getShorthandMetadata, listShorthands, addPlugin, removePlugin, hasPlugin, getPlugin, listPlugins, registerShorthand, extendShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
+  return { ...cssOperations, ...validation, getShorthandMetadata, listShorthands, addPlugin, removePlugin, hasPlugin, getPlugin, listPlugins, registerShorthand, extendShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
 }
 
 export type CssTransformer = ReturnType<typeof createCssTransformer>;
