@@ -1,7 +1,11 @@
 import type { ShorthandModule } from "../../module.js";
 
-// Recognize the shorthand without emitting unverified constituent syntax.
+// Specification-defined constituents; transformation remains opt-in.
 export default {
-  longhands: new Map<string, string>(),
+  longhands: new Map<string, string>([
+    ["max-lines","auto"],
+    ["block-ellipsis","no-ellipsis"],
+    ["continue","normal"],
+  ]),
   experimental: true,
 } satisfies ShorthandModule;

@@ -817,3 +817,9 @@ css.addPlugin(anotherPlugin);
 ```
 
 Duplicate plugin names and conflicting shorthand definitions are rejected. Runtime shorthand overrides may be explicitly enabled with `css.addPlugin(plugin, { override: true })`.
+
+### Emerging shorthand constituents
+
+The registry records draft-defined constituent names and initial values for background-repeat, line-clamp (including its legacy spelling), text-spacing, timeline-trigger and its two range shorthands, and event-trigger. These remain recognized-only. Draft metadata is not evidence of interoperable browser behavior. Logical repeat aliases, legacy clamp behavior and trigger range defaults require separate semantic verification before default transformations are enabled.
+
+References: [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/), [CSS Text 4](https://drafts.csswg.org/css-text-4/), [Animation Triggers 1](https://drafts.csswg.org/animation-triggers-1/).
