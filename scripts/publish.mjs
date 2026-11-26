@@ -9,7 +9,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Command } from "commander";
 
@@ -129,14 +129,16 @@ function validatePackage(pkg) {
     `\nValidating ${pkg.manifest.name}@${pkg.manifest.version} (${pkg.directory})`,
   );
 
+  // Build local peers first so public entry points resolve in checks.
+  for (const dependency of discoverPackages()) {
+    if (Object.hasOwn(pkg.manifest.peerDependencies ?? {}, dependency.manifest.name)) {
+      run(["run", "build", "--workspace", dependency.manifest.name, "--if-present"]);
+    }
+  }
+  run(["run", "build", "--workspace", pkg.manifest.name, "--if-present"]);
   run(["run", "typecheck", "--workspace", pkg.manifest.name, "--if-present"]);
   run(["run", "test", "--workspace", pkg.manifest.name, "--if-present"]);
-  run(["run", "build", "--workspace", pkg.manifest.name, "--if-present"]);
-  if (pkg.manifest.name === "@moyarich/css-expand-collapse") {
-    run(["run", "pack:verify"]);
-  } else {
-    run(["pack", "--workspace", pkg.manifest.name, "--dry-run"]);
-  }
+  run(["run", "pack:verify", "--", basename(pkg.directory)]);
 }
 
 if (dryRun) {

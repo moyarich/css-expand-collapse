@@ -35,3 +35,15 @@ npm test --workspace @moyarich/css-experimental-shorthands
 ```
 
 The companion package uses the core public API as a peer dependency. Its public exports test imports the built package by name, not a private source path. The package is not published yet.
+
+## Release
+
+Use the existing workspace release tooling. Publish a compatible core version before publishing the companion package.
+
+```sh
+npm run pack:verify -- css-experimental-shorthands
+PACKAGE_DIRECTORY=packages/css-experimental-shorthands npm run release:check
+npm run release -- css-experimental-shorthands=patch --dry-run
+```
+
+The package archive includes the public distribution files, README, license and changelog. The release validator builds local peer dependencies before checking the selected package. Actual publication requires the configured registry credentials and an explicit publish command.
