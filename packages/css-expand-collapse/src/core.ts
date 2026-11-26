@@ -8,8 +8,7 @@ import { createRegistry, SHORTHAND_PROPERTIES, SHORTHAND_MODULES as BUILTIN_MODU
 import {
   createShorthandCollapseContext,
   createShorthandExpandContext,
-  shorthandCollapseContext,
-  shorthandExpandContext,
+  matchProperty,
 } from "./registry/context.js";
 
 export type { DeclarationMap, LonghandMap } from "./registry/index.js";
@@ -69,7 +68,31 @@ const normalizeDeclarationProperty = (property: string) => {
   return isCustomProperty(trimmed) ? trimmed : trimmed.toLowerCase();
 };
 
-export function createCssTransformer() {
+export type PropertyGrammar = (value: string) => boolean;
+
+export interface CssTransformerPlugin {
+  readonly name: string;
+  readonly shorthands?: ShorthandModuleMap;
+  readonly grammars?: Readonly<Record<string, PropertyGrammar>>;
+}
+
+export interface CssTransformerOptions {
+  readonly plugins?: readonly CssTransformerPlugin[];
+}
+
+export function createCssTransformer(configuration: CssTransformerOptions = {}) {
+  const grammars = new Map<string, PropertyGrammar>();
+  const plugins = new Set<string>();
+  const match = (property: string, value: string): boolean => {
+    const grammar = grammars.get(normalizeProperty(property));
+    if (!grammar) return matchProperty(property, value);
+    try {
+      return grammar(value);
+    } catch {
+      return false;
+    }
+  };
+
   let registry = createRegistry();
   let modules: ShorthandModuleMap = registry.SHORTHAND_MODULES;
 
@@ -79,6 +102,28 @@ export function createCssTransformer() {
     if (Object.hasOwn(modules, name) && !options.override) throw new Error("Shorthand already registered: " + name);
     registry = createRegistry({ ...modules, [name]: module });
     modules = registry.SHORTHAND_MODULES;
+  }
+
+  function addPlugin(plugin: CssTransformerPlugin, options: { override?: boolean } = {}): void {
+    if (!plugin.name.trim() || plugins.has(plugin.name)) throw new Error("Invalid or duplicate plugin: " + plugin.name);
+    const next = { ...modules };
+    const nextGrammars = new Map(grammars);
+    for (const [property, module] of Object.entries(plugin.shorthands ?? {})) {
+      const name = normalizeProperty(property);
+      if (!/^-?[a-z][a-z0-9-]*$/.test(name)) throw new Error("Invalid shorthand property: " + property);
+      if (Object.hasOwn(next, name) && !options.override) throw new Error("Shorthand already registered: " + name);
+      next[name] = module;
+    }
+    for (const [property, grammar] of Object.entries(plugin.grammars ?? {})) {
+      const name = normalizeProperty(property);
+      if (!/^-?[a-z][a-z0-9-]*$/.test(name) || typeof grammar !== "function") throw new Error("Invalid property grammar: " + property);
+      if (nextGrammars.has(name) && !options.override) throw new Error("Grammar already registered: " + name);
+      nextGrammars.set(name, grammar);
+    }
+    registry = createRegistry(next);
+    modules = registry.SHORTHAND_MODULES;
+    for (const [name, grammar] of nextGrammars) grammars.set(name, grammar);
+    plugins.add(plugin.name);
   }
 
   function unregisterShorthand(property: string): boolean {
@@ -149,9 +194,7 @@ export function createCssTransformer() {
     const normalizedValue = value.trim();
     if (!normalizedValue) return reportFailure();
 
-    const expandContext = options?.customProperties
-      ? createShorthandExpandContext(options.customProperties)
-      : shorthandExpandContext;
+    const expandContext = createShorthandExpandContext(options?.customProperties, match);
     const declarations = GLOBAL_VALUES.has(normalizedValue)
       ? Object.fromEntries(
           [...definition.longhands.keys()].map((longhand) => [
@@ -232,10 +275,7 @@ export function createCssTransformer() {
       options?.customProperties,
       collectCustomProperties(declarations),
     );
-    const collapseContext =
-      customProperties && Object.keys(customProperties).length
-        ? createShorthandCollapseContext(customProperties)
-        : shorthandCollapseContext;
+    const collapseContext = createShorthandCollapseContext(customProperties, match);
     const normalized = Object.fromEntries(
       Object.entries(declarations).map(([key, value]) => [
         normalizeDeclarationProperty(key),
@@ -367,7 +407,9 @@ export function createCssTransformer() {
     return output;
   }
 
-  return { registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
+  for (const plugin of configuration.plugins ?? []) addPlugin(plugin);
+
+  return { addPlugin, registerShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
 }
 
 export type CssTransformer = ReturnType<typeof createCssTransformer>;
