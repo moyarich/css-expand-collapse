@@ -30,6 +30,7 @@ on:
         options:
           - all
           - packages/css-expand-collapse
+          - packages/css-experimental-shorthands
       registry:
         description: Registry alias (npm, github, all, or a configured registry)
         required: true

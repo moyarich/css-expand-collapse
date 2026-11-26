@@ -19,6 +19,7 @@ on:
         options:
           - all
           - packages/css-expand-collapse
+          - packages/css-experimental-shorthands
       target-branch:
         description: Branch used to resolve the package path and changelog
         required: true

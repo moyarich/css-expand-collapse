@@ -18,6 +18,7 @@ on:
         options:
           - all
           - packages/css-expand-collapse
+          - packages/css-experimental-shorthands
       target-branch:
         description: Release target branch
         required: true

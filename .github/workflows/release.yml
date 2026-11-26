@@ -32,6 +32,7 @@ on:
         options:
           - all
           - packages/css-expand-collapse
+          - packages/css-experimental-shorthands
       version-mode:
         description: Resolve each package version
         type: choice
