@@ -43,6 +43,7 @@
     "bench:profile": "npm run build && node bench/profile.mjs"
   },
   "dependencies": {
+    "@jridgewell/remapping": "^2.3.5",
     "css-tree": "^3.2.1"
   },
   "devDependencies": {
