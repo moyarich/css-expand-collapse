@@ -846,3 +846,5 @@ css.removePlugin("extra");
 Plugin discovery returns frozen metadata, not executable handlers or mutable registry maps. Dependencies are explicitly installed by the consumer in order. Removing a required plugin throws before modifying the instance.
 
 Instance validation (`validateProperty`, `validateCss`, `validateDeclarations`) and context factories use the registered property predicates. `extendShorthand` adds missing fields; changing existing fields requires explicit override authorization. Metadata distinguishes direct and terminal constituents and reset-only constituents from active transformation capabilities.
+
+Instance `getStyleLonghands`, `collapseStyleDeclaration`, `collapseStyleDeclarations` and `parseCssLayers` use the same registered modules and grammar predicates as other instance operations. Standalone functions continue to use built-ins.

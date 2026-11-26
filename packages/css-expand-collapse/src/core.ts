@@ -13,6 +13,8 @@ import {
 
 import { hasBackgroundRepeatOverlap } from "./registry/background-repeat-overlap.js";
 import { createCssOperations } from "./css.js";
+import { createStyleOperations } from "./style.js";
+import { createLayerParser } from "./css-layers.js";
 import { getShorthandMetadata as describeShorthand, listShorthands as describeShorthands, type ShorthandFilter } from "./registry/metadata.js";
 
 export type { DeclarationMap, LonghandMap } from "./registry/index.js";
@@ -548,7 +550,9 @@ export function createCssTransformer(configuration: CssTransformerOptions = {}) 
   const getShorthandMetadata = (property: string) => describeShorthand(property, modules);
   const listShorthands = (filter: ShorthandFilter = {}) => describeShorthands(filter, modules);
 
-  return { ...cssOperations, ...validation, getShorthandMetadata, listShorthands, addPlugin, removePlugin, hasPlugin, getPlugin, listPlugins, registerShorthand, extendShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
+  const styleOperations = createStyleOperations(getLonghands, collapseToShorthand, () => registry.SHORTHAND_PROPERTIES);
+  const parseCssLayers = createLayerParser(validation.validateProperty, expandShorthand);
+  return { ...cssOperations, ...validation, ...styleOperations, parseCssLayers, getShorthandMetadata, listShorthands, addPlugin, removePlugin, hasPlugin, getPlugin, listPlugins, registerShorthand, extendShorthand, unregisterShorthand, isShorthand, isLonghand, getLonghands, getShorthands, supportsTransform, supportsExpand, supportsCollapse, expandShorthand, expandShorthands, collapseToShorthand, findCollapsibleShorthands, collapseLonghands, expand: expandShorthands, collapse: collapseLonghands };
 }
 
 export type CssTransformer = ReturnType<typeof createCssTransformer>;

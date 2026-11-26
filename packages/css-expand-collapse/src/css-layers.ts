@@ -44,8 +44,12 @@ export function splitCssLayers(value: string): CssLayer[] | null {
 }
 
 /** Parse authored layers and safely expand their represented longhands. */
-export function parseCssLayers(property: LayeredShorthand, value: string): LayerParseResult {
-  const validation = validateProperty(property, value);
+export function createLayerParser(
+  validate: typeof validateProperty,
+  expand: typeof expandShorthand,
+) {
+return function parseCssLayers(property: string, value: string): LayerParseResult {
+  const validation = validate(property, value);
   const layers = splitCssLayers(value) ?? [];
   // The existing expander's scanner does not understand comments. Avoid
   // claiming an expansion when it sees different layer boundaries.
@@ -53,7 +57,14 @@ export function parseCssLayers(property: LayeredShorthand, value: string): Layer
     splitTopLevelComma(value).length === layers.length;
   const expanded = validation.valid === true && compatible &&
     !hasCustomPropertyReference(value)
-    ? expandShorthand(property, value)
+    ? expand(property, value)
     : null;
   return { ...validation, layers, declarations: expanded?.declarations ?? null };
 }
+
+}
+
+export const parseCssLayers = createLayerParser(
+  (property, value, options) => validateProperty(property, value, options),
+  (property, value, options) => expandShorthand(property, value, options),
+);

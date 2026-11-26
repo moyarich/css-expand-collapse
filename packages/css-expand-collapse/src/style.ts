@@ -36,28 +36,33 @@ export function styleToDeclarations(
   return output;
 }
 
-export function getStyleLonghands(
+export function createStyleOperations(
+  discover: typeof getLonghands,
+  collapse: typeof collapseToShorthand,
+  properties: () => Iterable<string>,
+) {
+function getStyleLonghands(
   style: ReadonlyStyleDeclaration,
   shorthand: string,
 ): DeclarationMap {
-  return styleToDeclarations(style, getLonghands(shorthand));
+  return styleToDeclarations(style, discover(shorthand));
 }
 
-export function collapseStyleDeclaration(
+function collapseStyleDeclaration(
   style: ReadonlyStyleDeclaration,
   shorthand: string,
   options?: TransformOptions,
 ): CollapseShorthandResult | null {
-  const longhands = getLonghands(shorthand);
+  const longhands = discover(shorthand);
   const declarations = longhands.length
     ? styleToDeclarations(style, longhands)
     : styleToDeclarations(style);
-  return collapseToShorthand(shorthand, declarations, options);
+  return collapse(shorthand, declarations, options);
 }
 
-export function collapseStyleDeclarations(
+function collapseStyleDeclarations(
   style: ReadonlyStyleDeclaration,
-  shorthands: Iterable<string> = SHORTHAND_PROPERTIES,
+  shorthands: Iterable<string> = properties(),
   options?: TransformOptions,
 ): CollapseShorthandResult[] {
   const results: CollapseShorthandResult[] = [];
@@ -67,3 +72,12 @@ export function collapseStyleDeclarations(
   }
   return results;
 }
+
+return { getStyleLonghands, collapseStyleDeclaration, collapseStyleDeclarations };
+}
+
+export const { getStyleLonghands, collapseStyleDeclaration, collapseStyleDeclarations } = createStyleOperations(
+  (property) => getLonghands(property),
+  (property, declarations, options) => collapseToShorthand(property, declarations, options),
+  () => SHORTHAND_PROPERTIES,
+);
