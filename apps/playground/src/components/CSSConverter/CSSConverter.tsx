@@ -3,15 +3,14 @@ import { ResizableWorkspace } from "../ResizableWorkspace/ResizableWorkspace";
 import "./CSSConverter.css";
 import { MonacoEditor } from "../MonacoEditor";
 import { useMemo, useState } from "react";
-import {
-  collapseCss,
-  collapseDeclarations,
-  expandCss,
-  expandDeclarations,
-} from "@moyarich/css-expand-collapse";
+import { createCssTransformer, type TransformDiagnostic } from "@moyarich/css-expand-collapse";
+import { CopyButton } from "../ui/CopyButton";
+import { CustomBlock } from "../ui/CustomBlock";
+import { animationTriggerPlugin } from "../../../../../packages/css-experimental-shorthands/src/animation-trigger";
+import { backgroundRepeatPlugin } from "../../../../../packages/css-experimental-shorthands/src/background-repeat";
 
 type Mode = "expand" | "collapse";
-type CopySide = "source" | "result";
+type InputFormat = "auto" | InputKind;
 
 const MODE_META: Record<
   Mode,
@@ -47,56 +46,57 @@ export function CSSConverter({
   const [fillMissingLonghands, setFillMissingLonghands] = useState(
     initialFillMissingLonghands,
   );
-  const [copied, setCopied] = useState<CopySide | null>(null);
+  const [inputFormat, setInputFormat] = useState<InputFormat>("auto");
+  const [experimentalRepeat, setExperimentalRepeat] = useState(false);
+  const [draftReset, setDraftReset] = useState(false);
+  const transformer = useMemo(() => {
+    const css = createCssTransformer({ plugins: experimentalRepeat ? [backgroundRepeatPlugin] : [] });
+    if (draftReset) css.addPlugin(animationTriggerPlugin, { override: true });
+    return css;
+  }, [experimentalRepeat, draftReset]);
 
   const meta = MODE_META[mode];
   const inputKind = useMemo<InputKind>(
-    () => (source.indexOf("{") === -1 ? "declarations" : "stylesheet"),
-    [source],
+    () => inputFormat === "auto" ? (source.indexOf("{") === -1 ? "declarations" : "stylesheet") : inputFormat,
+    [source, inputFormat],
   );
 
   const result = useMemo(() => {
     try {
-      const collapseOptions = fillMissingLonghands
-        ? { fillMissingLonghands: "initial" as const }
-        : undefined;
+      const diagnostics: TransformDiagnostic[] = [];
+      const options = {
+        ...(fillMissingLonghands && mode === "collapse" ? { fillMissingLonghands: "initial" as const } : {}),
+        onDiagnostic: (diagnostic: TransformDiagnostic) => diagnostics.push(diagnostic),
+      };
+      const validation = inputKind === "declarations" ? transformer.validateDeclarations(source) : transformer.validateCss(source);
       const css =
         inputKind === "declarations"
           ? mode === "expand"
-            ? expandDeclarations(source)
-            : collapseDeclarations(source, collapseOptions)
+            ? transformer.expandDeclarations(source, options)
+            : transformer.collapseDeclarations(source, options)
           : mode === "expand"
-            ? expandCss(source)
-            : collapseCss(source, collapseOptions);
+            ? transformer.expandCss(source, options)
+            : transformer.collapseCss(source, options);
 
-      return { css: formatCss(css, inputKind), error: "" };
+      return { css: formatCss(css, inputKind), error: "", diagnostics, validation };
     } catch (error) {
       return {
         css: "",
+        diagnostics: [],
+        validation: null,
         error: error instanceof Error ? error.message : String(error),
       };
     }
-  }, [source, mode, inputKind, fillMissingLonghands]);
-
-  const copyText = async (text: string, side: CopySide) => {
-    if (!text) return;
-    await navigator.clipboard.writeText(text);
-    setCopied(side);
-    window.setTimeout(
-      () => setCopied((current) => (current === side ? null : current)),
-      1400,
-    );
-  };
+  }, [source, mode, inputKind, fillMissingLonghands, transformer]);
 
   const changeMode = (nextMode: Mode) => {
     if (nextMode === mode) return;
-    if (result.css && !result.error) setSource(result.css);
     setMode(nextMode);
-    setCopied(null);
   };
 
   const useResultAsInput = () => {
     if (!result.css || result.error) return;
+    setSource(result.css);
     changeMode(mode === "expand" ? "collapse" : "expand");
   };
 
@@ -129,6 +129,14 @@ export function CSSConverter({
             </div>
           </section>
 
+          <section className="sidebar-section">
+            <label className="sidebar-section-label" htmlFor="input-format">Input format</label>
+            <select id="input-format" className="example-select" value={inputFormat} onChange={(event) => setInputFormat(event.target.value as InputFormat)}>
+              <option value="auto">Auto detect</option>
+              <option value="stylesheet">Stylesheet</option>
+              <option value="declarations">Declarations</option>
+            </select>
+          </section>
           <section className="sidebar-section options-section">
             <span className="sidebar-section-label">Options</span>
             <label
@@ -156,6 +164,12 @@ export function CSSConverter({
               </span>
             </label>
           </section>
+          <section className="sidebar-section">
+            <span className="sidebar-section-label">Experimental CSS</span>
+            <label className="experimental-option"><input type="checkbox" checked={experimentalRepeat} onChange={(event) => setExperimentalRepeat(event.target.checked)} /> Physical background-repeat axes</label>
+            <label className="experimental-option"><input type="checkbox" checked={draftReset} onChange={(event) => setDraftReset(event.target.checked)} /> Draft animation-trigger reset</label>
+            {(experimentalRepeat || draftReset) && <CustomBlock type="warning" title="Experimental output">May change native browser behavior. Disable these options for ordinary website CSS.</CustomBlock>}
+          </section>
         </aside>
 
         <ResizableWorkspace>
@@ -174,14 +188,8 @@ export function CSSConverter({
                   </p>
                 </div>
                 <div className="result-actions">
-                  <button
-                    type="button"
-                    className="copy-button"
-                    disabled={!source}
-                    onClick={() => copyText(source, "source")}
-                  >
-                    {copied === "source" ? "Copied" : "Copy"}
-                  </button>
+                  <button type="button" className="converter-reset" onClick={() => setSource(initialSource)}>Reset</button>
+                  <CopyButton className="copy-button" value={source} disabled={!source} aria-label="Copy source" />
                 </div>
               </div>
 
@@ -192,7 +200,6 @@ export function CSSConverter({
                   value={source}
                   onChange={(value) => {
                     setSource(value ?? "");
-                    setCopied(null);
                   }}
                   loading={
                     <div className="editor-loading">Loading CSS editor…</div>
@@ -222,14 +229,7 @@ export function CSSConverter({
                   <p>{meta.outputLabel}</p>
                 </div>
                 <div className="result-actions">
-                  <button
-                    type="button"
-                    className="copy-button"
-                    disabled={!result.css}
-                    onClick={() => copyText(result.css, "result")}
-                  >
-                    {copied === "result" ? "Copied" : "Copy"}
-                  </button>
+                  <CopyButton className="copy-button" value={result.css} disabled={!result.css} aria-label="Copy result" />
                 </div>
               </div>
 
@@ -264,6 +264,11 @@ export function CSSConverter({
           </section>
         </ResizableWorkspace>
       </div>
+      <section className="converter-diagnostics" aria-label="CSS diagnostics">
+        <h3>Validation and transformation feedback</h3>
+        <p role="status">{!source.trim() ? "Enter CSS to validate." : result.validation?.valid === true ? "CSS grammar is valid." : result.validation?.valid === false ? "CSS contains validation errors." : "Some values could not be validated statically."}</p>
+        {[...(result.validation?.diagnostics ?? []), ...result.diagnostics].map((diagnostic, index) => <div className="converter-diagnostic" key={index}><strong>{diagnostic.severity}</strong> {diagnostic.message}</div>)}
+      </section>
     </div>
   );
 }
