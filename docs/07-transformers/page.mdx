@@ -1,0 +1,92 @@
+---
+title: "Customize CSS transformations"
+label: "Transformers and plugins"
+order: 7
+description: "Choose default CSS behavior or opt into custom and experimental transformations."
+---
+
+# Customize CSS transformations
+
+Use the default transformer when processing CSS from websites. Create a separate instance when you want custom shorthand rules, experimental features or your own validation rules. Existing standalone functions remain available.
+
+## Getting started
+
+```sh
+npm install @moyarich/css-expand-collapse
+```
+
+```ts
+import { createCssTransformer } from "@moyarich/css-expand-collapse";
+
+const css = createCssTransformer();
+css.expandShorthand("margin", "8px 16px");
+css.expandCss(".card { margin: 8px 16px; }");
+```
+
+Each instance uses its own configuration for property values, declaration objects, stylesheets, declaration fragments, computed-style declarations, layered values, validation and source maps.
+
+## Choose an experimental plugin
+
+The optional companion package provides transformations for CSS features whose draft definitions and browser behavior may differ. Install it alongside a compatible core release once published.
+
+```sh
+npm install @moyarich/css-expand-collapse @moyarich/css-experimental-shorthands
+```
+
+```ts
+import { createCssTransformer } from "@moyarich/css-expand-collapse";
+import { backgroundRepeatPlugin } from "@moyarich/css-experimental-shorthands";
+
+const css = createCssTransformer({ plugins: [backgroundRepeatPlugin] });
+
+css.expandShorthand("background-repeat", "repeat-x");
+// declarations: { "background-repeat-x": "repeat", "background-repeat-y": "no-repeat" }
+```
+
+The default companion export enables the physical background-repeat plugin. The animation-trigger override is separate because it changes an already active shorthand.
+
+## Website CSS versus draft behavior
+
+Tested Chromium behavior preserves an earlier animation trigger when an animation shorthand is applied. The CSS Animation Triggers draft specifies that the shorthand resets the trigger instead.
+
+```ts
+import { createCssTransformer } from "@moyarich/css-expand-collapse";
+import { animationTriggerPlugin } from "@moyarich/css-experimental-shorthands";
+
+const source = ".target{animation-trigger:--reveal play;animation:1s ease fade}";
+const compatible = createCssTransformer();
+const experimental = createCssTransformer();
+
+experimental.addPlugin(animationTriggerPlugin, { override: true });
+
+const preserved = compatible.expandCss(source);
+const reset = experimental.expandCss(source);
+```
+
+| Scenario | Default transformer | Experimental transformer |
+| --- | --- | --- |
+| Earlier trigger | Preserves the trigger | Emits `animation-trigger: none` |
+| Later trigger | Preserves the later trigger | Preserves the later trigger |
+| CSS-wide animation value | Excludes trigger from expansion | Applies the keyword to the trigger |
+| Noninitial trigger during collapse | Does not consume trigger | Refuses incompatible collapse |
+
+The experimental policy may change native computed styles. No production browser detection is used. Parsing or validating CSS without rewriting it does not change its behavior.
+
+## Manage plugins
+
+```ts
+css.hasPlugin(backgroundRepeatPlugin.name);
+css.getPlugin(backgroundRepeatPlugin.name);
+css.listPlugins();
+css.removePlugin(backgroundRepeatPlugin.name);
+```
+
+Plugin removal restores previous definitions. Duplicate names and missing dependencies are rejected. Plugins execute trusted application code and are never automatically downloaded or installed.
+
+## Recognized versus transformable
+
+A known shorthand is not necessarily safe to rewrite. Check `supportsExpand(property)` and `supportsCollapse(property)` independently. `supportsTransform(property)` requires both directions. Even an available operation can decline an unsafe value.
+
+See the [core README](../../README.md) and [companion compatibility guide](../../packages/css-experimental-shorthands/README.md) for complete usage, supported properties and limitations.
+
+[← Documentation](../page.mdx)

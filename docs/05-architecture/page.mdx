@@ -44,6 +44,16 @@ src/
 
 `css.ts` owns stylesheet-level behavior: source order, `!important`, declaration consumption, overlapping shorthands, AST replacement, and cascade-safe removal. Those concerns do not belong in individual shorthand files.
 
+## Transformer instances
+
+The generated built-in registry initializes each independent transformer. Registration constructs derived lookup tables and publishes changes only after validation. The standalone API uses the default transformer.
+
+Plugins supply named shorthand modules and optional property grammar predicates. Instance transformations, validation, style helpers and layer parsing use the owning configuration; the global CSSTree lexer is unchanged. Registration changes during active synchronous operations are rejected. Module accessors return defensive copies.
+
+Discovery distinguishes direct constituents, terminal constituents, reset-only constituents and supported transformation directions. Known metadata alone cannot authorize a rewrite.
+
+See [plugin authoring](../08-plugin-authoring/page.mdx) for consumer-facing registration examples.
+
 ## Validation architecture
 
 The public `validateProperty`, `validateDeclarations`, and `validateCss` APIs live in `src/validation/`. They use CSSTree grammar and the custom-property resolver without invoking expansion or collapse. Source-aware validation preserves diagnostic locations. Unknown grammar, unresolved values and unsupported descriptor contexts are indeterminate rather than transformation failures.
@@ -70,8 +80,12 @@ Every module satisfies the same contract:
 ```ts
 export interface ShorthandModule {
   readonly longhands: LonghandMap;
-  readonly expand: ShorthandExpander;
-  readonly collapse: ShorthandCollapser;
+  readonly expand?: ShorthandExpander;
+  readonly collapse?: ShorthandCollapser;
+  readonly experimental?: boolean;
+  readonly category?: string;
+  readonly excludedLonghands?: readonly string[];
+  readonly resetOnlyLonghands?: readonly string[];
   readonly equivalentLonghandValues?: ReadonlyMap<
     string,
     LonghandValueEquivalence
@@ -88,7 +102,7 @@ export type LonghandMap = ReadonlyMap<string, string>;
 
 The property name is intentionally not repeated inside the object. The generated registry derives it from the filename.
 
-There is no executable `strategy` field and no central strategy switch. A shorthand module owns both transformation directions.
+There is no executable `strategy` field and no central strategy switch. A shorthand module may implement either transformation direction independently. A direction is available only if its handler exists and its active constituent set is nonempty. Excluded constituents remain discoverable but do not participate in transformations.
 
 `all.ts` still satisfies the interface, but its longhand set is empty, so it is recognized by `isShorthand()` while remaining non-transformable.
 
@@ -96,19 +110,7 @@ There is no executable `strategy` field and no central strategy switch. A shorth
 
 `registry/context.ts` owns CSSTree matching and top-level value splitting.
 
-```ts
-export const shorthandExpandContext = {
-  matchProperty,
-  splitWhitespace,
-  splitSlash,
-};
-
-export const shorthandCollapseContext = {
-  matchProperty,
-};
-```
-
-`matchProperty()` delegates to CSSTree's lexer and should be used as the grammar authority instead of maintaining duplicate keyword tables where possible.
+The public `createShorthandExpandContext()` and `createShorthandCollapseContext()` factories supply grammar matching; expansion also receives top-level whitespace and slash splitting. Instance factories include registered property predicates. Use `context.matchProperty()` rather than duplicating keyword tables or falling back to global grammar.
 
 Top-level splitting preserves commas, slashes, CSS whitespace, strings, brackets, and functions correctly rather than using naive `String.split()` calls. The scanner compares named Unicode code-point constants instead of repeatedly allocating one-character strings or using a JavaScript whitespace regex whose definition is broader than CSS whitespace.
 

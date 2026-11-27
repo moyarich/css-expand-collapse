@@ -7,11 +7,13 @@ description: "Implement a shorthand module, regenerate the registry and add test
 
 # Adding CSS shorthands
 
-## Adding a shorthand
+## Adding a built-in shorthand
 
-1. Add `packages/css-expand-collapse/src/registry/shorthands/<property>.ts`.
+Consumers can register modules without editing the repository. See [plugin authoring](../08-plugin-authoring/page.mdx) for that workflow.
+
+1. Add `packages/css-expand-collapse/src/registry/shorthands/<feature>/<property>.ts`.
 2. Declare one `LonghandMap` that pairs every registered longhand with its CSS initial value.
-3. Implement `expand` and `collapse` in that module.
+3. Implement only verified `expand` and/or `collapse` directions. Keep uncertain directions absent or excluded.
 4. Reuse factories from `expanders.ts` and `collapsers.ts` when appropriate.
 5. Keep property-specific parsing and serialization in the module itself.
 6. Use `context.matchProperty(...)` to validate CSS grammar.
@@ -42,7 +44,7 @@ LONGHAND_TO_SHORTHANDS
 LONGHAND_VALUE_EQUIVALENCE
 ```
 
-`SHORTHAND_DEFINITIONS` contains modules with non-empty longhand sets. This is how transformability is determined; there is no strategy discriminator.
+`SHORTHAND_DEFINITIONS` contains active transformation definitions. A direction requires a callable handler and a nonempty active constituent set after exclusions. `supportsTransform` requires both directions. Recognized-only metadata does not authorize rewriting.
 
 ## Testing expectations
 
@@ -60,12 +62,15 @@ Important areas include:
 - values containing functions, strings, commas, or slashes;
 - `fillMissingLonghands: "initial"` behavior.
 
+Use individual unit test files and native browser comparisons against authored CSS in supporting engines. Unsupported syntax may be skipped, but a skip does not establish equivalence. No runtime browser detection is used.
+
 Before publishing or merging a structural change, run:
 
 ```bash
 npm test
 npm run typecheck
 npm run build
+npm run test:semantics --workspace @moyarich/css-expand-collapse
 ```
 
 [← Developer documentation](../page.mdx)
