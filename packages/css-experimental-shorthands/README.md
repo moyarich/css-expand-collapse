@@ -103,26 +103,10 @@ Specification references: [CSS Backgrounds 4](https://drafts.csswg.org/css-backg
 
 The browser audit records CSS-tree validation and native support separately. Unsupported constituents are skipped rather than treated as equivalent. The physical-axis plugin has separate native round-trip and overlap tests; the animation-trigger plugin intentionally targets the draft reset rather than the observed Chromium behavior. No production browser detection is used.
 
-## Development (for contributors)
+## Resources
 
-From the repository root, build the workspaces before checking the public package entry points:
+[Core documentation](https://github.com/moyarich/css-expand-collapse#readme) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/packages/css-experimental-shorthands/CHANGELOG.md) · [Developer documentation](https://github.com/moyarich/css-expand-collapse/tree/main/docs) · [Report an issue](https://github.com/moyarich/css-expand-collapse/issues)
 
-```sh
-npm run build
-npm run typecheck --workspace @moyarich/css-experimental-shorthands
-npm test --workspace @moyarich/css-experimental-shorthands
-```
+## License
 
-The companion package uses the core public API as a peer dependency. Its public exports test imports the built package by name, not a private source path. The package is not published yet.
-
-## Release (for maintainers)
-
-Use the existing workspace release tooling. Publish a compatible core version before publishing the companion package.
-
-```sh
-npm run pack:verify -- css-experimental-shorthands
-PACKAGE_DIRECTORY=packages/css-experimental-shorthands npm run release:check
-npm run release -- css-experimental-shorthands=patch --dry-run
-```
-
-The package archive includes the public distribution files, README, license and changelog. The release validator builds local peer dependencies before checking the selected package. Actual publication requires the configured registry credentials and an explicit publish command.
+MIT

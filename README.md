@@ -689,72 +689,6 @@ The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such
 
 Try the package interactively in the [playground](https://moyarich.github.io/css-expand-collapse/). Browse searchable API and developer documentation, experiment with CSS conversions, and run API examples using resizable editor and output panes.
 
-## Benchmarks
-
-Run the opt-in transformation benchmarks with
-`npm run bench --workspace @moyarich/css-expand-collapse`.
-See the library's `bench/README.md` for workloads and comparison methodology.
-
-## Package development
-
-From the repository root:
-
-```bash
-npm ci
-npm run typecheck
-npm test
-npm run build:lib
-npm run release:check
-```
-
-`npm run release:check` runs release validation and verifies a real temporary npm archive without publishing. Run `npm run pack:verify` separately to inspect the library archive, export targets, required documentation and absence of build source maps. The verifier requires the system `tar` command and reports archive size. Consumer installation checks remain separate.
-
-### Workspace release CLI
-
-The repository exposes `workspace-release` through the root package `bin` field. With `fzf` installed, running it without arguments opens the interactive release flow:
-
-```bash
-workspace-release
-```
-
-Choose the workspace, choose a calculated SemVer change, review the release plan, and confirm.
-
-You can also select the package first:
-
-```bash
-workspace-release css-expand-collapse
-```
-
-For a deterministic release, provide the version directly:
-
-```bash
-workspace-release css-expand-collapse=patch
-workspace-release css-expand-collapse=minor
-workspace-release css-expand-collapse=1.0.0
-```
-
-Preview a release without modifying files, committing, or tagging:
-
-```bash
-workspace-release css-expand-collapse=minor --dry-run
-```
-
-Browse the calculated SemVer choices without changing anything:
-
-```bash
-workspace-release css-expand-collapse --explain
-```
-
-The same arguments can be passed through npm:
-
-```bash
-npm run release -- css-expand-collapse=minor --dry-run
-```
-
-## License
-
-MIT
-
 ## Declaration grouping
 
 `formatDeclarations(css, { groupBy: "family" })` adds a separator between adjacent property families. Use `groupBy: "side"` to group adjacent physical directional properties. Both modes preserve declaration order, duplicate declarations and priorities; they never sort declarations across groups.
@@ -875,3 +809,11 @@ expandGap("1px 2px", createShorthandExpandContext());
 ```
 
 Directional queries report available operations, not guaranteed success for every value. `supportsTransform` requires both directions. Shared factories, top-level value splitters, grammar matching, constituent helpers and module/context types are available from the package root. Standalone factory contexts use the default CSS grammar; use instance context factories for registered grammar predicates.
+
+## Resources
+
+[Playground](https://moyarich.github.io/css-expand-collapse/) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/packages/css-expand-collapse/CHANGELOG.md) · [Developer documentation](https://github.com/moyarich/css-expand-collapse/tree/main/docs) · [Report an issue](https://github.com/moyarich/css-expand-collapse/issues)
+
+## License
+
+MIT
