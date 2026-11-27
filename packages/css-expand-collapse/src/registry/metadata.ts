@@ -11,12 +11,15 @@ export type ShorthandCategory =
   | "animation"
   | "mask"
   | "scroll"
-  | "other";
+  | "other"
+  | (string & {});
 
 export interface ShorthandMetadata {
   readonly property: string;
   readonly category: ShorthandCategory;
   readonly longhands: readonly string[];
+  readonly terminalLonghands: readonly string[];
+  readonly resetOnlyLonghands: readonly string[];
   readonly transformable: boolean;
   readonly capabilities: ShorthandCapabilities;
   readonly experimental: boolean;
@@ -52,10 +55,21 @@ export function getShorthandMetadata(property: string, modules: ShorthandModuleM
   if (!Object.hasOwn(modules, name)) return undefined;
   const module = modules[name]!;
   const capabilities = getModuleCapabilities(module);
+  const terminal = new Set<string>();
+  function collect(property: string): void {
+    if (!Object.hasOwn(modules, property)) {
+      terminal.add(property);
+      return;
+    }
+    for (const child of modules[property]!.longhands.keys()) collect(child);
+  }
+  for (const child of module.longhands.keys()) collect(child);
   return Object.freeze({
     property: name,
-    category: categoryFor(name),
+    category: module.category ?? categoryFor(name),
     longhands: Object.freeze([...module.longhands.keys()]),
+    terminalLonghands: Object.freeze([...terminal]),
+    resetOnlyLonghands: Object.freeze([...(module.resetOnlyLonghands ?? [])]),
     transformable: capabilities.expand && capabilities.collapse,
     capabilities,
     experimental: module.experimental ?? false,

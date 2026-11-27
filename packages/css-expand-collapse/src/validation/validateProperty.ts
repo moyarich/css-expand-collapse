@@ -49,7 +49,7 @@ export function validateProperty(
       ]);
     }
     const normalized = name.toLowerCase();
-    if (!propertyLexer.getProperty(normalized)) {
+    if (!options.hasGrammar?.(normalized) && !propertyLexer.getProperty(normalized)) {
       return validationResult([
         {
           ...diagnostic,
@@ -85,6 +85,10 @@ export function validateProperty(
           message: "The value depends on runtime CSS information.",
         },
       ]);
+    }
+    if (options.hasGrammar?.(normalized)) {
+      if (["inherit", "initial", "unset", "revert", "revert-layer"].includes(resolved.trim().toLowerCase()) || options.matchProperty?.(normalized, resolved)) return validationResult([]);
+      return validationResult([{ ...diagnostic, code: "invalid-property-value", severity: "error", message: `Invalid value for "${name}" according to the instance grammar.` }]);
     }
     const match = lexer.matchProperty(normalized, resolved) as unknown as {
       matched: unknown;

@@ -1,0 +1,61 @@
+---
+title: "Create a custom CSS plugin"
+label: "Plugin authoring"
+order: 8
+description: "Register reusable shorthand modules and grammar predicates through the public API."
+---
+
+# Create a custom CSS plugin
+
+Use a plugin when an application needs its own shorthand definitions or explicitly different transformation behavior. You do not need to fork the library or regenerate the built-in registry.
+
+## Reuse an existing module
+
+```ts
+import {
+  createCssTransformer,
+  getShorthandModule,
+  type CssTransformerPlugin,
+} from "@moyarich/css-expand-collapse";
+
+const margin = getShorthandModule("margin")!;
+
+const plugin: CssTransformerPlugin = {
+  name: "example-spacing",
+  shorthands: { "example-margin": margin },
+};
+
+const css = createCssTransformer({ plugins: [plugin] });
+css.expandShorthand("example-margin", "8px 16px");
+```
+
+Module access returns a defensive copy of its maps. Built-in handlers and shared helpers are available through the package root; avoid private imports. This example uses a custom property name for demonstration, not a standardized CSS shorthand.
+
+## Define your own rules
+
+A shorthand module contains a map of constituent names and their initial values. Expansion and collapse handlers are optional; a module can implement one direction, both or neither. Handlers receive a context for grammar matching and, during expansion, top-level whitespace and slash splitting. Return `null` rather than guessing at an unsafe transformation.
+
+Plugins can contribute property grammar predicates through their `grammars` field. These predicates apply only to the owning transformer; they do not modify the global CSSTree lexer. Use instance validation and context factories to access the same grammar as transformations.
+
+## Install and remove safely
+
+| API | Purpose |
+| --- | --- |
+| `registerShorthand(property, module)` | Register a definition manually |
+| `extendShorthand(property, fields)` | Add fields to an existing definition |
+| `unregisterShorthand(property)` | Clear registrations and restore a built-in, if present |
+| `addPlugin(plugin)` | Install named shorthand and grammar contributions |
+| `removePlugin(name)` | Remove a plugin and restore prior definitions |
+| `getShorthandModule(property)` | Inspect and reuse a defensive module copy |
+
+Use `{ override: true }` to replace an existing active definition or field. A plugin can declare `replaceRecognized` for recognized-only shorthands. Declare plugin dependencies with `requires: ["plugin-name"]` and install dependencies first. Removing a required plugin is rejected.
+
+Registration cannot change during a synchronous transformation or validation operation. Invalid definitions, cyclic constituent relationships and conflicting registrations are rejected.
+
+## Test your plugin
+
+Test each supported direction, instance isolation, invalid input, registration and removal. Compare original authored CSS and transformed CSS using native computed styles wherever all necessary properties are supported. Skipped browser tests are not evidence of equivalence. Keep experimental syntax explicitly opt-in.
+
+See [runtime architecture](../05-architecture/page.mdx) and [adding built-in shorthands](../06-shorthands/page.mdx) for the internal module design.
+
+[← Documentation](../page.mdx)

@@ -21,9 +21,33 @@ export type {
 } from "./types.js";
 
 export function createRegistry(modules: ShorthandModuleMap = SHORTHANDS) {
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+  function visit(property: string): void {
+    if (visiting.has(property)) throw new Error("Cyclic shorthand constituent: " + property);
+    if (visited.has(property)) return;
+    visiting.add(property);
+    const module = modules[property]!;
+    for (const child of module.longhands.keys()) {
+      if (Object.hasOwn(modules, child)) visit(child);
+    }
+    visiting.delete(property);
+    visited.add(property);
+  }
+  for (const [property, module] of Object.entries(modules)) {
+    if (!module || !(module.longhands instanceof Map) || (module.expand !== undefined && typeof module.expand !== "function") || (module.collapse !== undefined && typeof module.collapse !== "function")) throw new Error("Invalid shorthand module: " + property);
+    for (const [name, value] of module.longhands) {
+      if (!/^-?[a-z][a-z0-9-]*$/.test(name) || typeof value !== "string") throw new Error("Invalid constituent: " + name);
+    }
+    for (const name of [...(module.excludedLonghands ?? []), ...(module.resetOnlyLonghands ?? [])]) {
+      if (!module.longhands.has(name)) throw new Error("Unknown constituent: " + name);
+    }
+  }
+  for (const property of Object.keys(modules)) visit(property);
   const SHORTHAND_MODULES: ShorthandModuleMap = Object.freeze(Object.fromEntries(
     Object.entries(modules).map(([property, module]) => [property, {
       ...module,
+      resetOnlyLonghands: module.resetOnlyLonghands ? [...module.resetOnlyLonghands] : undefined,
       longhands: new Map(module.longhands),
       excludedLonghands: module.excludedLonghands ? [...module.excludedLonghands] : undefined,
       equivalentLonghandValues: module.equivalentLonghandValues ? new Map(module.equivalentLonghandValues) : undefined,

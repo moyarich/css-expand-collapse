@@ -4,15 +4,31 @@ Notable user-facing changes to `@moyarich/css-expand-collapse` are documented he
 
 ## Unreleased
 
-### Added
+### Customize CSS transformations
 
-- Expose directional shorthand capabilities, experimental metadata and reusable transformation factories, context helpers and module types.
+Create independent transformers that can use custom shorthand rules without changing the library's default behavior. Existing standalone functions remain available.
 
-- Recognize `line-clamp`, `-webkit-line-clamp`, `text-spacing`, `background-repeat`, `timeline-trigger`, `timeline-trigger-activation-range`, `timeline-trigger-active-range` and `event-trigger` in shorthand metadata without rewriting their values. Transformation support remains disabled for these properties.
+```ts
+import { createCssTransformer } from "@moyarich/css-expand-collapse";
 
-### Fixed
+const css = createCssTransformer();
+css.expandCss(".card { margin: 8px 16px; }");
+```
 
-- Preserve animation shorthand range reset semantics during expansion and collapse; recognize the draft-defined animation-trigger reset but temporarily exclude it from transformations due to native browser differences.
+- Install, inspect and remove named plugins, including plugins with declared dependencies.
+- Register custom shorthand definitions, extend existing rules or reuse built-in handlers with `getShorthandModule()`. Explicit permission is required to replace existing behavior.
+- Use the same configuration for CSS source, declaration objects, style declarations, layered values, validation and source maps.
+- Discover which properties can be expanded or collapsed independently. Invalid or conflicting registrations are rejected without changing the active configuration.
+
+### Recognize more CSS shorthands
+
+The library identifies the component properties of the following shorthands without automatically rewriting them: `background-repeat`, `line-clamp`, `-webkit-line-clamp`, `text-spacing`, `timeline-trigger`, `timeline-trigger-activation-range`, `timeline-trigger-active-range` and `event-trigger`.
+
+Their default transformations remain disabled where native equivalence has not been established. The optional `@moyarich/css-experimental-shorthands` package provides explicitly enabled experimental transformations.
+
+### Preserve animation behavior
+
+Expansion and collapse preserve animation range resets. The default transformer does not emit the draft-defined `animation-trigger` reset, because tested Chromium behavior preserves earlier triggers. Consumers who deliberately want the draft reset can enable the companion's `animationTriggerPlugin`. No runtime browser detection is performed.
 
 ## 0.1.2
 

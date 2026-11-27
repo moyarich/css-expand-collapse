@@ -30,6 +30,9 @@ export type ShorthandCollapser = (
 export interface ShorthandModule {
   readonly longhands: LonghandMap;
   readonly experimental?: boolean;
+  readonly category?: string;
+  /** Constituents reset by the shorthand but not assignable in its syntax. */
+  readonly resetOnlyLonghands?: readonly string[];
   /** Known constituents temporarily excluded from transformations. */
   readonly excludedLonghands?: readonly string[];
   readonly expand?: ShorthandExpander;

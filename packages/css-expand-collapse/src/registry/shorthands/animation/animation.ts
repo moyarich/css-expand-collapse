@@ -80,6 +80,7 @@ const expand: ShorthandExpander = (value, context) => {
 export default {
   longhands,
   excludedLonghands,
+  resetOnlyLonghands: ["animation-timeline", "animation-range-start", "animation-range-end", "animation-trigger"],
   safeToDropWhenFullyShadowed: false,
   expand,
   collapse(declarations, context) {

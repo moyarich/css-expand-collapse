@@ -3,6 +3,9 @@ import type { CustomPropertyMap } from "../custom-properties.js";
 export interface ValidationOptions {
   /** Known case-sensitive variable values. Missing variables remain indeterminate. */
   customProperties?: CustomPropertyMap;
+  /** Optional scoped grammar services. */
+  hasGrammar?: (property: string) => boolean;
+  matchProperty?: (property: string, value: string) => boolean;
 }
 
 export interface ValidationPosition {

@@ -2,7 +2,7 @@ import { expect } from "vitest";
 import { collapseCss, expandCss } from "../../src/index.js";
 
 /** Capture the browser's computed CSS for identical, isolated fixtures. */
-function computed(css: string, markup: string, selectors: string[]) {
+export function computed(css: string, markup: string, selectors: string[]) {
   const frame = document.createElement("iframe");
   frame.style.cssText = "position:absolute;width:800px;height:600px;border:0;visibility:hidden";
   document.body.append(frame);
