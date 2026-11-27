@@ -2,7 +2,7 @@
 
 Expand CSS shorthands into longhands and safely collapse compatible longhands back into shorthands.
 
-[Playground](https://moyarich.github.io/css-expand-collapse/) · [Source](https://github.com/moyarich/css-expand-collapse) · [Issues](https://github.com/moyarich/css-expand-collapse/issues) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/CHANGELOG.md)
+[Playground](https://moyarich.github.io/css-expand-collapse/) · [Source](https://github.com/moyarich/css-expand-collapse) · [Issues](https://github.com/moyarich/css-expand-collapse/issues) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/packages/css-expand-collapse/CHANGELOG.md)
 
 The package works with individual CSS properties, declaration maps, declaration fragments, full stylesheets, browser computed styles, Node.js, and Chrome extension contexts. It uses [CSSTree](https://github.com/csstree/csstree) for parsing, generation, and CSS grammar matching; shorthand transforms do not require browser CSSOM.
 
@@ -13,6 +13,7 @@ The package works with individual CSS properties, declaration maps, declaration 
 - Transform complete stylesheets, declaration fragments, declaration maps, or individual properties.
 - Resolve known custom properties conservatively while preserving authored `var()` references.
 - Use the same package from ESM, CommonJS, browsers, Node.js, and Manifest V3 extension contexts.
+- Customize shorthand rules with independent transformer instances and optional plugins.
 - Inspect and experiment with the API in the live playground.
 
 ## Install
@@ -58,6 +59,112 @@ collapseToShorthand("inset", {
 //   consumed: ["top", "right", "bottom", "left"]
 // }
 ```
+
+## Customize your transformer
+
+Use `createCssTransformer()` when you need your own configuration. Existing standalone functions still work without any changes.
+
+```ts
+import { createCssTransformer } from "@moyarich/css-expand-collapse";
+
+const css = createCssTransformer();
+
+css.expand({ margin: "8px 16px" });
+css.collapse({
+  "margin-top": "8px",
+  "margin-right": "16px",
+  "margin-bottom": "8px",
+  "margin-left": "16px",
+});
+// { margin: "8px 16px" }
+
+css.expandCss(".card { padding: 1rem; }");
+```
+
+Each instance has independent shorthand rules and value validation. Its configuration applies to individual properties, declaration objects, stylesheets, declaration fragments, style declarations, layered values, source maps and validation.
+
+### Optional experimental plugins
+
+Install the companion package only if you want to experiment with CSS features whose browser behavior is not yet interoperable:
+
+```sh
+npm install @moyarich/css-expand-collapse @moyarich/css-experimental-shorthands
+```
+
+```ts
+import { createCssTransformer } from "@moyarich/css-expand-collapse";
+import experimentalShorthands from "@moyarich/css-experimental-shorthands";
+
+const css = createCssTransformer({ plugins: [experimentalShorthands] });
+css.expandShorthand("background-repeat", "repeat-x");
+// declarations: { "background-repeat-x": "repeat", "background-repeat-y": "no-repeat" }
+```
+
+For selective registration, import `backgroundRepeatPlugin` instead of the default aggregate. Use `css.addPlugin(plugin)` to install a plugin later, and `css.removePlugin(plugin.name)` to remove it.
+
+### Website CSS versus experimental CSS
+
+For CSS taken from a website, start with the default transformer. Some draft properties behave differently in browsers. For example, tested Chromium behavior preserves an earlier animation trigger when an animation shorthand is applied, but the draft specifies a reset.
+
+```ts
+import { createCssTransformer } from "@moyarich/css-expand-collapse";
+import { animationTriggerPlugin } from "@moyarich/css-experimental-shorthands";
+
+const source = ".target{animation-trigger:--reveal play;animation:1s ease fade}";
+const compatible = createCssTransformer();
+const experimental = createCssTransformer();
+
+experimental.addPlugin(animationTriggerPlugin, { override: true });
+
+const preserved = compatible.expandCss(source);
+const reset = experimental.expandCss(source);
+```
+
+| Transformer | Earlier trigger |
+| --- | --- |
+| Default | Preserves the authored trigger |
+| Experimental | Emits `animation-trigger: none` |
+
+A later explicit trigger is preserved by both. The experimental reset is not part of the aggregate plugin because it changes existing behavior. No runtime browser detection is performed. See the [companion package](https://github.com/moyarich/css-expand-collapse/tree/main/packages/css-experimental-shorthands) for compatibility details and examples.
+
+### Manage custom rules and plugins
+
+A plugin is a named collection of shorthand rules and optional value validators. Install trusted application code explicitly; plugins are not discovered or loaded automatically.
+
+```ts
+const css = createCssTransformer({ plugins: [basePlugin] });
+css.addPlugin({ name: "extra", requires: [basePlugin.name] });
+css.hasPlugin("extra");
+css.getPlugin("extra");
+css.listPlugins();
+css.removePlugin("extra");
+```
+
+Here `basePlugin` is an already-defined plugin. Install dependencies before their dependents. Duplicate names, conflicting rules and missing dependencies are rejected. Removing a required plugin is rejected without changing the instance. Discovery returns read-only plugin information.
+
+| Method | Purpose |
+| --- | --- |
+| `registerShorthand(property, module)` | Register a custom definition |
+| `extendShorthand(property, fields)` | Add fields to an existing definition |
+| `unregisterShorthand(property)` | Clear registrations for that property and restore its built-in definition, if any |
+| `addPlugin(plugin)` | Install named shorthand and grammar contributions |
+| `removePlugin(name)` | Remove contributions and restore prior definitions |
+| `getShorthandModule(property)` | Get a defensive copy of a module |
+
+Replacing existing definitions or fields requires `{ override: true }`. Plugins may declare `replaceRecognized` for recognized-only rules. Unknown plugin removal returns `false`. Instance validation and context factories use registered grammar predicates, including resolved custom-property values where available; the global CSSTree lexer is not changed.
+
+### Reuse a built-in shorthand
+
+```ts
+import { createCssTransformer, getShorthandModule } from "@moyarich/css-expand-collapse";
+
+const margin = getShorthandModule("margin")!;
+const css = createCssTransformer();
+css.registerShorthand("example-margin", margin);
+css.expandShorthand("example-margin", "1px 2px");
+```
+
+Module maps are defensive copies. Registration changes during active synchronous transformations or validation are rejected. Metadata queries reflect the owning instance and distinguish direct, terminal and reset-only constituents from available transformation directions.
 
 ## Node.js
 
@@ -444,8 +551,8 @@ styleToDeclarations(computed);
 
 `splitCssLayers(value)` returns authored top-level layers with source offsets.
 `parseCssLayers(property, value)` also returns grammar diagnostics and expanded
-declarations (including defaults) when safe. It supports background, mask,
-animation and transition. Unresolved variables remain authored and do not
+declarations (including defaults) when safe. Built-in layered properties include background, mask,
+animation and transition; instance parsers also use registered grammar and modules. Unresolved variables remain authored and do not
 produce expanded declarations.
 
 ```ts
@@ -482,15 +589,6 @@ getLonghands("margin");
 getShorthands("margin-top");
 // includes "margin"
 ```
-
-## Newer shorthand coverage
-
-`white-space` expands the legacy aliases and supported collapse/wrap keyword
-combinations, including the CSS Text Level 4 trim reset. Explicit non-default
-trim values are not transformed yet. Browser support for trim is incomplete.
-Other candidates (line-clamp, text-spacing, background-repeat axis decomposition
-and animation-trigger) remain deferred until their grammar and reset semantics
-are verified.
 
 ## Notes
 
@@ -745,38 +843,25 @@ The same option works with declaration fragments. The upstream map must describe
 
 Transformation diagnostics include parser positions when CSSTree provides them. Map collapse identifies invalid or unresolved constituent values using the standalone validator; missing required constituents use `reason: "missing-longhands"`. Diagnostics describe attempted candidates, not an exhaustive browser cascade trace.
 
-## Emerging shorthand support
+## CSS compatibility
 
-| Property | Transformation status | Reason |
-| --- | --- | --- |
-| `white-space` | Supported subset | CSS Text 4 reset semantics; nondefault trim syntax is preserved unchanged. |
-| `line-clamp`, `-webkit-line-clamp` | Recognized, not transformed | Overflow 4 constituent support and legacy display/orientation behavior differ. |
-| `text-spacing` | Recognized, not transformed | Text 4 shorthand and constituent grammar are evolving; cross-browser equivalence not verified. |
-| `background-repeat` | Recognized, not transformed | Backgrounds 4 defines physical axis longhands, but emitting them without verified support is unsafe. |
-| `timeline-trigger` | Recognized, not transformed | Emerging animation trigger shorthand; constituent support not verified. |
-| `animation-trigger` | Reset-only longhand, excluded from transformations | Known constituent of `animation`, with initial value `none`. |
+The library distinguishes recognizing a shorthand from being able to safely expand or collapse it. Use `supportsExpand(property)` and `supportsCollapse(property)` to check available directions; `supportsTransform(property)` requires both. An available direction can still decline an unsafe value.
 
-Recognized-only entries return false from `supportsTransform` and preserve authored declarations. They intentionally expose no transformable longhands. See [CSS Text 4](https://www.w3.org/TR/css-text-4/), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/), [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), and [animation trigger guidance](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Animation_triggers).
+| Property | Default behavior |
+| --- | --- |
+| `white-space` | Supports legacy aliases and collapse/wrap combinations; non-default trim values remain authored. |
+| `background-repeat` | Recognized; physical X/Y decomposition available through the optional plugin. |
+| `line-clamp`, `-webkit-line-clamp` | Recognized; preserved because constituent and layout behavior differ. |
+| `text-spacing` | Recognized; preserved because shorthand and constituent support differs. |
+| `timeline-trigger`, `timeline-trigger-activation-range`, `timeline-trigger-active-range` | Recognized; preserved because range semantics and native support require further evidence. |
+| `event-trigger` | Recognized; preserved because native constituent support is not established. |
+| `animation-trigger` | Known reset-only longhand of `animation`, excluded from default rewrites. |
 
-The constituent audit exercises `text-spacing: normal`, `line-clamp: 3`, legacy `-webkit-line-clamp: 3`, and `background-repeat: repeat-x`. Browser tests record grammar recognition and support for each shorthand and its constituent values; computed-style comparisons run only when all constituents are supported. These probes are not a guarantee of general transformation support. The legacy line-clamp probe includes the required box orientation and display context.
+Recognized-only shorthands expose known constituent names and defaults, but do not authorize transformation or declaration consumption. Browser tests compare computed styles when the necessary syntax is supported; skipped comparisons do not establish equivalence.
 
-### Compatibility findings
+Animation expansion resets `animation-timeline` to `auto` and both animation range endpoints to `normal`, using single initial values even for multiple animation layers. The default does not emit the draft trigger reset; the separately opt-in plugin does. Background repeat overlap protection preserves authored declarations when background, repeat and axis properties interact.
 
-The [three-browser constituent audit](https://github.com/moyarich/css-expand-collapse/actions/runs/45751529376/job/139680207866) produced the following results for the specific values above:
-
-| Shorthand | Available shorthand grammar | Available constituent grammars | All values supported in Chromium / Firefox / WebKit |
-| --- | --- | --- | --- |
-| text-spacing | Unknown | 2 of 2 | No / No / No |
-| line-clamp | Known | 1 of 3 | No / No / No |
-| -webkit-line-clamp | Known | 1 of 3 | No / No / No |
-| background-repeat | Known | 0 of 2 | No / No / No |
-
-None of the four constituent equivalence comparisons ran because the complete browser support prerequisite was not satisfied. Keep these properties recognized-only; do not treat a skipped comparison as proof of equivalence. The audit is specific to the tested values and installed grammar/browser versions.
-
-### Animation trigger properties
-
-The [CSS Animation Triggers Level 1 draft](https://drafts.csswg.org/animation-triggers-1/) distinguishes the `animation-trigger` longhand from the `timeline-trigger` shorthand. The latter groups name, source, activation range and active range; both range properties are themselves shorthands for their start and end values. The draft also defines `event-trigger` as a shorthand for its name and source. All three additional shorthands are recognized-only. No speculative longhands are generated. Animation expansion resets `animation-timeline` to `auto` and both animation range endpoints to `normal`, using single initial values even for multiple animation layers. The [CSS Animation Triggers draft](https://drafts.csswg.org/animation-triggers-1/#animation-trigger) defines `animation-trigger` as reset-only with initial value `none`. Chromium's tested implementation preserves earlier triggers instead. The library retains this constituent for discovery but temporarily excludes it from expansion, collapse and cascade consumption. Browser tests compare the original authored CSS against transformed CSS in supporting engines. This compatibility compromise is not full draft compliance and may differ in browsers that implement the reset. See [#92](https://github.com/moyarich/css-expand-collapse/issues/92).
-
+See the [companion compatibility audit](https://github.com/moyarich/css-expand-collapse/blob/main/packages/css-experimental-shorthands/README.md#candidate-compatibility-audit), [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/), [CSS Text 4](https://drafts.csswg.org/css-text-4/) and [CSS Animation Triggers 1](https://drafts.csswg.org/animation-triggers-1/).
 
 ### Reusable transformation helpers
 
@@ -789,79 +874,4 @@ const expandGap = expandPair(new Map([["row-gap", "normal"], ["column-gap", "nor
 expandGap("1px 2px", createShorthandExpandContext());
 ```
 
-Directional queries report available operations, not guaranteed success for every value. `supportsTransform` requires both directions. Shared factories, top-level value splitters, grammar matching, constituent helpers and module/context types are available from the package root. Factory contexts currently use the default CSS grammar.
-
-## Transformer instances
-
-Create an independent declaration-map transformer with the built-in shorthand registry:
-
-```ts
-import { createCssTransformer } from "@moyarich/css-expand-collapse";
-
-const css = createCssTransformer();
-css.expand({ margin: "1px 2px" });
-css.collapse({ "margin-top": "1px", "margin-right": "2px", "margin-bottom": "1px", "margin-left": "2px" });
-```
-
-The existing top-level functions remain available. Instance methods also expose property-level expansion, collapse, and shorthand discovery.
-
-Register custom shorthand modules with `css.registerShorthand(property, module)`. Replacing a built-in requires `{ override: true }`; `css.unregisterShorthand(property)` restores the built-in or removes a custom entry. Registration is local to the instance.
-
-### Plugins
-
-A plugin is a named collection of shorthand modules and optional property grammar predicates. Grammar predicates are local to the transformer and receive resolved values when custom properties are available. They do not alter CSSTree’s global lexer or standalone validation.
-
-```ts
-const css = createCssTransformer({ plugins: [customPlugin] });
-css.addPlugin(anotherPlugin);
-```
-
-Duplicate plugin names and conflicting shorthand definitions are rejected. Runtime shorthand overrides may be explicitly enabled with `css.addPlugin(plugin, { override: true })`.
-
-### Emerging shorthand constituents
-
-The registry records draft-defined constituent names and initial values for background-repeat, line-clamp (including its legacy spelling), text-spacing, timeline-trigger and its two range shorthands, and event-trigger. These remain recognized-only. Draft metadata is not evidence of interoperable browser behavior. Logical repeat aliases, legacy clamp behavior and trigger range defaults require separate semantic verification before default transformations are enabled.
-
-References: [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/), [CSS Text 4](https://drafts.csswg.org/css-text-4/), [Animation Triggers 1](https://drafts.csswg.org/animation-triggers-1/).
-
-Instance transformers also support `expandCss`, `collapseCss`, `transformCss`, declaration fragments and both source-map APIs. Plugins may explicitly declare `replaceRecognized` for recognized-only shorthands without overriding active built-in transformations.
-
-Instance metadata discovery (`css.getShorthandMetadata(property)` and `css.listShorthands(filter)`) reflects the current registered modules and directional capabilities. Top-level discovery continues to describe built-ins.
-
-Remove a plugin with `css.removePlugin(name)`. This removes its shorthand and grammar contributions, revealing earlier registrations or built-in definitions while retaining later overrides. Removing an unknown plugin returns `false`. Direct `unregisterShorthand` clears the registration history for that property and restores the built-in if present.
-
-Background repeat overlap protection applies to declaration maps and stylesheet blocks, preserving authored declarations when repeat shorthands and physical or logical axes interact.
-
-### Plugin discovery and dependencies
-
-```ts
-const css = createCssTransformer({ plugins: [basePlugin] });
-css.addPlugin({ name: "extra", requires: [basePlugin.name] });
-css.hasPlugin("extra");
-css.getPlugin("extra");
-css.listPlugins();
-css.removePlugin("extra");
-```
-
-Plugin discovery returns frozen metadata, not executable handlers or mutable registry maps. Dependencies are explicitly installed by the consumer in order. Removing a required plugin throws before modifying the instance.
-
-Instance validation (`validateProperty`, `validateCss`, `validateDeclarations`) and context factories use the registered property predicates. `extendShorthand` adds missing fields; changing existing fields requires explicit override authorization. Metadata distinguishes direct and terminal constituents and reset-only constituents from active transformation capabilities.
-
-Instance `getStyleLonghands`, `collapseStyleDeclaration`, `collapseStyleDeclarations` and `parseCssLayers` use the same registered modules and grammar predicates as other instance operations. Standalone functions continue to use built-ins.
-
-### Reusing built-in modules
-
-```ts
-import { createCssTransformer, getShorthandModule } from "@moyarich/css-expand-collapse";
-
-const margin = getShorthandModule("margin")!;
-const css = createCssTransformer();
-css.registerShorthand("example-margin", margin);
-css.expandShorthand("example-margin", "1px 2px");
-```
-
-Module access returns a defensive copy; editing its maps cannot modify the registered definitions. Handler functions are trusted application code. Registration changes during synchronous transformation or validation callbacks are rejected to keep the operation consistent.
-
-For website CSS, use the default transformer to preserve the tested native animation-trigger behavior. The separately opt-in draft reset and side-by-side stylesheet examples are documented in [the experimental companion README](packages/css-experimental-shorthands/README.md#animation-trigger-reset).
-
-See the [candidate compatibility audit](packages/css-experimental-shorthands/README.md#candidate-compatibility-audit) for draft-defined constituent defaults, experimental plugin availability and reasons for deferring unsafe transformations.
+Directional queries report available operations, not guaranteed success for every value. `supportsTransform` requires both directions. Shared factories, top-level value splitters, grammar matching, constituent helpers and module/context types are available from the package root. Standalone factory contexts use the default CSS grammar; use instance context factories for registered grammar predicates.

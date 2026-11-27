@@ -1,6 +1,25 @@
-# Experimental CSS shorthands
+# @moyarich/css-experimental-shorthands
 
-Opt-in experimental plugin for @moyarich/css-expand-collapse. Not a guarantee of browser interoperability.
+Optional plugins for [@moyarich/css-expand-collapse](https://github.com/moyarich/css-expand-collapse). Choose experimental CSS transformations without changing the default transformer or other instances.
+
+**Use the core alone for ordinary website CSS.** Experimental output may differ from native browser behavior.
+
+## Install
+
+```sh
+npm install @moyarich/css-expand-collapse @moyarich/css-experimental-shorthands
+```
+
+Requires a compatible core release exposing transformer plugins and `getShorthandModule()`. The companion is not published yet; the install command applies once published.
+
+## Choose a plugin
+
+| Plugin | What it does | How to enable |
+| --- | --- | --- |
+| `backgroundRepeatPlugin` | Expands physical repeat axes and collapses compatible axis values | Aggregate or selective registration |
+| `animationTriggerPlugin` | Enables the draft-defined animation-trigger reset | Explicit runtime override |
+
+## Quick start
 
 ```ts
 import { createCssTransformer } from "@moyarich/css-expand-collapse";
@@ -8,9 +27,10 @@ import experimentalShorthands from "@moyarich/css-experimental-shorthands";
 
 const css = createCssTransformer({ plugins: [experimentalShorthands] });
 css.expandShorthand("background-repeat", "repeat-x");
+// declarations: { "background-repeat-x": "repeat", "background-repeat-y": "no-repeat" }
 ```
 
-The initial module implements physical background-repeat axes, single and paired keywords, aliases and comma-separated layers. Logical aliases, unresolved variables and unequal layer counts are not decomposed. Axis properties are draft-defined; support varies. Overlapping background and repeat-axis declarations are preserved conservatively in map and stylesheet transformations. Native equivalence is not guaranteed. No browser detection. Other emerging shorthands remain deferred except for the separately opt-in animation-trigger reset below.
+The aggregate plugin enables physical background-repeat axes, single and paired keywords, aliases and comma-separated layers. Logical aliases, unresolved variables and unequal layer counts are not decomposed. Axis properties are draft-defined; support varies. Overlapping background and repeat-axis declarations are preserved conservatively in map and stylesheet transformations. Native equivalence is not guaranteed. No browser detection. Other emerging shorthands remain deferred except for the separately opt-in animation-trigger reset below.
 
 ## Selective registration
 
@@ -19,6 +39,7 @@ import { createCssTransformer } from "@moyarich/css-expand-collapse";
 import { backgroundRepeatPlugin } from "@moyarich/css-experimental-shorthands";
 
 const css = createCssTransformer({ plugins: [backgroundRepeatPlugin] });
+css.listPlugins();
 css.removePlugin(backgroundRepeatPlugin.name);
 ```
 
@@ -82,7 +103,7 @@ Specification references: [CSS Backgrounds 4](https://drafts.csswg.org/css-backg
 
 The browser audit records CSS-tree validation and native support separately. Unsupported constituents are skipped rather than treated as equivalent. The physical-axis plugin has separate native round-trip and overlap tests; the animation-trigger plugin intentionally targets the draft reset rather than the observed Chromium behavior. No production browser detection is used.
 
-## Development
+## Development (for contributors)
 
 From the repository root, build the workspaces before checking the public package entry points:
 
@@ -94,7 +115,7 @@ npm test --workspace @moyarich/css-experimental-shorthands
 
 The companion package uses the core public API as a peer dependency. Its public exports test imports the built package by name, not a private source path. The package is not published yet.
 
-## Release
+## Release (for maintainers)
 
 Use the existing workspace release tooling. Publish a compatible core version before publishing the companion package.
 
