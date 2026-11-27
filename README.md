@@ -863,3 +863,5 @@ css.expandShorthand("example-margin", "1px 2px");
 Module access returns a defensive copy; editing its maps cannot modify the registered definitions. Handler functions are trusted application code. Registration changes during synchronous transformation or validation callbacks are rejected to keep the operation consistent.
 
 For website CSS, use the default transformer to preserve the tested native animation-trigger behavior. The separately opt-in draft reset and side-by-side stylesheet examples are documented in [the experimental companion README](packages/css-experimental-shorthands/README.md#animation-trigger-reset).
+
+See the [candidate compatibility audit](packages/css-experimental-shorthands/README.md#candidate-compatibility-audit) for draft-defined constituent defaults, experimental plugin availability and reasons for deferring unsafe transformations.

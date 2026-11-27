@@ -6,6 +6,8 @@ Notable user-facing changes to `@moyarich/css-expand-collapse` are documented he
 
 ### Added
 
+- Document the eight recognized-only shorthand candidates, their draft defaults and compatibility limits; add event-trigger constituent and experimental background-repeat browser audits.
+
 - Add isolated transformer instances, runtime shorthand registration and extensions, plugin management and dependencies, instance-scoped grammar predicates, metadata, validation, style and layer operations, and defensive public module access.
 
 - Expose directional shorthand capabilities, experimental metadata and reusable transformation factories, context helpers and module types.

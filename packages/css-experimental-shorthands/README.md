@@ -63,6 +63,25 @@ For the earlier-trigger scenario, the default expansion keeps the authored trigg
 
 These are transformation policies, not a promise of identical native behavior. Browser specs compare authored CSS to transformed CSS and report the observed trigger reset; unsupported syntax is skipped. Use the default for website CSS unless deliberately targeting the draft behavior.
 
+## Candidate compatibility audit
+
+The core recognizes all eight candidates but intentionally does not enable their transformations by default. Specification-defined constituents are not proof of native interoperability.
+
+| Candidate | Draft-defined constituents | Initial values | Policy and limitation |
+| --- | --- | --- | --- |
+| background-repeat | background-repeat-x, background-repeat-y | repeat, repeat | Physical-axis plugin available; logical aliases and overlapping declarations are preserved. Native axis support varies. |
+| line-clamp | max-lines, block-ellipsis, continue | auto, no-ellipsis, normal | Deferred: independently exposed longhands and fragmentation equivalence not established. |
+| -webkit-line-clamp | max-lines, block-ellipsis, continue | auto, no-ellipsis, normal | Deferred: legacy box display/orientation constraints require separate layout verification. |
+| text-spacing | text-spacing-trim, text-autospace | normal, normal | Deferred: shorthand/longhand grammar and native support differ; text-autospace-size is independent. |
+| timeline-trigger | timeline-trigger-name, timeline-trigger-source, activation and active range endpoints | none, auto, normal/normal, auto/auto | Deferred: nested range grammar and native support require verification. |
+| timeline-trigger-activation-range | timeline-trigger-activation-range-start, timeline-trigger-activation-range-end | normal, normal | Deferred: named ranges and omitted endpoint resolution. |
+| timeline-trigger-active-range | timeline-trigger-active-range-start, timeline-trigger-active-range-end | auto, auto | Deferred: contextual active range resolution. |
+| event-trigger | event-trigger-name, event-trigger-source | none, none | Deferred: event-function lists, enter/exit syntax and native support. |
+
+Specification references: [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/#background-repeat), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/#line-clamp), [CSS Text 4](https://drafts.csswg.org/css-text-4/#text-spacing), [CSS Animation Triggers 1](https://drafts.csswg.org/animation-triggers-1/). Drafts reviewed November 2026.
+
+The browser audit records CSS-tree validation and native support separately. Unsupported constituents are skipped rather than treated as equivalent. The physical-axis plugin has separate native round-trip and overlap tests; the animation-trigger plugin intentionally targets the draft reset rather than the observed Chromium behavior. No production browser detection is used.
+
 ## Development
 
 From the repository root, build the workspaces before checking the public package entry points:
