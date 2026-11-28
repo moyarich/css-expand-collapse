@@ -181,5 +181,3 @@ A shorthand may expose `equivalentLonghandValues` for alternate browser serializ
 Most simple modules can omit it. Set it to `false` when the shorthand has reset or cascade effects beyond the registered longhands. `css.ts` uses this to decide whether an earlier shorthand can be removed after a complete later longhand set is collapsed.
 
 For example, complex reset shorthands such as `background` remain conservative, while a shorthand whose registered longhands completely describe its effect can be safely replaced.
-
-[← Developer documentation](../page.mdx)
