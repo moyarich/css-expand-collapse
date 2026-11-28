@@ -4,6 +4,8 @@ Expand CSS shorthands into longhands and safely collapse compatible longhands ba
 
 [Playground](https://moyarich.github.io/css-expand-collapse/) · [Source](https://github.com/moyarich/css-expand-collapse) · [Issues](https://github.com/moyarich/css-expand-collapse/issues) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/packages/css-expand-collapse/CHANGELOG.md)
 
+Try the [online CSS converter and API playground](https://moyarich.github.io/css-expand-collapse/) without installing anything.
+
 The package works with individual CSS properties, declaration maps, declaration fragments, full stylesheets, browser computed styles, Node.js, and Chrome extension contexts. It uses [CSSTree](https://github.com/csstree/csstree) for parsing, generation, and CSS grammar matching; shorthand transforms do not require browser CSSOM.
 
 ## Highlights
@@ -168,7 +170,7 @@ Module maps are defensive copies. Registration changes during active synchronous
 
 ### Create your own plugin
 
-Plugins are part of the public API, not a repository development feature. You can define one in your application or publish it as a separate package.
+Define a plugin in your application or publish it as a separate package.
 
 #### 1. Define a shorthand and its grammar
 
@@ -796,7 +798,7 @@ The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such
 
 ## Playground
 
-Try the package interactively in the [playground](https://moyarich.github.io/css-expand-collapse/). Browse searchable API and developer documentation, experiment with CSS conversions, and run API examples using resizable editor and output panes.
+Try the package interactively in the [playground](https://moyarich.github.io/css-expand-collapse/). Browse searchable API examples and CSS conversion guides, experiment with CSS conversions, and run API examples using resizable editor and output panes.
 
 ## Declaration grouping
 
@@ -921,7 +923,7 @@ Directional queries report available operations, not guaranteed success for ever
 
 ## Resources
 
-[Playground](https://moyarich.github.io/css-expand-collapse/) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/packages/css-expand-collapse/CHANGELOG.md) · [Developer documentation](https://github.com/moyarich/css-expand-collapse/tree/main/docs) · [Report an issue](https://github.com/moyarich/css-expand-collapse/issues)
+[Playground](https://moyarich.github.io/css-expand-collapse/) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/packages/css-expand-collapse/CHANGELOG.md) · [Usage guides](https://github.com/moyarich/css-expand-collapse/tree/main/docs) · [Contributing](https://github.com/moyarich/css-expand-collapse/blob/main/CONTRIBUTING.md) · [Report an issue](https://github.com/moyarich/css-expand-collapse/issues)
 
 ## License
 
