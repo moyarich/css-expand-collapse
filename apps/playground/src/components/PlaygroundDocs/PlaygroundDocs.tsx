@@ -275,7 +275,7 @@ function RegisteredPage({
 }) {
   const { pathname } = useLocation();
   const example = entries.find((page) => page.path === pathname);
-  if (!example) return <DefaultPage />;
+  if (!example) return <p role="status">Page not found.</p>;
   const Page = example.Component;
   return (
     <article id="overview" className="example-documentation">
