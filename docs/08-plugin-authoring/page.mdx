@@ -31,6 +31,115 @@ css.expandShorthand("example-margin", "8px 16px");
 
 Module access returns a defensive copy of its maps. Built-in handlers and shared helpers are available through the package root; avoid private imports. This example uses a custom property name for demonstration, not a standardized CSS shorthand.
 
+## Build a complete plugin
+
+Plugins are part of the public API, not a repository development feature. You can define one in your application or publish it as a separate package.
+
+### 1. Define a shorthand and its grammar
+
+This example creates an application-specific `example-gap` alias for the standard `row-gap` and `column-gap` properties. One value applies to both axes; two values specify the row and column separately. The alias is illustrative, not native CSS: expand it before sending CSS to a browser.
+
+```ts
+import {
+  createCssTransformer,
+  expandPair,
+  collapsePair,
+  matchProperty,
+  splitTopLevelWhitespace,
+  type CssTransformerPlugin,
+  type ShorthandModule,
+} from "@moyarich/css-expand-collapse";
+
+const longhands = new Map([
+  ["row-gap", "normal"],
+  ["column-gap", "normal"],
+]);
+
+const exampleGap: ShorthandModule = {
+  longhands,
+  expand: expandPair(longhands),
+  collapse: collapsePair(longhands),
+};
+
+export const exampleGapPlugin: CssTransformerPlugin = {
+  name: "example-gap-plugin",
+  shorthands: { "example-gap": exampleGap },
+  grammars: {
+    "example-gap": (value) => {
+      const tokens = splitTopLevelWhitespace(value);
+      return (
+        tokens.length >= 1 &&
+        tokens.length <= 2 &&
+        matchProperty("row-gap", tokens[0]!) &&
+        matchProperty("column-gap", tokens[1] ?? tokens[0]!)
+      );
+    },
+  },
+};
+
+const css = createCssTransformer({ plugins: [exampleGapPlugin] });
+
+css.expandShorthand("example-gap", "8px 16px")?.declarations;
+// { "row-gap": "8px", "column-gap": "16px" }
+
+css.collapseToShorthand("example-gap", {
+  "row-gap": "8px",
+  "column-gap": "16px",
+})?.value;
+// "8px 16px"
+
+css.validateProperty("example-gap", "red").valid;
+// false
+```
+
+The `longhands` map defines constituent order and initial values. The public pair factories handle one- and two-value transformations. The grammar predicate validates the application-specific shorthand, while the expansion helper validates its constituents using the owning transformer's context.
+
+### 2. Write custom transformation handlers when needed
+
+Instead of factories, a module can provide its own functions. For example, replace the two handler fields in the module above with these:
+
+```ts
+const customGap: ShorthandModule = {
+  longhands,
+  expand(value, context) {
+    const tokens = context.splitWhitespace(value);
+    if (tokens.length < 1 || tokens.length > 2) return null;
+    const row = tokens[0]!;
+    const column = tokens[1] ?? row;
+    if (
+      !context.matchProperty("row-gap", row) ||
+      !context.matchProperty("column-gap", column)
+    ) return null;
+    return { "row-gap": row, "column-gap": column };
+  },
+  collapse(values, context) {
+    const row = values["row-gap"];
+    const column = values["column-gap"];
+    if (!row || !column) return null;
+    const candidate = row === column ? row : row + " " + column;
+    return context.matchProperty("example-gap", candidate) ? candidate : null;
+  },
+};
+```
+
+Expansion returns a declaration object or `null`; collapse returns a shorthand value or `null`. Return `null` when a safe rewrite cannot be determined. Use the supplied context so validation respects the instance's configured grammar. An omitted handler means that direction is unavailable.
+
+### 3. Install, inspect and remove
+
+```ts
+const css = createCssTransformer();
+
+css.addPlugin(exampleGapPlugin);
+css.hasPlugin(exampleGapPlugin.name); // true
+css.listPlugins();
+css.removePlugin(exampleGapPlugin.name);
+css.hasPlugin(exampleGapPlugin.name); // false
+```
+
+Other transformers are unaffected. To distribute the plugin, export its typed plugin object from your own package and declare the compatible core package as a peer dependency. Consumers install your package and pass the exported plugin to their transformer.
+
+Replacing a recognized-only definition requires declaring it in `replaceRecognized`; replacing an active built-in requires `css.addPlugin(plugin, { override: true })`. Named dependencies can be declared with `requires` and must be installed first. Test valid and invalid values, both directions, CSS-wide values, removal and isolation. For real CSS properties, verify computed-style equivalence before claiming browser compatibility.
+
 ## Define your own rules
 
 A shorthand module contains a map of constituent names and their initial values. Expansion and collapse handlers are optional; a module can implement one direction, both or neither. Handlers receive a context for grammar matching and, during expansion, top-level whitespace and slash splitting. Return `null` rather than guessing at an unsafe transformation.
@@ -57,4 +166,3 @@ Registration cannot change during a synchronous transformation or validation ope
 Test each supported direction, instance isolation, invalid input, registration and removal. Compare original authored CSS and transformed CSS using native computed styles wherever all necessary properties are supported. Skipped browser tests are not evidence of equivalence. Keep experimental syntax explicitly opt-in.
 
 See [runtime architecture](../05-architecture/page.mdx) and [adding built-in shorthands](../06-shorthands/page.mdx) for the internal module design.
-

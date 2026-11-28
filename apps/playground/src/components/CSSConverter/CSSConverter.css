@@ -572,3 +572,15 @@
 .css-converter .editor-surface {
   border-radius: 0 0 8px 8px;
 }
+
+.css-converter .experimental-option { display: flex; align-items: flex-start; gap: .5rem; font-size: .8rem; margin-block: .7rem; }
+.css-converter .experimental-option input { margin-top: .15rem; }
+.css-converter .result-actions { gap: .5rem; flex-wrap: wrap; justify-content: flex-end; }
+.css-converter .converter-reset { border: 1px solid #d6deeb; border-radius: 8px; background: transparent; padding: 8px 10px; cursor: pointer; font: inherit; font-size: .82rem; }
+.css-converter .converter-diagnostics { margin-top: 16px; border: 1px solid #dde4ef; padding: 16px; border-radius: 12px; }
+.css-converter .converter-diagnostics h3 { margin: 0 0 8px; font-size: 1rem; }
+.css-converter .converter-diagnostics p { margin: 0; font-size: .85rem; }
+.css-converter .converter-diagnostic { padding-block: 6px; font-size: .8rem; overflow-wrap: anywhere; }
+.css-converter .converter-diagnostic strong { text-transform: capitalize; }
+@media (max-width: 880px) { .css-converter .settings-sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .css-converter .settings-sidebar { display: block; } }

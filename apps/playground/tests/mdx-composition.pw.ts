@@ -17,7 +17,9 @@ for (const entry of ["/", "/#/converter"]) {
   test(`opens the default converter from ${entry}`, async ({ page }) => {
     await page.goto(entry);
     await expect(page).toHaveURL(/#\/converter\/expand\/text-decoration$/);
-    await expect(page.getByRole("textbox", { name: "Shorthand CSS input" })).toBeVisible();
+    await expect(
+      page.getByRole("textbox", { name: "Shorthand CSS input" }),
+    ).toBeVisible();
   });
 }
 

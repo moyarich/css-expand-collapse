@@ -187,21 +187,8 @@ export function PlaygroundDocs() {
             <span>/</span> <strong>{current?.label ?? "Overview"}</strong>
           </div>
           <Routes>
-            <Route
-              path="/"
-              element={<DefaultPage />}
-            />
-            <Route
-              path="/converter"
-              element={
-                <Navigate
-                  to={
-                    defaultPath ?? "/"
-                  }
-                  replace
-                />
-              }
-            />
+            <Route path="/" element={<DefaultPage />} />
+            <Route path="/converter" element={<DefaultPage />} />
             <Route
               path="/api"
               element={
@@ -263,7 +250,11 @@ export function PlaygroundDocs() {
 }
 
 function DefaultPage() {
-  return defaultPath ? <Navigate to={defaultPath} replace /> : <p>No examples available.</p>;
+  return defaultPath ? (
+    <Navigate to={defaultPath} replace />
+  ) : (
+    <p>No examples available.</p>
+  );
 }
 
 type RegisteredPageEntry = (typeof pages)[number];
