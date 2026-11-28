@@ -25,9 +25,9 @@ test("playground sidebar navigation resolves to the selected documentation page"
 
   for (const { href, label } of links) {
     expect(href, `Missing route for ${label}`).toMatch(/^#\//);
-    const target = page.locator(".sidebar-collection a").filter({ hasText: label }).first();
+    const target = page.locator(".sidebar-collection a[href]").filter({ hasText: label }).and(page.locator(`a[href="${href}"]`)).first();
     const group = target.locator("xpath=ancestor::details[1]");
-    if (!(await group.getAttribute("open"))) {
+    if (!(await group.evaluate((element: HTMLDetailsElement) => element.open))) {
       await group.locator("summary").click();
     }
     await target.click();
