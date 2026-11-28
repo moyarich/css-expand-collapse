@@ -103,26 +103,144 @@ Specification references: [CSS Backgrounds 4](https://drafts.csswg.org/css-backg
 
 The browser audit records CSS-tree validation and native support separately. Unsupported constituents are skipped rather than treated as equivalent. The physical-axis plugin has separate native round-trip and overlap tests; the animation-trigger plugin intentionally targets the draft reset rather than the observed Chromium behavior. No production browser detection is used.
 
-## Development (for contributors)
+## Build your own plugin
 
-From the repository root, build the workspaces before checking the public package entry points:
+You can create independent plugins using the core package's public types and factories; importing this companion is not required.
 
-```sh
-npm run build
-npm run typecheck --workspace @moyarich/css-experimental-shorthands
-npm test --workspace @moyarich/css-experimental-shorthands
+Plugins are part of the public API, not a repository development feature. You can define one in your application or publish it as a separate package.
+
+### 1. Define a shorthand and its grammar
+
+This example creates an application-specific `example-gap` alias for the standard `row-gap` and `column-gap` properties. One value applies to both axes; two values specify the row and column separately. The alias is illustrative, not native CSS: expand it before sending CSS to a browser.
+
+```ts
+import {
+  createCssTransformer,
+  expandPair,
+  collapsePair,
+  matchProperty,
+  splitTopLevelWhitespace,
+  type CssTransformerPlugin,
+  type ShorthandModule,
+} from "@moyarich/css-expand-collapse";
+
+const longhands = new Map([
+  ["row-gap", "normal"],
+  ["column-gap", "normal"],
+]);
+
+const exampleGap: ShorthandModule = {
+  longhands,
+  expand: expandPair(longhands),
+  collapse: collapsePair(longhands),
+};
+
+export const exampleGapPlugin: CssTransformerPlugin = {
+  name: "example-gap-plugin",
+  shorthands: { "example-gap": exampleGap },
+  grammars: {
+    "example-gap": (value) => {
+      const tokens = splitTopLevelWhitespace(value);
+      return (
+        tokens.length >= 1 &&
+        tokens.length <= 2 &&
+        matchProperty("row-gap", tokens[0]!) &&
+        matchProperty("column-gap", tokens[1] ?? tokens[0]!)
+      );
+    },
+  },
+};
+
+const css = createCssTransformer({ plugins: [exampleGapPlugin] });
+
+css.expandShorthand("example-gap", "8px 16px")?.declarations;
+// { "row-gap": "8px", "column-gap": "16px" }
+
+css.collapseToShorthand("example-gap", {
+  "row-gap": "8px",
+  "column-gap": "16px",
+})?.value;
+// "8px 16px"
+
+css.validateProperty("example-gap", "red").valid;
+// false
 ```
 
-The companion package uses the core public API as a peer dependency. Its public exports test imports the built package by name, not a private source path. The package is not published yet.
+The `longhands` map defines constituent order and initial values. The public pair factories handle one- and two-value transformations. The grammar predicate validates the application-specific shorthand, while the expansion helper validates its constituents using the owning transformer's context.
 
-## Release (for maintainers)
+### 2. Write custom transformation handlers when needed
 
-Use the existing workspace release tooling. Publish a compatible core version before publishing the companion package.
+Instead of factories, a module can provide its own functions. For example, replace the two handler fields in the module above with these:
 
-```sh
-npm run pack:verify -- css-experimental-shorthands
-PACKAGE_DIRECTORY=packages/css-experimental-shorthands npm run release:check
-npm run release -- css-experimental-shorthands=patch --dry-run
+```ts
+const customGap: ShorthandModule = {
+  longhands,
+  expand(value, context) {
+    const tokens = context.splitWhitespace(value);
+    if (tokens.length < 1 || tokens.length > 2) return null;
+    const row = tokens[0]!;
+    const column = tokens[1] ?? row;
+    if (
+      !context.matchProperty("row-gap", row) ||
+      !context.matchProperty("column-gap", column)
+    ) return null;
+    return { "row-gap": row, "column-gap": column };
+  },
+  collapse(values, context) {
+    const row = values["row-gap"];
+    const column = values["column-gap"];
+    if (!row || !column) return null;
+    const candidate = row === column ? row : row + " " + column;
+    return context.matchProperty("example-gap", candidate) ? candidate : null;
+  },
+};
 ```
 
-The package archive includes the public distribution files, README, license and changelog. The release validator builds local peer dependencies before checking the selected package. Actual publication requires the configured registry credentials and an explicit publish command.
+Expansion returns a declaration object or `null`; collapse returns a shorthand value or `null`. Return `null` when a safe rewrite cannot be determined. Use the supplied context so validation respects the instance's configured grammar. An omitted handler means that direction is unavailable.
+
+### 3. Install, inspect and remove
+
+```ts
+const css = createCssTransformer();
+
+css.addPlugin(exampleGapPlugin);
+css.hasPlugin(exampleGapPlugin.name); // true
+css.listPlugins();
+css.removePlugin(exampleGapPlugin.name);
+css.hasPlugin(exampleGapPlugin.name); // false
+```
+
+Other transformers are unaffected. To distribute the plugin, export its typed plugin object from your own package and declare the compatible core package as a peer dependency. Consumers install your package and pass the exported plugin to their transformer.
+
+Replacing a recognized-only definition requires declaring it in `replaceRecognized`; replacing an active built-in requires `css.addPlugin(plugin, { override: true })`. Named dependencies can be declared with `requires` and must be installed first. Test valid and invalid values, both directions, CSS-wide values, removal and isolation. For real CSS properties, verify computed-style equivalence before claiming browser compatibility.
+
+
+
+### Reuse an experimental module
+
+The companion exposes its modules separately so you can build your own named plugin without copying their implementation:
+
+```ts
+import { createCssTransformer, type CssTransformerPlugin } from "@moyarich/css-expand-collapse";
+import { backgroundRepeat, backgroundRepeatGrammars } from "@moyarich/css-experimental-shorthands";
+
+const repeatPlugin: CssTransformerPlugin = {
+  name: "my-repeat-plugin",
+  shorthands: { "background-repeat": backgroundRepeat },
+  grammars: backgroundRepeatGrammars,
+  replaceRecognized: ["background-repeat"],
+};
+
+const css = createCssTransformer({ plugins: [repeatPlugin] });
+css.expandShorthand("background-repeat", "repeat-x");
+```
+
+This retains the experimental module's limitations. Install either this custom plugin or the supplied background-repeat plugin, not both.
+
+## Resources
+
+[Core documentation](https://github.com/moyarich/css-expand-collapse#readme) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/packages/css-experimental-shorthands/CHANGELOG.md) · [Developer documentation](https://github.com/moyarich/css-expand-collapse/tree/main/docs) · [Report an issue](https://github.com/moyarich/css-expand-collapse/issues)
+
+## License
+
+MIT

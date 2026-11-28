@@ -25,6 +25,16 @@ css.expandCss(".card { margin: 8px 16px; }");
 
 Each instance uses its own configuration for property values, declaration objects, stylesheets, declaration fragments, computed-style declarations, layered values, validation and source maps.
 
+## Try the playground
+
+The CSS converter lets you switch between expansion and collapse, choose stylesheet or declaration input, and turn experimental behavior on or off without changing the original source. Use the reverse conversion action to explicitly move the output back into the input.
+
+<CustomBlock type="warning" title="Experimental transformations">
+For ordinary website CSS, leave experimental options disabled. Draft output may change computed styles in browsers.
+</CustomBlock>
+
+<CSSConverter source={".target{animation-trigger:--reveal play;animation:1s ease fade}"} initialMode="expand" />
+
 ## Choose an experimental plugin
 
 The optional companion package provides transformations for CSS features whose draft definitions and browser behavior may differ. Install it alongside a compatible core release once published.

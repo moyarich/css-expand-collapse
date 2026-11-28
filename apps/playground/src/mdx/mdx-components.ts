@@ -1,3 +1,4 @@
+import { CustomBlock } from "../components/ui/CustomBlock";
 import { ExampleSource } from "./ExamplePlayground";
 import { APIPlayground } from "../components/APIPlayground";
 import { CSSConverter } from "../components/CSSConverter";
@@ -10,6 +11,7 @@ import type { MDXComponents } from "mdx/types";
 export const mdxComponents: MDXComponents = {
   ...icons,
   Outline,
+  CustomBlock,
   CodeGroup,
   CodeTab,
   pre: CodeBlock,

@@ -166,6 +166,115 @@ css.expandShorthand("example-margin", "1px 2px");
 
 Module maps are defensive copies. Registration changes during active synchronous transformations or validation are rejected. Metadata queries reflect the owning instance and distinguish direct, terminal and reset-only constituents from available transformation directions.
 
+### Create your own plugin
+
+Plugins are part of the public API, not a repository development feature. You can define one in your application or publish it as a separate package.
+
+#### 1. Define a shorthand and its grammar
+
+This example creates an application-specific `example-gap` alias for the standard `row-gap` and `column-gap` properties. One value applies to both axes; two values specify the row and column separately. The alias is illustrative, not native CSS: expand it before sending CSS to a browser.
+
+```ts
+import {
+  createCssTransformer,
+  expandPair,
+  collapsePair,
+  matchProperty,
+  splitTopLevelWhitespace,
+  type CssTransformerPlugin,
+  type ShorthandModule,
+} from "@moyarich/css-expand-collapse";
+
+const longhands = new Map([
+  ["row-gap", "normal"],
+  ["column-gap", "normal"],
+]);
+
+const exampleGap: ShorthandModule = {
+  longhands,
+  expand: expandPair(longhands),
+  collapse: collapsePair(longhands),
+};
+
+export const exampleGapPlugin: CssTransformerPlugin = {
+  name: "example-gap-plugin",
+  shorthands: { "example-gap": exampleGap },
+  grammars: {
+    "example-gap": (value) => {
+      const tokens = splitTopLevelWhitespace(value);
+      return (
+        tokens.length >= 1 &&
+        tokens.length <= 2 &&
+        matchProperty("row-gap", tokens[0]!) &&
+        matchProperty("column-gap", tokens[1] ?? tokens[0]!)
+      );
+    },
+  },
+};
+
+const css = createCssTransformer({ plugins: [exampleGapPlugin] });
+
+css.expandShorthand("example-gap", "8px 16px")?.declarations;
+// { "row-gap": "8px", "column-gap": "16px" }
+
+css.collapseToShorthand("example-gap", {
+  "row-gap": "8px",
+  "column-gap": "16px",
+})?.value;
+// "8px 16px"
+
+css.validateProperty("example-gap", "red").valid;
+// false
+```
+
+The `longhands` map defines constituent order and initial values. The public pair factories handle one- and two-value transformations. The grammar predicate validates the application-specific shorthand, while the expansion helper validates its constituents using the owning transformer's context.
+
+#### 2. Write custom transformation handlers when needed
+
+Instead of factories, a module can provide its own functions. For example, replace the two handler fields in the module above with these:
+
+```ts
+const customGap: ShorthandModule = {
+  longhands,
+  expand(value, context) {
+    const tokens = context.splitWhitespace(value);
+    if (tokens.length < 1 || tokens.length > 2) return null;
+    const row = tokens[0]!;
+    const column = tokens[1] ?? row;
+    if (
+      !context.matchProperty("row-gap", row) ||
+      !context.matchProperty("column-gap", column)
+    ) return null;
+    return { "row-gap": row, "column-gap": column };
+  },
+  collapse(values, context) {
+    const row = values["row-gap"];
+    const column = values["column-gap"];
+    if (!row || !column) return null;
+    const candidate = row === column ? row : row + " " + column;
+    return context.matchProperty("example-gap", candidate) ? candidate : null;
+  },
+};
+```
+
+Expansion returns a declaration object or `null`; collapse returns a shorthand value or `null`. Return `null` when a safe rewrite cannot be determined. Use the supplied context so validation respects the instance's configured grammar. An omitted handler means that direction is unavailable.
+
+#### 3. Install, inspect and remove
+
+```ts
+const css = createCssTransformer();
+
+css.addPlugin(exampleGapPlugin);
+css.hasPlugin(exampleGapPlugin.name); // true
+css.listPlugins();
+css.removePlugin(exampleGapPlugin.name);
+css.hasPlugin(exampleGapPlugin.name); // false
+```
+
+Other transformers are unaffected. To distribute the plugin, export its typed plugin object from your own package and declare the compatible core package as a peer dependency. Consumers install your package and pass the exported plugin to their transformer.
+
+Replacing a recognized-only definition requires declaring it in `replaceRecognized`; replacing an active built-in requires `css.addPlugin(plugin, { override: true })`. Named dependencies can be declared with `requires` and must be installed first. Test valid and invalid values, both directions, CSS-wide values, removal and isolation. For real CSS properties, verify computed-style equivalence before claiming browser compatibility.
+
 ## Node.js
 
 ES modules:
@@ -689,72 +798,6 @@ The package also exports `SHORTHAND_PROPERTIES` and public TypeScript types such
 
 Try the package interactively in the [playground](https://moyarich.github.io/css-expand-collapse/). Browse searchable API and developer documentation, experiment with CSS conversions, and run API examples using resizable editor and output panes.
 
-## Benchmarks
-
-Run the opt-in transformation benchmarks with
-`npm run bench --workspace @moyarich/css-expand-collapse`.
-See the library's `bench/README.md` for workloads and comparison methodology.
-
-## Package development
-
-From the repository root:
-
-```bash
-npm ci
-npm run typecheck
-npm test
-npm run build:lib
-npm run release:check
-```
-
-`npm run release:check` runs release validation and verifies a real temporary npm archive without publishing. Run `npm run pack:verify` separately to inspect the library archive, export targets, required documentation and absence of build source maps. The verifier requires the system `tar` command and reports archive size. Consumer installation checks remain separate.
-
-### Workspace release CLI
-
-The repository exposes `workspace-release` through the root package `bin` field. With `fzf` installed, running it without arguments opens the interactive release flow:
-
-```bash
-workspace-release
-```
-
-Choose the workspace, choose a calculated SemVer change, review the release plan, and confirm.
-
-You can also select the package first:
-
-```bash
-workspace-release css-expand-collapse
-```
-
-For a deterministic release, provide the version directly:
-
-```bash
-workspace-release css-expand-collapse=patch
-workspace-release css-expand-collapse=minor
-workspace-release css-expand-collapse=1.0.0
-```
-
-Preview a release without modifying files, committing, or tagging:
-
-```bash
-workspace-release css-expand-collapse=minor --dry-run
-```
-
-Browse the calculated SemVer choices without changing anything:
-
-```bash
-workspace-release css-expand-collapse --explain
-```
-
-The same arguments can be passed through npm:
-
-```bash
-npm run release -- css-expand-collapse=minor --dry-run
-```
-
-## License
-
-MIT
-
 ## Declaration grouping
 
 `formatDeclarations(css, { groupBy: "family" })` adds a separator between adjacent property families. Use `groupBy: "side"` to group adjacent physical directional properties. Both modes preserve declaration order, duplicate declarations and priorities; they never sort declarations across groups.
@@ -875,3 +918,11 @@ expandGap("1px 2px", createShorthandExpandContext());
 ```
 
 Directional queries report available operations, not guaranteed success for every value. `supportsTransform` requires both directions. Shared factories, top-level value splitters, grammar matching, constituent helpers and module/context types are available from the package root. Standalone factory contexts use the default CSS grammar; use instance context factories for registered grammar predicates.
+
+## Resources
+
+[Playground](https://moyarich.github.io/css-expand-collapse/) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/packages/css-expand-collapse/CHANGELOG.md) · [Developer documentation](https://github.com/moyarich/css-expand-collapse/tree/main/docs) · [Report an issue](https://github.com/moyarich/css-expand-collapse/issues)
+
+## License
+
+MIT
