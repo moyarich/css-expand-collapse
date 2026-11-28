@@ -101,13 +101,13 @@ The core recognizes all eight candidates but intentionally does not enable their
 
 Specification references: [CSS Backgrounds 4](https://drafts.csswg.org/css-backgrounds-4/#background-repeat), [CSS Overflow 4](https://drafts.csswg.org/css-overflow-4/#line-clamp), [CSS Text 4](https://drafts.csswg.org/css-text-4/#text-spacing), [CSS Animation Triggers 1](https://drafts.csswg.org/animation-triggers-1/). Drafts reviewed November 2026.
 
-The browser audit records CSS-tree validation and native support separately. Unsupported constituents are skipped rather than treated as equivalent. The physical-axis plugin has separate native round-trip and overlap tests; the animation-trigger plugin intentionally targets the draft reset rather than the observed Chromium behavior. No production browser detection is used.
+Grammar validation does not guarantee native browser support or equivalent computed styles. The animation-trigger plugin targets the draft reset rather than observed Chromium behavior. No runtime browser detection is used.
 
 ## Build your own plugin
 
 You can create independent plugins using the core package's public types and factories; importing this companion is not required.
 
-Plugins are part of the public API, not a repository development feature. You can define one in your application or publish it as a separate package.
+Define a plugin in your application or publish it as a separate package.
 
 ### 1. Define a shorthand and its grammar
 
@@ -239,7 +239,7 @@ This retains the experimental module's limitations. Install either this custom p
 
 ## Resources
 
-[Core documentation](https://github.com/moyarich/css-expand-collapse#readme) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/packages/css-experimental-shorthands/CHANGELOG.md) · [Developer documentation](https://github.com/moyarich/css-expand-collapse/tree/main/docs) · [Report an issue](https://github.com/moyarich/css-expand-collapse/issues)
+[Core documentation](https://github.com/moyarich/css-expand-collapse#readme) · [Changelog](https://github.com/moyarich/css-expand-collapse/blob/main/packages/css-experimental-shorthands/CHANGELOG.md) · [Custom plugin guide](https://github.com/moyarich/css-expand-collapse/blob/main/docs/08-plugin-authoring/page.mdx) · [Report an issue](https://github.com/moyarich/css-expand-collapse/issues)
 
 ## License
 
