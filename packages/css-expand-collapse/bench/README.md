@@ -1,56 +1,6 @@
-# Transformation benchmarks
+# Transformation performance
 
-From the repository root:
-
-```sh
-npm ci
-npm run bench --workspace @moyarich/css-expand-collapse
-```
-
-The suite measures warmed-up runtime and throughput for repeated and rotating
-property inputs, declaration maps, fragments, and a 40-rule stylesheet. It
-also includes custom-property resolution, invalid/unsupported input, and layered
-values. Inputs are prepared outside measured callbacks.
-
-Record Node and OS versions, CPU, dependency lockfile revision, and Vitest
-output when comparing results. Run multiple times on the same machine.
-Measure first-call latency in a fresh process separately; the Vitest warm-up
-suite does not represent cold-start latency. Measure peak and retained memory
-in isolated processes before deciding whether a bounded cache is worthwhile.
-
-No cache is introduced by this change. Benchmarks are opt-in and do not impose
-timing thresholds on CI. See the verified observational baseline below.
-
-## Cold-start and memory profile
-
-Build and run the isolated process profiler from the root:
-
-```sh
-npm run bench:profile --workspace @moyarich/css-expand-collapse
-```
-
-For machine-readable output without npm build logs:
-
-```sh
-npm run build:lib
-BENCH_ITERATIONS=1000 BENCH_SAMPLES=5 node packages/css-expand-collapse/bench/profile.mjs > performance-profile.json
-```
-
-The opt-in Library performance profile GitHub Actions workflow also uploads the
-JSON report. Each sample uses a fresh Node process with explicit garbage
-collection enabled. Cold measurements distinguish module import from first
-transformation. Warm measurements exclude warm-up, memory sampling and forced
-GC from the reported operation time. The report includes throughput, sampled
-heap/RSS peaks, process high-water RSS, retained memory after GC, and environment
-metadata. Sampled peaks are lower bounds, not exact allocation peaks; RSS
-includes Node and dependency overhead. Negative retained deltas are possible.
-
-Compare repeated and unique workloads on the same machine across multiple
-samples. These results are observational, not CI pass/fail thresholds. A cache
-is deliberately deferred until measured gains outweigh memory and correctness
-costs. The measured baseline below records a successful profiler run.
-
-The profiler also covers map and fragment expansion/collapse, invalid values and unsupported shorthands. Benchmark-related pull requests run a small observational profile (100 iterations, three processes per mode and workload) and publish raw JSON in the job log and artifact. Manual runs retain configurable iterations and sample counts. No timing threshold or caching is introduced.
+The following measurements provide an indication of the library's runtime and memory use for individual CSS properties, declaration maps, fragments and stylesheets. Your results will depend on your environment and workload. See [benchmark methodology](CONTRIBUTING.md) to reproduce the measurements.
 
 ## Verified observational baseline
 
@@ -72,4 +22,4 @@ The profiler also covers map and fragment expansion/collapse, invalid values and
 | expand-sheet | 63.45 | 43.95 | 91 | 3696 | 235.6 |
 | collapse-sheet | 64.31 | 44.16 | 106 | -8720 | 239.0 |
 
-Repeated shorthand throughput was about 3.1% above unique inputs without caching; this is not a measurement of cache speedup. Retained heap deltas are small relative to process RSS and include runtime noise. Stylesheet operations have higher peak RSS and substantially lower throughput than single declarations. Defer caching: there is no demonstrated cache benefit, and cache key completeness, custom-property case sensitivity, bounded retention and mutable result isolation would add complexity. Since no cache was introduced, no cached/uncached parity claim is made. Future optimization proposals should compare an actual bounded implementation against this uncached baseline on the same environment with larger samples. These observations are not CI thresholds.
+Repeated shorthand throughput was about 3.1% above unique inputs without caching; this is not a measurement of cache speedup. Retained heap deltas include runtime noise. Stylesheet operations have higher peak RSS and lower throughput than single declarations. These measurements are observational, not performance guarantees or CI thresholds.
