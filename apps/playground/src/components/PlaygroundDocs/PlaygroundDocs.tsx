@@ -33,6 +33,11 @@ function headingText(headings: TocEntry[]): string {
 // MoyaForge visibility: hidden is routable but absent from menus; disabled is excluded.
 const pages = registeredPages.filter((page) => page.navigation !== "disabled");
 const collections = [...new Set(pages.map((page) => page.collection))];
+const defaultPath =
+  pages.find((page) => page.path === "/converter/expand/text-decoration")?.path ??
+  pages.find((page) => page.kind === "converter")?.path ??
+  pages.find((page) => page.kind === "api")?.path ??
+  pages[0]?.path;
 
 export function PlaygroundDocs() {
   const { pathname } = useLocation();
@@ -184,16 +189,15 @@ export function PlaygroundDocs() {
           <Routes>
             <Route
               path="/"
-              element={<Navigate to={pages[0]?.path ?? "/docs"} replace />}
+              element={<DefaultPage />}
             />
+            <Route path="/docs" element={<DefaultPage />} />
             <Route
               path="/converter"
               element={
                 <Navigate
                   to={
-                    pages.find((page) => page.kind === "converter")?.path ??
-                    pages[0]?.path ??
-                    "/docs"
+                    defaultPath ?? "/"
                   }
                   replace
                 />
@@ -205,8 +209,7 @@ export function PlaygroundDocs() {
                 <Navigate
                   to={
                     pages.find((page) => page.kind === "api")?.path ??
-                    pages[0]?.path ??
-                    "/docs"
+                    defaultPath ?? "/"
                   }
                   replace
                 />
@@ -260,6 +263,10 @@ export function PlaygroundDocs() {
   );
 }
 
+function DefaultPage() {
+  return defaultPath ? <Navigate to={defaultPath} replace /> : <p>No examples available.</p>;
+}
+
 type RegisteredPageEntry = (typeof pages)[number];
 
 function RegisteredPage({
@@ -269,7 +276,7 @@ function RegisteredPage({
 }) {
   const { pathname } = useLocation();
   const example = entries.find((page) => page.path === pathname);
-  if (!example) return <Navigate to={entries[0]?.path ?? "/docs"} replace />;
+  if (!example) return <DefaultPage />;
   const Page = example.Component;
   return (
     <article id="overview" className="example-documentation">
