@@ -191,7 +191,6 @@ export function PlaygroundDocs() {
               path="/"
               element={<DefaultPage />}
             />
-            <Route path="/docs" element={<DefaultPage />} />
             <Route
               path="/converter"
               element={
