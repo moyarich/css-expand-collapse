@@ -13,7 +13,7 @@ test("MDX page imports local CSS and positions its playground", async ({
   await expect(page.locator(".css-converter .workspace")).toHaveCount(1);
 });
 
-for (const entry of ["/", "/#/docs", "/#/converter"]) {
+for (const entry of ["/", "/#/converter"]) {
   test(`opens the default converter from ${entry}`, async ({ page }) => {
     await page.goto(entry);
     await expect(page).toHaveURL(/#\/converter\/expand\/text-decoration$/);
@@ -25,4 +25,14 @@ test("individual documentation pages remain accessible", async ({ page }) => {
   await page.goto("/#/docs/01-development");
   await expect(page).toHaveURL(/#\/docs\/01-development$/);
   await expect(page.locator(".example-documentation h1")).toBeVisible();
+});
+
+test("legacy /docs links keep the documentation landing page", async ({ page }) => {
+  await page.goto("/#/docs");
+  await expect(page).toHaveURL(/#\/docs$/);
+  await expect(page.locator(".example-documentation h1")).toHaveText("Documentation");
+  await expect(page.getByRole("link", { name: "Development", exact: true }).first()).toBeVisible();
+  await page.reload();
+  await expect(page).toHaveURL(/#\/docs$/);
+  await expect(page.locator(".example-documentation h1")).toHaveText("Documentation");
 });
