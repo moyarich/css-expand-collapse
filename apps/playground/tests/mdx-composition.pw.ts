@@ -27,12 +27,13 @@ test("individual documentation pages remain accessible", async ({ page }) => {
   await expect(page.locator(".example-documentation h1")).toBeVisible();
 });
 
-test("legacy /docs links keep the documentation landing page", async ({ page }) => {
+test("legacy /docs URL is not redirected to the converter", async ({ page }) => {
   await page.goto("/#/docs");
-  await expect(page).toHaveURL(/#\/docs$/);
-  await expect(page.locator(".example-documentation h1")).toHaveText("Documentation");
-  await expect(page.getByRole("link", { name: "Development", exact: true }).first()).toBeVisible();
+  await expect(page).toHaveURL(/#\\/docs$/);
+  await expect(page.getByRole("status")).toHaveText("Page not found.");
+  await expect(page.locator(".css-converter")).toHaveCount(0);
+
   await page.reload();
-  await expect(page).toHaveURL(/#\/docs$/);
-  await expect(page.locator(".example-documentation h1")).toHaveText("Documentation");
+  await expect(page).toHaveURL(/#\\/docs$/);
+  await expect(page.getByRole("status")).toHaveText("Page not found.");
 });
