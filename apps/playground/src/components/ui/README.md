@@ -1,7 +1,5 @@
-# Shared UI source
+# Shared playground UI
 
-CopyButton and CustomBlock originate from the MoyaForge shadcn-compatible registry (commit `ca5c97d`). The registry source is vendored under `src/components/ui` without a runtime dependency on MoyaForge.
+The playground uses CopyButton and CustomBlock from the MoyaForge component registry. These are private playground components, not exports of the CSS library.
 
-Registry items: `copy-button` and `custom-block`. Source: https://github.com/moyarich/moyaforge/tree/ca5c97d88c7cd56b232367716330091c0aadf88d/packages/moyaforge-ui/src/components
-
-Preserve upstream license and notices when updating these components.
+[Explore MoyaForge](https://github.com/moyarich/moyaforge) or see [upstream attribution and maintenance](CONTRIBUTING.md).
